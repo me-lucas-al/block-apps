@@ -1,6 +1,6 @@
 import { type DayOfWeek, toggleDay } from '@block-apps/core'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
-import { colors } from '../../theme'
+import { colors } from '../../../theme'
 
 const DAYS: ReadonlyArray<{ day: DayOfWeek; label: string }> = [
   { day: 0, label: 'D' },

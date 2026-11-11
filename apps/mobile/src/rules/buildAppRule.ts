@@ -3,6 +3,7 @@ import {
   type BlockMode,
   type ScheduleError,
   type TimeWindow,
+  parseAppIdentifier,
   validateSchedule,
 } from '@block-apps/core'
 
@@ -12,7 +13,7 @@ export type AppRuleDraft = {
   windows: readonly TimeWindow[]
 }
 
-export type AppRuleError = 'no-app' | Exclude<ScheduleError, null>
+export type AppRuleError = 'no-app' | 'invalid-app' | Exclude<ScheduleError, null>
 
 export type BuildAppRuleResult =
   | { rule: NewBlockRule; error: null }
@@ -21,13 +22,16 @@ export type BuildAppRuleResult =
 export function buildAppRule(draft: AppRuleDraft): BuildAppRuleResult {
   if (!draft.packageName) return { rule: null, error: 'no-app' }
 
+  const packageName = parseAppIdentifier(draft.packageName)
+  if (!packageName) return { rule: null, error: 'invalid-app' }
+
   const scheduleError = validateSchedule(draft.mode, draft.windows)
   if (scheduleError) return { rule: null, error: scheduleError }
 
   const windows = draft.mode === 'schedule' ? draft.windows : []
   const rule = {
     targetType: 'app',
-    target: draft.packageName,
+    target: packageName,
     mode: draft.mode,
     windows,
   } satisfies NewBlockRule

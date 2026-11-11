@@ -1,6 +1,6 @@
 import type { AppOption } from '@block-apps/core'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
-import { colors } from '../../theme'
+import { colors } from '../../../theme'
 
 type AppOptionRowProps = {
   option: AppOption
@@ -10,14 +10,14 @@ type AppOptionRowProps = {
 
 function describeOption(option: AppOption): string {
   if (option.installed) return 'Instalado'
-  return option.suggested ? 'Sugestão, não instalado' : 'Não instalado'
+  return option.suggested ? 'Sugestão, não instalado' : 'Pacote não verificado'
 }
 
 export function AppOptionRow({ option, selected, onSelect }: AppOptionRowProps) {
   return (
     <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ selected }}
+      accessibilityRole="radio"
+      accessibilityState={{ checked: selected }}
       onPress={() => onSelect(option.packageName)}
       style={[styles.row, selected && styles.selected]}
     >

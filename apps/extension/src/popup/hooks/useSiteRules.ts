@@ -18,6 +18,7 @@ export function useSiteRules() {
   const [error, setError] = useState<string | null>(null)
 
   const reload = useCallback(async () => {
+    await ruleRepository.applyDueChanges()
     setRules(onlySites(await ruleRepository.list()))
     setPendingChanges(await ruleRepository.listPendingChanges())
   }, [ruleRepository])
@@ -27,8 +28,8 @@ export function useSiteRules() {
       try {
         setError(null)
         await action()
-        await reload()
         background.notifyRulesChanged()
+        await reload()
       } catch (failure) {
         setError(messageOf(failure))
       }
@@ -37,7 +38,7 @@ export function useSiteRules() {
   )
 
   useEffect(() => {
-    void reload().catch((failure) => setError(messageOf(failure)))
+    void reload().catch((failure: unknown) => setError(messageOf(failure)))
   }, [reload])
 
   return {

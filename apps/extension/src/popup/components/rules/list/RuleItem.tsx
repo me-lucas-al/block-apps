@@ -1,4 +1,4 @@
-import { type BlockRule, type PendingRuleChange, formatRemaining } from '@block-apps/core'
+import { type BlockRule, type PendingRuleChange, describePendingChange } from '@block-apps/core'
 
 type RuleItemProps = {
   rule: BlockRule
@@ -13,18 +13,13 @@ function describeRule(rule: BlockRule): string {
   return `Permitido em ${count} ${count === 1 ? 'horário' : 'horários'}`
 }
 
-function describePending(change: PendingRuleChange): string {
-  const label = change.kind === 'delete' ? 'Remoção' : 'Alteração'
-  return `${label} em ${formatRemaining(change.effectiveAt, new Date())}`
-}
-
 export function RuleItem({ rule, pendingChange, onRemove, onCancel }: RuleItemProps) {
   return (
     <li className="rule">
       <div>
         <strong>{rule.target}</strong>
         <p className="hint">{describeRule(rule)}</p>
-        {pendingChange && <p className="hint">{describePending(pendingChange)}</p>}
+        {pendingChange && <p className="hint">{describePendingChange(pendingChange, new Date())}</p>}
       </div>
       {pendingChange ? (
         <button type="button" className="secondary" onClick={() => onCancel(pendingChange.id)}>

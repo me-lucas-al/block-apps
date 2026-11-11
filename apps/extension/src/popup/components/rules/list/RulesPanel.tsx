@@ -3,7 +3,7 @@ import { RuleForm } from '../form/RuleForm'
 import { RuleItem } from './RuleItem'
 
 export function RulesPanel() {
-  const { rules, error, create, remove } = useSiteRules()
+  const { rules, pendingChanges, error, create, requestRemoval, cancelChange } = useSiteRules()
 
   return (
     <section className="stack">
@@ -14,7 +14,13 @@ export function RulesPanel() {
       ) : (
         <ul className="rules">
           {rules.map((rule) => (
-            <RuleItem key={rule.id} rule={rule} onRemove={remove} />
+            <RuleItem
+              key={rule.id}
+              rule={rule}
+              pendingChange={pendingChanges.find((change) => change.ruleId === rule.id)}
+              onRemove={requestRemoval}
+              onCancel={cancelChange}
+            />
           ))}
         </ul>
       )}

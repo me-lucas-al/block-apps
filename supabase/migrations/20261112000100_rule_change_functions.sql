@@ -1,38 +1,3 @@
-alter table public.profiles
-  add column cooldown_hours integer not null default 24
-  check (cooldown_hours between 0 and 168);
-
-create table public.rule_change_requests (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
-  rule_id uuid not null unique references public.block_rules (id) on delete cascade,
-  kind text not null check (kind in ('update', 'delete')),
-  mode text check (mode in ('always', 'schedule')),
-  windows jsonb,
-  effective_at timestamptz not null,
-  created_at timestamptz not null default now(),
-  check (kind = 'delete' or (mode is not null and windows is not null))
-);
-
-create index rule_change_requests_user_id_idx on public.rule_change_requests (user_id);
-create index rule_change_requests_effective_at_idx on public.rule_change_requests (effective_at);
-
-alter table public.rule_change_requests enable row level security;
-
-create policy rule_change_requests_select_own on public.rule_change_requests
-  for select using (user_id = auth.uid());
-
-create policy rule_change_requests_cancel_own on public.rule_change_requests
-  for delete using (user_id = auth.uid());
-
-drop policy block_rules_owner_all on public.block_rules;
-
-create policy block_rules_select_own on public.block_rules
-  for select using (user_id = auth.uid());
-
-create policy block_rules_insert_own on public.block_rules
-  for insert with check (user_id = auth.uid());
-
 create function public.require_authenticated_user() returns uuid
 language plpgsql stable as $$
 begin
@@ -44,7 +9,7 @@ end;
 $$;
 
 create function public.assert_rule_owner(p_rule_id uuid, p_user_id uuid) returns void
-language plpgsql security definer set search_path = public as $$
+language plpgsql stable set search_path = public as $$
 begin
   if not exists (
     select 1 from public.block_rules where id = p_rule_id and user_id = p_user_id
@@ -55,7 +20,7 @@ end;
 $$;
 
 create function public.cooldown_deadline(p_user_id uuid) returns timestamptz
-language sql stable security definer set search_path = public as $$
+language sql stable set search_path = public as $$
   select now() + make_interval(hours => cooldown_hours)
   from public.profiles
   where id = p_user_id
@@ -92,6 +57,14 @@ language sql security definer set search_path = public as $$
   select public.apply_due_changes_for(public.require_authenticated_user())
 $$;
 
+create function public.apply_all_due_rule_changes() returns integer
+language sql security definer set search_path = public as $$
+  select coalesce(sum(public.apply_due_changes_for(user_id)), 0)::integer
+  from (
+    select distinct user_id from public.rule_change_requests where effective_at <= now()
+  ) due
+$$;
+
 create function public.request_rule_update(
   p_rule_id uuid,
   p_mode text,
@@ -103,6 +76,12 @@ declare
   v_request public.rule_change_requests;
 begin
   perform public.assert_rule_owner(p_rule_id, v_user_id);
+
+  select * into v_request from public.rule_change_requests where rule_id = p_rule_id;
+  if found and v_request.kind = 'update'
+    and v_request.mode = p_mode and v_request.windows = p_windows then
+    return v_request;
+  end if;
 
   insert into public.rule_change_requests (user_id, rule_id, kind, mode, windows, effective_at)
   values (v_user_id, p_rule_id, 'update', p_mode, p_windows, public.cooldown_deadline(v_user_id))
@@ -128,6 +107,11 @@ declare
 begin
   perform public.assert_rule_owner(p_rule_id, v_user_id);
 
+  select * into v_request from public.rule_change_requests where rule_id = p_rule_id;
+  if found and v_request.kind = 'delete' then
+    return v_request;
+  end if;
+
   insert into public.rule_change_requests (user_id, rule_id, kind, mode, windows, effective_at)
   values (v_user_id, p_rule_id, 'delete', null, null, public.cooldown_deadline(v_user_id))
   on conflict (rule_id) do update
@@ -142,24 +126,3 @@ begin
   return v_request;
 end;
 $$;
-
-create function public.apply_all_due_rule_changes() returns integer
-language sql security definer set search_path = public as $$
-  select coalesce(sum(public.apply_due_changes_for(user_id)), 0)::integer
-  from (
-    select distinct user_id from public.rule_change_requests where effective_at <= now()
-  ) due
-$$;
-
-revoke all on function public.require_authenticated_user() from public, anon, authenticated;
-revoke all on function public.assert_rule_owner(uuid, uuid) from public, anon, authenticated;
-revoke all on function public.cooldown_deadline(uuid) from public, anon, authenticated;
-revoke all on function public.apply_due_changes_for(uuid) from public, anon, authenticated;
-revoke all on function public.apply_all_due_rule_changes() from public, anon, authenticated;
-revoke all on function public.apply_due_rule_changes() from public, anon;
-revoke all on function public.request_rule_update(uuid, text, jsonb) from public, anon;
-revoke all on function public.request_rule_removal(uuid) from public, anon;
-
-grant execute on function public.apply_due_rule_changes() to authenticated;
-grant execute on function public.request_rule_update(uuid, text, jsonb) to authenticated;
-grant execute on function public.request_rule_removal(uuid) to authenticated;

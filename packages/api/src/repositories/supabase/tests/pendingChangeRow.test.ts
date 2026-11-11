@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { type PendingChangeRow, firstRow, toPendingChange } from '../pendingChangeRow'
+import { type PendingChangeRow, readPendingChange, toPendingChange } from '../pendingChangeRow'
 
 const row: PendingChangeRow = {
   id: 'change-1',
@@ -28,8 +28,12 @@ describe('pendingChangeRow mapping', () => {
     expect(removal.windows).toBeNull()
   })
 
-  it('reads a single row whether PostgREST returns an object or an array', () => {
-    expect(firstRow(row)).toBe(row)
-    expect(firstRow([row])).toBe(row)
+  it('reads the change whether PostgREST returns an object or an array', () => {
+    expect(readPendingChange(row)).toEqual(toPendingChange(row))
+    expect(readPendingChange([row])).toEqual(toPendingChange(row))
+  })
+
+  it('fails with a clear error when no row comes back', () => {
+    expect(() => readPendingChange([])).toThrow('Supabase returned no pending change')
   })
 })

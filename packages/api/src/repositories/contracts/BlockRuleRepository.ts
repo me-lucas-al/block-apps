@@ -7,7 +7,7 @@ export type Unsubscribe = () => void
 export interface BlockRuleRepository {
   list(): Promise<BlockRule[]>
   create(rule: NewBlockRule): Promise<BlockRule>
-  requestUpdate(rule: BlockRule): Promise<PendingRuleChange>
+  applyDueChanges(): Promise<void>
   requestRemoval(ruleId: string): Promise<PendingRuleChange>
   listPendingChanges(): Promise<PendingRuleChange[]>
   cancelPendingChange(changeId: string): Promise<void>

@@ -7,6 +7,7 @@ export type {
   TargetType,
   TimeWindow,
 } from './rules/types'
+export { describePendingChange } from './cooldown/describePendingChange'
 export { formatRemaining, remainingMinutes } from './cooldown/remainingTime'
 export { isBlockedNow } from './schedule/evaluation/isBlockedNow'
 export { isWithinWindow } from './schedule/evaluation/isWithinWindow'

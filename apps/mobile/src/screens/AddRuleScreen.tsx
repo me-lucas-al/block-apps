@@ -11,12 +11,12 @@ import { ruleErrorMessage } from '../rules/ruleErrorMessage'
 import { colors } from '../theme'
 
 type AddRuleScreenProps = {
-  apps: readonly InstalledApp[]
+  installedApps: readonly InstalledApp[]
   onSubmit: (rule: NewBlockRule) => Promise<void>
   onCancel: () => void
 }
 
-export function AddRuleScreen({ apps, onSubmit, onCancel }: AddRuleScreenProps) {
+export function AddRuleScreen({ installedApps, onSubmit, onCancel }: AddRuleScreenProps) {
   const [packageName, setPackageName] = useState<string | null>(null)
   const [mode, setMode] = useState<BlockMode>('always')
   const [windows, setWindows] = useState<TimeWindow[]>([])
@@ -26,15 +26,23 @@ export function AddRuleScreen({ apps, onSubmit, onCancel }: AddRuleScreenProps) 
     const result = buildAppRule({ packageName, mode, windows })
     if (!result.rule) return setError(ruleErrorMessage(result.error))
 
-    setError(null)
-    await onSubmit(result.rule)
-    onCancel()
+    try {
+      setError(null)
+      await onSubmit(result.rule)
+      onCancel()
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : 'Erro inesperado')
+    }
   }
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Bloquear app</Text>
-      <AppPicker apps={apps} selectedPackage={packageName} onSelect={setPackageName} />
+      <AppPicker
+        installedApps={installedApps}
+        selectedPackage={packageName}
+        onSelect={setPackageName}
+      />
       <View style={styles.modes}>
         <Button label="Sempre" variant={mode === 'always' ? 'primary' : 'secondary'}
           onPress={() => setMode('always')} />

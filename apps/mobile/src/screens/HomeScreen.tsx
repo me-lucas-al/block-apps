@@ -1,3 +1,4 @@
+import { POPULAR_ANDROID_APPS, buildAppLabeler } from '@block-apps/core'
 import { useState } from 'react'
 import { FlatList, StyleSheet, Text, View } from 'react-native'
 import { ProtectionStatus } from '../components/protection/ProtectionStatus'
@@ -20,11 +21,12 @@ export function HomeScreen({ email }: HomeScreenProps) {
   const [adding, setAdding] = useState(false)
 
   if (adding) {
-    return <AddRuleScreen apps={apps} onSubmit={create} onCancel={() => setAdding(false)} />
+    return (
+      <AddRuleScreen installedApps={apps} onSubmit={create} onCancel={() => setAdding(false)} />
+    )
   }
 
-  const labelFor = (packageName: string) =>
-    apps.find((app) => app.packageName === packageName)?.label ?? packageName
+  const labelFor = buildAppLabeler(apps, POPULAR_ANDROID_APPS)
 
   return (
     <View style={styles.container}>

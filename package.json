@@ -1,6 +1,7 @@
 {
   "name": "block-apps",
   "private": true,
+  "packageManager": "pnpm@12.10.1",
   "type": "module",
   "scripts": {
     "test": "pnpm -r test",

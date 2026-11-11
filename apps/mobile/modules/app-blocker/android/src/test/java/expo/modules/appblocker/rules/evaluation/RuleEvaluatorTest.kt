@@ -1,4 +1,7 @@
-package expo.modules.appblocker.rules
+package expo.modules.appblocker.rules.evaluation
+
+import expo.modules.appblocker.rules.model.NativeRule
+import expo.modules.appblocker.rules.model.TimeWindow
 
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue

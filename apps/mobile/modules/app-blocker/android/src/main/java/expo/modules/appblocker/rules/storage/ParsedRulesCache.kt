@@ -1,4 +1,6 @@
-package expo.modules.appblocker.rules
+package expo.modules.appblocker.rules.storage
+
+import expo.modules.appblocker.rules.model.NativeRule
 
 internal object ParsedRulesCache {
   private var lastJson: String? = null

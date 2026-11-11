@@ -1,6 +1,7 @@
-package expo.modules.appblocker.rules
+package expo.modules.appblocker.rules.storage
 
 import android.content.Context
+import expo.modules.appblocker.rules.model.NativeRule
 
 class RuleStore(context: Context) {
   private val preferences =

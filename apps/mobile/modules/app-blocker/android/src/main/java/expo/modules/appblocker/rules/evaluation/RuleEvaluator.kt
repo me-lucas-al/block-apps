@@ -1,4 +1,7 @@
-package expo.modules.appblocker.rules
+package expo.modules.appblocker.rules.evaluation
+
+import expo.modules.appblocker.rules.model.NativeRule
+import expo.modules.appblocker.rules.model.TimeWindow
 
 object RuleEvaluator {
   fun isBlocked(rule: NativeRule, dayOfWeek: Int, minuteOfDay: Int): Boolean {

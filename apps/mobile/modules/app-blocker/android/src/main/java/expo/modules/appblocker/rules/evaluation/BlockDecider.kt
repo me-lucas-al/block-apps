@@ -1,5 +1,6 @@
-package expo.modules.appblocker.rules
+package expo.modules.appblocker.rules.evaluation
 
+import expo.modules.appblocker.rules.storage.RuleStore
 import java.util.Calendar
 
 class BlockDecider(

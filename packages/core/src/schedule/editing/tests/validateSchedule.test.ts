@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { TimeWindow } from '../../rules/types'
+import type { TimeWindow } from '../../../rules/types'
 import { validateSchedule } from '../validateSchedule'
 
 const validWindow: TimeWindow = { days: [1], start: '18:00', end: '20:00' }

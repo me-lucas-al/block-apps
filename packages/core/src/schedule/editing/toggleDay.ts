@@ -1,4 +1,4 @@
-import type { DayOfWeek } from '../rules/types'
+import type { DayOfWeek } from '../../rules/types'
 
 export function toggleDay(
   days: readonly DayOfWeek[],

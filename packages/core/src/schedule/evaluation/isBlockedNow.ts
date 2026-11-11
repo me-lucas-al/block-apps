@@ -1,4 +1,4 @@
-import type { BlockRule } from '../rules/types'
+import type { BlockRule } from '../../rules/types'
 import { isWithinWindow } from './isWithinWindow'
 
 export function isBlockedNow(rule: BlockRule, now: Date): boolean {

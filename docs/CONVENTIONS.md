@@ -14,7 +14,7 @@ Regras valem para TypeScript, Kotlin e Swift. As referências vêm da documenta�
 
 ```
 packages/
-  core/src/        rules/, schedule/{evaluation,editing}/, cooldown/, sites/
+  core/src/        rules/, schedule/{evaluation,editing}/, cooldown/, apps/{catalog,search}/, sites/
   api/src/         auth/, repositories/{contracts,supabase}/
   database/src/    harness/ (Postgres em memória), tests/ (RLS e cooldown)
 supabase/

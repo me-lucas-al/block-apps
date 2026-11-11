@@ -1,5 +1,5 @@
 import type { NewBlockRule } from '@block-apps/api'
-import type { BlockRule } from '@block-apps/core'
+import type { BlockRule, PendingRuleChange } from '@block-apps/core'
 import { useCallback, useEffect, useState } from 'react'
 import { useServices } from '../services/ServicesContext'
 
@@ -14,12 +14,14 @@ function messageOf(failure: unknown): string {
 export function useAppRules() {
   const { ruleRepository, rulesSync } = useServices()
   const [rules, setRules] = useState<BlockRule[]>([])
+  const [pendingChanges, setPendingChanges] = useState<PendingRuleChange[]>([])
   const [error, setError] = useState<string | null>(null)
 
   const reload = useCallback(async () => {
     try {
       setError(null)
       setRules(onlyApps(await ruleRepository.list()))
+      setPendingChanges(await ruleRepository.listPendingChanges())
       await rulesSync.sync()
     } catch (failure) {
       setError(messageOf(failure))
@@ -36,10 +38,15 @@ export function useAppRules() {
     await reload()
   }
 
-  const remove = async (ruleId: string) => {
-    await ruleRepository.remove(ruleId)
+  const requestRemoval = async (ruleId: string) => {
+    await ruleRepository.requestRemoval(ruleId)
     await reload()
   }
 
-  return { rules, error, create, remove }
+  const cancelChange = async (changeId: string) => {
+    await ruleRepository.cancelPendingChange(changeId)
+    await reload()
+  }
+
+  return { rules, pendingChanges, error, create, requestRemoval, cancelChange }
 }

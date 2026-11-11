@@ -1,3 +1,5 @@
+export type { AuthService } from './auth/AuthService'
+export { SupabaseAuthService } from './auth/SupabaseAuthService'
 export type {
   BlockRuleRepository,
   NewBlockRule,

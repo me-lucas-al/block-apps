@@ -1,5 +1,5 @@
 import { type BlockRule, isBlockedNow } from '@block-apps/core'
-import type { RedirectRule } from '../ports/DynamicRulesPort'
+import type { RedirectRule } from '../ports/browser/DynamicRulesPort'
 
 const MAIN_FRAME_PRIORITY = 1
 

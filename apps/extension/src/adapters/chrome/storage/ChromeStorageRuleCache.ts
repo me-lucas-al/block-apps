@@ -1,5 +1,5 @@
 import type { BlockRule } from '@block-apps/core'
-import type { RuleCache } from '../../ports/RuleCache'
+import type { RuleCache } from '../../../ports/data/RuleCache'
 
 const STORAGE_KEY = 'blockRules'
 

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { WindowEditor } from './WindowEditor'
 import { buildSiteRule } from './buildSiteRule'
+import { ruleErrorMessage } from './ruleErrorMessage'
 
 type RuleFormProps = {
   onSubmit: (rule: NewBlockRule) => Promise<void>
@@ -18,7 +19,7 @@ export function RuleForm({ onSubmit }: RuleFormProps) {
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
     const result = buildSiteRule({ target, mode, windows })
-    if (!result.rule) return setError(result.error)
+    if (!result.rule) return setError(ruleErrorMessage(result.error))
 
     setError(null)
     await onSubmit(result.rule)

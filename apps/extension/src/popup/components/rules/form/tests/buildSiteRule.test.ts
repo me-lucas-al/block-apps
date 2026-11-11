@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { buildSiteRule } from '../buildSiteRule'
+import { ruleErrorMessage } from '../ruleErrorMessage'
 
 const window = { days: [1] as const, start: '18:00', end: '20:00' }
 
@@ -30,16 +31,22 @@ describe('buildSiteRule', () => {
   it('rejects invalid sites', () => {
     const { rule, error } = buildSiteRule({ target: 'nope', mode: 'always', windows: [] })
     expect(rule).toBeNull()
-    expect(error).toMatch(/site válido/)
+    expect(error).toBe('invalid-site')
   })
 
-  it('rejects schedule mode without windows', () => {
-    const { rule, error } = buildSiteRule({
-      target: 'youtube.com',
-      mode: 'schedule',
-      windows: [],
-    })
+  it.each([
+    ['no-windows', []],
+    ['no-days', [{ ...window, days: [] }]],
+    ['invalid-time', [{ ...window, start: '25:00' }]],
+  ] as const)('rejects schedule with %s', (expected, windows) => {
+    const { rule, error } = buildSiteRule({ target: 'youtube.com', mode: 'schedule', windows })
     expect(rule).toBeNull()
-    expect(error).toMatch(/horário/)
+    expect(error).toBe(expected)
+  })
+
+  it('has a message for every error', () => {
+    for (const error of ['invalid-site', 'no-windows', 'no-days', 'invalid-time'] as const) {
+      expect(ruleErrorMessage(error).length).toBeGreaterThan(0)
+    }
   })
 })

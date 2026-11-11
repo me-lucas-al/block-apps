@@ -9,11 +9,3 @@ export const DAY_LABELS: ReadonlyArray<{ day: DayOfWeek; label: string }> = [
   { day: 5, label: 'Sex' },
   { day: 6, label: 'Sáb' },
 ]
-
-export function toggleDay(
-  days: readonly DayOfWeek[],
-  day: DayOfWeek,
-): DayOfWeek[] {
-  if (days.includes(day)) return days.filter((current) => current !== day)
-  return [...days, day].sort((first, second) => first - second)
-}

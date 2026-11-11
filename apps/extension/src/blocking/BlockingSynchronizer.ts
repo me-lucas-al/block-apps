@@ -1,5 +1,5 @@
-import type { DynamicRulesPort } from '../ports/DynamicRulesPort'
-import type { RuleCache } from '../ports/RuleCache'
+import type { DynamicRulesPort } from '../ports/browser/DynamicRulesPort'
+import type { RuleCache } from '../ports/data/RuleCache'
 import { buildRedirectRules } from './buildRedirectRules'
 
 export type BlockingSynchronizerDependencies = {

@@ -2,10 +2,10 @@ import {
   SupabaseBlockRuleRepository,
   SupabaseDeviceRepository,
 } from '@block-apps/api'
-import { ChromeDeviceIdStore } from '../adapters/chrome/ChromeDeviceIdStore'
-import { ChromeDynamicRulesPort } from '../adapters/chrome/ChromeDynamicRulesPort'
-import { ChromeIncognitoPort } from '../adapters/chrome/ChromeIncognitoPort'
-import { ChromeStorageRuleCache } from '../adapters/chrome/ChromeStorageRuleCache'
+import { ChromeDeviceIdStore } from '../adapters/chrome/storage/ChromeDeviceIdStore'
+import { ChromeDynamicRulesPort } from '../adapters/chrome/browser/ChromeDynamicRulesPort'
+import { ChromeIncognitoPort } from '../adapters/chrome/browser/ChromeIncognitoPort'
+import { ChromeStorageRuleCache } from '../adapters/chrome/storage/ChromeStorageRuleCache'
 import { SupabaseSessionGate } from '../adapters/supabase/SupabaseSessionGate'
 import { createSupabaseClient } from '../adapters/supabase/createSupabaseClient'
 import { BlockingSynchronizer } from '../blocking/BlockingSynchronizer'

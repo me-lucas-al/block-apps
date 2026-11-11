@@ -1,4 +1,4 @@
-import type { IncognitoPort } from '../../ports/IncognitoPort'
+import type { IncognitoPort } from '../../../ports/browser/IncognitoPort'
 
 export class ChromeIncognitoPort implements IncognitoPort {
   isAllowed(): Promise<boolean> {

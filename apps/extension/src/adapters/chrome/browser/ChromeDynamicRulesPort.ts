@@ -1,7 +1,7 @@
 import type {
   DynamicRulesPort,
   RedirectRule,
-} from '../../ports/DynamicRulesPort'
+} from '../../../ports/browser/DynamicRulesPort'
 
 export class ChromeDynamicRulesPort implements DynamicRulesPort {
   async listIds(): Promise<number[]> {

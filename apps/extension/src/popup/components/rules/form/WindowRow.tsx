@@ -1,5 +1,5 @@
-import type { TimeWindow } from '@block-apps/core'
-import { DAY_LABELS, toggleDay } from './dayLabels'
+import { type TimeWindow, toggleDay } from '@block-apps/core'
+import { DAY_LABELS } from './dayLabels'
 
 type WindowRowProps = {
   window: TimeWindow

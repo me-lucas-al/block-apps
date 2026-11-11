@@ -1,7 +1,7 @@
 import type { DeviceRepository } from '@block-apps/api'
-import type { DeviceIdStore } from '../ports/DeviceIdStore'
-import type { IncognitoPort } from '../ports/IncognitoPort'
-import type { SessionGate } from '../ports/SessionGate'
+import type { DeviceIdStore } from '../ports/data/DeviceIdStore'
+import type { IncognitoPort } from '../ports/browser/IncognitoPort'
+import type { SessionGate } from '../ports/data/SessionGate'
 
 export type DeviceStatusReporterDependencies = {
   readonly deviceRepository: DeviceRepository

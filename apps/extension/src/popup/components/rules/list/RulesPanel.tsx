@@ -1,5 +1,5 @@
-import { useSiteRules } from '../../hooks/useSiteRules'
-import { RuleForm } from './RuleForm'
+import { useSiteRules } from '../../../hooks/useSiteRules'
+import { RuleForm } from '../form/RuleForm'
 import { RuleItem } from './RuleItem'
 
 export function RulesPanel() {

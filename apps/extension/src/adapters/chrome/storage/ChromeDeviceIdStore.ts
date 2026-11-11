@@ -1,4 +1,4 @@
-import type { DeviceIdStore } from '../../ports/DeviceIdStore'
+import type { DeviceIdStore } from '../../../ports/data/DeviceIdStore'
 
 const STORAGE_KEY = 'deviceId'
 

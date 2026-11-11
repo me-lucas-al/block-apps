@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { SessionGate } from '../../ports/SessionGate'
+import type { SessionGate } from '../../ports/data/SessionGate'
 
 export class SupabaseSessionGate implements SessionGate {
   constructor(private readonly client: SupabaseClient) {}

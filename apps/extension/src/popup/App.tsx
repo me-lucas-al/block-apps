@@ -1,5 +1,5 @@
 import { LoginForm } from './components/auth/LoginForm'
-import { RulesPanel } from './components/rules/RulesPanel'
+import { RulesPanel } from './components/rules/list/RulesPanel'
 import { IncognitoWarning } from './components/status/IncognitoWarning'
 import { useSessionEmail } from './hooks/useSessionEmail'
 import { useServices } from './services/ServicesContext'

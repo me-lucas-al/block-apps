@@ -9,9 +9,10 @@ variable "aws_region" {
   default     = "sa-east-1"
 }
 
-variable "api_endpoint" {
-  description = "Endpoint do API Gateway para a diretiva connect-src do CSP."
+variable "api_connect_src" {
+  description = "Origem da API para o connect-src do CSP. Vazio usa a região atual."
   type        = string
+  default     = ""
 }
 
 variable "hosted_domain_prefix" {

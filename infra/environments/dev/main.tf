@@ -58,7 +58,6 @@ module "admin_site" {
 
   name_prefix          = local.name_prefix
   aws_region           = var.aws_region
-  api_endpoint         = module.api.api_endpoint
   hosted_domain_prefix = var.hosted_domain_prefix
   tags                 = local.tags
 }

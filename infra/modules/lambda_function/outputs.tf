@@ -7,3 +7,8 @@ output "invoke_arn" {
   description = "ARN de invocação usado pelo API Gateway."
   value       = aws_lambda_function.function.invoke_arn
 }
+
+output "function_arn" {
+  description = "ARN da função Lambda."
+  value       = aws_lambda_function.function.arn
+}

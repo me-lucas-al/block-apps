@@ -1,3 +1,7 @@
+locals {
+  api_connect_src = var.api_connect_src != "" ? var.api_connect_src : "https://*.execute-api.${var.aws_region}.amazonaws.com"
+}
+
 resource "aws_cloudfront_origin_access_control" "site" {
   name                              = "${var.name_prefix}-site-oac"
   description                       = "OAC for admin site bucket"
@@ -22,7 +26,7 @@ resource "aws_cloudfront_response_headers_policy" "security_headers" {
       override        = true
     }
     content_security_policy {
-      content_security_policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' ${var.api_endpoint} https://${var.hosted_domain_prefix}.auth.${var.aws_region}.amazoncognito.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+      content_security_policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' ${local.api_connect_src} https://${var.hosted_domain_prefix}.auth.${var.aws_region}.amazoncognito.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
       override                = true
     }
   }

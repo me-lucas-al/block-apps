@@ -18,6 +18,7 @@ describe('normalizeRuleTarget', () => {
   it('throws ValidationError for empty or invalid keyword', () => {
     expect(() => normalizeRuleTarget('keyword', '   ')).toThrow(ValidationError)
     expect(() => normalizeRuleTarget('keyword', 'a'.repeat(101))).toThrow(ValidationError)
+    expect(() => normalizeRuleTarget('keyword', '!@#$%^&*()')).toThrow(ValidationError)
   })
 
   it('preserves valid app identifier', () => {

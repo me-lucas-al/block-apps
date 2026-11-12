@@ -12,7 +12,7 @@ export function IncognitoWarning() {
       <strong>Modo anônimo desprotegido.</strong>
       <p>
         Ative "Permitir no modo anônimo" nas configurações da extensão para
-        bloquear sites também em abas anônimas.
+        bloquear sites e buscas proibidas também em abas anônimas.
       </p>
       <button type="button" onClick={() => void incognito.openSettings()}>
         Abrir configurações

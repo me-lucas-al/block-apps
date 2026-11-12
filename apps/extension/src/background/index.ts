@@ -1,4 +1,7 @@
 import { composeBackground } from './composition'
 import { registerListeners } from './listeners'
+import { registerSearchNavigationListeners } from './searchNavigationListeners'
 
-registerListeners(composeBackground())
+const services = composeBackground()
+registerListeners(services)
+registerSearchNavigationListeners(services)

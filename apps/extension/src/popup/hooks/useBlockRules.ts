@@ -1,17 +1,18 @@
 import type { NewBlockRule } from '@block-apps/api'
 import type { BlockRule, PendingRuleChange } from '@block-apps/core'
 import { useCallback, useEffect, useState } from 'react'
+import { RULE_KINDS } from '../components/rules/ruleKinds'
 import { useServices } from '../services/ServicesContext'
 
-function onlySites(rules: BlockRule[]): BlockRule[] {
-  return rules.filter((rule) => rule.targetType === 'site')
+function onlyBrowserRules(rules: BlockRule[]): BlockRule[] {
+  return rules.filter((rule) => RULE_KINDS.some((kind) => kind === rule.targetType))
 }
 
 function messageOf(failure: unknown): string {
   return failure instanceof Error ? failure.message : 'Erro inesperado'
 }
 
-export function useSiteRules() {
+export function useBlockRules() {
   const { ruleRepository, pendingRuleChanges, background } = useServices()
   const [rules, setRules] = useState<BlockRule[]>([])
   const [pendingChanges, setPendingChanges] = useState<PendingRuleChange[]>([])
@@ -19,15 +20,15 @@ export function useSiteRules() {
 
   const reload = useCallback(async () => {
     await pendingRuleChanges.applyDueChanges()
-    setRules(onlySites(await ruleRepository.list()))
+    setRules(onlyBrowserRules(await ruleRepository.list()))
     setPendingChanges(await pendingRuleChanges.listPendingChanges())
   }, [ruleRepository, pendingRuleChanges])
 
-  const run = useCallback(
-    async (action: () => Promise<unknown>) => {
+  const changeRulesThenReload = useCallback(
+    async (change: () => Promise<unknown>) => {
       try {
         setError(null)
-        await action()
+        await change()
         background.notifyRulesChanged()
         await reload()
       } catch (failure) {
@@ -45,8 +46,10 @@ export function useSiteRules() {
     rules,
     pendingChanges,
     error,
-    create: (rule: NewBlockRule) => run(() => ruleRepository.create(rule)),
-    requestRemoval: (ruleId: string) => run(() => pendingRuleChanges.requestRemoval(ruleId)),
-    cancelChange: (changeId: string) => run(() => pendingRuleChanges.cancelPendingChange(changeId)),
+    create: (rule: NewBlockRule) => changeRulesThenReload(() => ruleRepository.create(rule)),
+    requestRemoval: (ruleId: string) =>
+      changeRulesThenReload(() => pendingRuleChanges.requestRemoval(ruleId)),
+    cancelChange: (changeId: string) =>
+      changeRulesThenReload(() => pendingRuleChanges.cancelPendingChange(changeId)),
   }
 }

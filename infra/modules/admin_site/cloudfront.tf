@@ -46,17 +46,7 @@ resource "aws_cloudfront_distribution" "site" {
     target_origin_id           = "S3Origin"
     viewer_protocol_policy     = "redirect-to-https"
     response_headers_policy_id = aws_cloudfront_response_headers_policy.security_headers.id
-
-    forwarded_values {
-      query_string = false
-      cookies {
-        forward = "none"
-      }
-    }
-
-    min_ttl     = 0
-    default_ttl = 3600
-    max_ttl     = 86400
+    cache_policy_id            = "658327ea-f89d-4fab-a63d-7e88639e58f6"
   }
 
   custom_error_response {

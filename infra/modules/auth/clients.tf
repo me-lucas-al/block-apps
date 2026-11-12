@@ -64,14 +64,14 @@ resource "aws_cognito_user_pool_client" "device" {
   allowed_oauth_flows_user_pool_client = true
   allowed_oauth_flows                  = ["code"]
   allowed_oauth_scopes                 = ["openid", "email", "profile"]
-  callback_urls = concat(
+  callback_urls = length(concat(var.device_callback_urls, var.extension_ids)) > 0 ? concat(
     var.device_callback_urls,
     [for id in var.extension_ids : "https://${id}.chromiumapp.org/"]
-  )
-  logout_urls = concat(
+  ) : ["blockapps://auth"]
+  logout_urls = length(concat(var.device_logout_urls, var.extension_ids)) > 0 ? concat(
     var.device_logout_urls,
     [for id in var.extension_ids : "https://${id}.chromiumapp.org/logout"]
-  )
+  ) : ["blockapps://logout"]
   read_attributes  = ["email", "email_verified"]
   write_attributes = ["email"]
 

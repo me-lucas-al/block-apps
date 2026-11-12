@@ -42,6 +42,21 @@ resource "aws_s3_bucket_policy" "site_cloudfront" {
             "AWS:SourceArn" = aws_cloudfront_distribution.site.arn
           }
         }
+      },
+      {
+        Sid       = "EnforceTLSRequestsOnly"
+        Effect    = "Deny"
+        Principal = "*"
+        Action    = "s3:*"
+        Resource = [
+          aws_s3_bucket.site.arn,
+          "${aws_s3_bucket.site.arn}/*"
+        ]
+        Condition = {
+          Bool = {
+            "aws:SecureTransport" = "false"
+          }
+        }
       }
     ]
   })

@@ -11,7 +11,7 @@ resource "aws_cloudwatch_metric_alarm" "api_5xx_errors" {
   treat_missing_data  = "notBreaching"
 
   dimensions = {
-    ApiId = aws_apigatewayv2_api.http.id
+    ApiId = aws_apigatewayv2_api.main.id
   }
 
   tags = var.tags

@@ -14,6 +14,7 @@ export class DynamoUserDataEraser implements UserDataEraser {
       KeyConditionExpression: 'pk = :pk',
       ExpressionAttributeValues: { ':pk': userPartitionKey(userId) },
       ProjectionExpression: 'pk, sk',
+      ConsistentRead: true,
     })
     for (let start = 0; start < items.length; start += BATCH_SIZE) {
       await this.deleteBatch(items.slice(start, start + BATCH_SIZE))

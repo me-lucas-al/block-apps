@@ -20,7 +20,7 @@ export class DeleteUserUseCase {
     const target = await this.existingUserGuard.requireExistingUser(userId)
     if (target.id === caller.id) throw new ConflictError('admins cannot delete their own account')
     if (isUsableAdmin(target)) await this.lastAdminGuard.requireAnotherAdmin()
-    await this.userRemover.remove(target.username)
     await this.userDataEraser.eraseAllDataOf(target.id)
+    await this.userRemover.remove(target.username)
   }
 }

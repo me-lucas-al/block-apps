@@ -28,3 +28,9 @@ export { matchesBlockedKeyword } from './keywords/matching/matchesBlockedKeyword
 export { normalizeKeywordTarget } from './keywords/matching/normalizeKeywordTarget'
 export { extractSearchQuery } from './keywords/search-engines/extractSearchQuery'
 export { SEARCH_ENGINE_HOST_FRAGMENTS } from './keywords/search-engines/searchEngineHostFragments'
+export type {
+  AdminUser,
+  CreateUserInput,
+  UpdateUserInput,
+  UserRole,
+} from './users/adminUser'

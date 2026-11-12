@@ -6,6 +6,7 @@ export type FakeCognitoUser = {
   enabled: boolean
   status: string
   groups: Set<string>
+  mfaSettingList?: string[]
 }
 
 export function buildCognitoError(errorName: string): Error {
@@ -25,6 +26,7 @@ export function toCognitoRecord(user: FakeCognitoUser) {
     Enabled: user.enabled,
     UserStatus: user.status,
     UserCreateDate: new Date('2026-01-01T00:00:00.000Z'),
+    UserMFASettingList: user.mfaSettingList ?? ['SOFTWARE_TOKEN_MFA'],
   }
 }
 

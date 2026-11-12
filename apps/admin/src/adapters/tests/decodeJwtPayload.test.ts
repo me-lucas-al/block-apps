@@ -10,6 +10,13 @@ describe('decodeJwtPayload', () => {
     expect(decoded).toEqual(payload)
   })
 
+  it('keeps accented characters in the payload', () => {
+    const payload = { sub: 'user-123', name: 'José Conceição' }
+    const token = `header.${Buffer.from(JSON.stringify(payload)).toString('base64url')}.sig`
+
+    expect(decodeJwtPayload(token)).toEqual(payload)
+  })
+
   it('returns null for invalid jwt', () => {
     expect(decodeJwtPayload('invalid')).toBeNull()
     expect(decodeJwtPayload('a.not-json.c')).toBeNull()

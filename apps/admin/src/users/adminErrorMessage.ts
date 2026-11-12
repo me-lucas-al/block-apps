@@ -28,3 +28,7 @@ export function describeFailure(failure: unknown): string {
 
   return failure instanceof Error ? failure.message : 'Erro inesperado'
 }
+
+export function isMfaRequiredFailure(failure: unknown): boolean {
+  return failure instanceof ApiError && failure.status === 403 && /mfa|totp/i.test(failure.message)
+}

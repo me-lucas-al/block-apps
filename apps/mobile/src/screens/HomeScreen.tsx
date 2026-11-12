@@ -15,7 +15,7 @@ type HomeScreenProps = {
 
 export function HomeScreen({ email }: HomeScreenProps) {
   const { auth } = useServices()
-  const { rules, error, create, remove } = useAppRules()
+  const { rules, pendingChanges, error, create, requestRemoval, cancelChange } = useAppRules()
   const apps = useInstalledApps()
   const [adding, setAdding] = useState(false)
 
@@ -39,7 +39,13 @@ export function HomeScreen({ email }: HomeScreenProps) {
         keyExtractor={(rule) => rule.id}
         ListEmptyComponent={<Text style={styles.empty}>Nenhum app bloqueado ainda.</Text>}
         renderItem={({ item }) => (
-          <AppRuleItem rule={item} label={labelFor(item.target)} onRemove={(id) => void remove(id)} />
+          <AppRuleItem
+            rule={item}
+            label={labelFor(item.target)}
+            pendingChange={pendingChanges.find((change) => change.ruleId === item.id)}
+            onRemove={(id) => void requestRemoval(id)}
+            onCancel={(id) => void cancelChange(id)}
+          />
         )}
       />
       <Button label="Bloquear um app" onPress={() => setAdding(true)} />

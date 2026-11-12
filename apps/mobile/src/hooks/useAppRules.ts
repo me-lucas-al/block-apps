@@ -1,5 +1,5 @@
 import type { NewBlockRule } from '@block-apps/api'
-import type { BlockRule } from '@block-apps/core'
+import type { BlockRule, PendingRuleChange } from '@block-apps/core'
 import { useCallback, useEffect, useState } from 'react'
 import { useServices } from '../services/ServicesContext'
 
@@ -14,32 +14,45 @@ function messageOf(failure: unknown): string {
 export function useAppRules() {
   const { ruleRepository, rulesSync } = useServices()
   const [rules, setRules] = useState<BlockRule[]>([])
+  const [pendingChanges, setPendingChanges] = useState<PendingRuleChange[]>([])
   const [error, setError] = useState<string | null>(null)
 
   const reload = useCallback(async () => {
-    try {
-      setError(null)
-      setRules(onlyApps(await ruleRepository.list()))
-      await rulesSync.sync()
-    } catch (failure) {
-      setError(messageOf(failure))
-    }
+    await ruleRepository.applyDueChanges()
+    const allRules = await ruleRepository.list()
+    setRules(onlyApps(allRules))
+    setPendingChanges(await ruleRepository.listPendingChanges())
+    rulesSync.push(allRules)
   }, [ruleRepository, rulesSync])
 
+  const run = useCallback(
+    async (action: () => Promise<unknown>) => {
+      try {
+        setError(null)
+        await action()
+        await reload()
+      } catch (failure) {
+        setError(messageOf(failure))
+        throw failure
+      }
+    },
+    [reload],
+  )
+
   useEffect(() => {
-    void reload()
-    return ruleRepository.subscribe(() => void reload())
+    const refresh = () => void reload().catch((failure: unknown) => setError(messageOf(failure)))
+    refresh()
+    return ruleRepository.subscribe(refresh)
   }, [reload, ruleRepository])
 
-  const create = async (rule: NewBlockRule) => {
-    await ruleRepository.create(rule)
-    await reload()
+  return {
+    rules,
+    pendingChanges,
+    error,
+    create: (rule: NewBlockRule) => run(() => ruleRepository.create(rule)),
+    requestRemoval: (ruleId: string) =>
+      run(() => ruleRepository.requestRemoval(ruleId)).catch(() => undefined),
+    cancelChange: (changeId: string) =>
+      run(() => ruleRepository.cancelPendingChange(changeId)).catch(() => undefined),
   }
-
-  const remove = async (ruleId: string) => {
-    await ruleRepository.remove(ruleId)
-    await reload()
-  }
-
-  return { rules, error, create, remove }
 }

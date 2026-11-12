@@ -1,4 +1,4 @@
-import type { BlockRule } from '@block-apps/core'
+import { type BlockRule, type PendingRuleChange, describePendingChange } from '@block-apps/core'
 import { StyleSheet, Text, View } from 'react-native'
 import { colors } from '../../theme'
 import { Button } from '../ui/Button'
@@ -6,7 +6,9 @@ import { Button } from '../ui/Button'
 type AppRuleItemProps = {
   rule: BlockRule
   label: string
+  pendingChange: PendingRuleChange | undefined
   onRemove: (ruleId: string) => void
+  onCancel: (changeId: string) => void
 }
 
 function describeRule(rule: BlockRule): string {
@@ -15,14 +17,21 @@ function describeRule(rule: BlockRule): string {
   return `Permitido em ${count} ${count === 1 ? 'horário' : 'horários'}`
 }
 
-export function AppRuleItem({ rule, label, onRemove }: AppRuleItemProps) {
+export function AppRuleItem({ rule, label, pendingChange, onRemove, onCancel }: AppRuleItemProps) {
   return (
     <View style={styles.row}>
       <View style={styles.texts}>
         <Text style={styles.title}>{label}</Text>
         <Text style={styles.description}>{describeRule(rule)}</Text>
+        {pendingChange && (
+          <Text style={styles.description}>{describePendingChange(pendingChange, new Date())}</Text>
+        )}
       </View>
-      <Button label="Remover" variant="secondary" onPress={() => onRemove(rule.id)} />
+      {pendingChange ? (
+        <Button label="Cancelar" variant="secondary" onPress={() => onCancel(pendingChange.id)} />
+      ) : (
+        <Button label="Remover" variant="secondary" onPress={() => onRemove(rule.id)} />
+      )}
     </View>
   )
 }

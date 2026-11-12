@@ -18,6 +18,12 @@ $env:DYNAMODB_ENDPOINT = "http://127.0.0.1:8000"
 pnpm test
 ```
 
+### Visualizar os dados (equivalente ao pgAdmin)
+
+Os dois arquivos de compose sobem o `dynamodb-admin`, uma interface web para ver e editar tabelas e itens do DynamoDB local. Abra `http://127.0.0.1:8001`.
+
+Em produção não há painel hospedado. Use o Console AWS (DynamoDB → Explore items) ou o NoSQL Workbench com suas credenciais.
+
 ## 2. Servidor de API Local
 
 Para servir a API Hono localmente sem deploy na AWS:

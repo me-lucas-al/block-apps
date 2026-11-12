@@ -14,6 +14,8 @@ pnpm dlx supabase@3.1.0 status -o env
 
 A primeira vez baixa as imagens e demora vários minutos. As migrations de `supabase/migrations` são aplicadas automaticamente. Para aplicar migrations novas depois: `pnpm dlx supabase@3.1.0 migration up`. Para recomeçar do zero: `pnpm dlx supabase@3.1.0 db reset`.
 
+Com a confirmação de e-mail ligada, e-mails de cadastro e de troca de e-mail aparecem no Mailpit, sem sair da máquina.
+
 Endereços locais: API `http://127.0.0.1:54321`, Studio `http://127.0.0.1:54323`, e-mails de teste (Mailpit) `http://127.0.0.1:54324`.
 
 As chaves que `status -o env` mostra (`ANON_KEY`, `SERVICE_ROLE_KEY`) são as chaves de demonstração do Supabase local. Servem só neste ambiente.
@@ -28,7 +30,7 @@ pnpm --filter @block-apps/admin-seed create-admin
 
 Variáveis opcionais: `ADMIN_EMAIL` (padrão `admin@block-apps.local`), `ADMIN_PASSWORD` (se faltar, é gerada e impressa uma única vez) e `ADMIN_DISPLAY_NAME`.
 
-No primeiro acesso o painel exige trocar a senha. Depois, em **Minha conta**, edite nome, e-mail e senha.
+No primeiro acesso o painel exige trocar a senha: enquanto ela for temporária, nem a API de administração aceita esse usuário. Depois, em **Minha conta**, edite nome, e-mail e senha.
 
 ## 3. Painel de administração
 
@@ -40,7 +42,7 @@ Copy-Item apps/admin/.env.example apps/admin/.env
 pnpm --filter @block-apps/admin dev
 ```
 
-Em container (porta 8080), como em produção:
+Em container (porta 8080, só acessível pelo próprio computador), como em produção:
 
 ```powershell
 $env:VITE_SUPABASE_ANON_KEY = '<ANON_KEY do status>'

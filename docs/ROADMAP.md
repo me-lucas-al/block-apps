@@ -1,48 +1,42 @@
 # Roadmap
 
-## Estado
+## Estado Atual do Projeto
 
-| Parte | Estado |
-| --- | --- |
-| Regras e horários (`core`) | pronto |
-| Banco, RLS e cooldown (`supabase/`, `database`) | pronto, testado em Postgres em memória |
-| Extensão Chrome/Edge | pronto, falta teste manual no navegador |
-| App Android (RN + Kotlin) | pronto, Kotlin ainda sem compilar fora do CI |
-| Sugestões e bloqueio de app não instalado | pronto |
-| CI no GitHub Actions | em andamento |
-| App iOS (Screen Time API) | pausado, ver abaixo |
-| Extensão Firefox | planejado |
-| Sync em background no Android (WorkManager) | planejado |
-| Bloquear telas de configuração do Android | planejado |
-| API própria na AWS (AWS Blocks) | spike pendente |
+| Componente | Estado | Descrição |
+| --- | --- | --- |
+| Regras, horários e palavras proibidas (`core`) | Pronto | Validação de janelas, palavras de busca proibidas, cooldown |
+| Backend AWS (`backend`) | Pronto | API Hono em Lambda, use cases, DynamoDB single-table, Cognito |
+| Infraestrutura como Código (`infra`) | Pronto | Módulos Terraform (auth, api, data, admin_site, lambda_function) |
+| Cliente HTTP e Autenticação (`api`) | Pronto | `HttpApiClient`, `CognitoAuthenticator`, `SessionStorage`, `RulePoller` |
+| Extensão Chrome/Edge (`extension`) | Pronto | MV3, blocking declarativo, busca protegida, Google PKCE, anti-anônimo |
+| App Android (`mobile`) | Pronto | React Native + Kotlin native module, WorkManager, Device Admin |
+| Painel Web Administrativo (`admin`) | Pronto | Vite/React, gerenciamento de usuários, MFA TOTP obrigatório, Google PKCE |
+| CI/CD no GitHub Actions | Pronto | Typecheck, testes unitários, formatação e validação Terraform, release |
+| Remoção de tecnologias legadas | Pronto | Supabase, Postgres e Edge Functions 100% removidos |
+| App iOS (Screen Time API) | Pausado | Aguarda Mac com conta Apple Developer e entitlement Family Controls |
+| Extensão Firefox | Planejado | Suporte a Gecko via webextension-polyfill |
 
 ## CI/CD no GitHub Actions
 
 ### CI (`.github/workflows/ci.yml`)
-
 Roda em toda PR e em todo push para `main`:
+- `check`: validação estrita sem `any` (`pnpm check:no-any`), `pnpm typecheck`, `pnpm test` (378 testes com DynamoDB local via Docker), build da extensão e build do painel administrativo.
+- `android`: gera projeto nativo com `expo prebuild` e compila/testa o módulo Kotlin (`./gradlew :app-blocker:testDebugUnitTest`).
+- `terraform`: formatação estrita (`terraform fmt -check`), empacotamento Lambda e `terraform validate` de bootstrap e ambiente `dev`.
 
-- `check`: `pnpm install --frozen-lockfile`, `typecheck`, `test` (inclui o banco em PGlite) e build da extensão.
-- `android`: gera o projeto nativo com `expo prebuild` e roda `./gradlew :app-blocker:testDebugUnitTest`. É o único lugar onde o Kotlin é compilado e testado de verdade.
+### Planejamento (`.github/workflows/terraform-plan.yml`)
+Roda em PRs com alterações em `infra/**`, `packages/backend/**` ou `packages/core/**`:
+- Autentica na AWS via GitHub OIDC (`AWS_ROLE_ARN`).
+- Executa `terraform plan -no-color`; o plano fica no log do job. Sem o secret `AWS_ROLE_ARN` o plano é pulado com aviso.
 
-### CD: o que "cair em produção" significa aqui
+### CD / Release (`.github/workflows/release.yml`)
+Roda só por disparo manual (`workflow_dispatch`) a partir da branch `main`:
+- Empacota Lambda backend (`packages/backend/dist/lambda.zip`) e extensão (`block-apps-extension.zip`).
+- Aplica Terraform no ambiente `production`. A aprovação manual depende de configurar revisores nesse ambiente no GitHub; sem isso o apply roda direto.
+- Compila o painel admin (`apps/admin/dist`), sincroniza com o bucket S3 privado e invalida cache no CloudFront.
 
-Produção = `main` com CI verde e aprovação no ambiente `production` do GitHub (revisor obrigatório). Cada alvo tem o próprio workflow:
+## Próximos Passos (Futuro)
 
-| Alvo | Gatilho | Precisa de |
-| --- | --- | --- |
-| Banco (Supabase) | push em `main` que altera `supabase/migrations/**` | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD` e `SUPABASE_PROJECT_REF` (secrets/variáveis do ambiente) |
-| Extensão | build do `.zip` em todo push; publicação na Chrome Web Store em tag `extension-v*` | credenciais da API da Chrome Web Store. A loja revisa a versão, então não é imediato |
-| App Android | tag `mobile-v*`, com EAS Build e Submit para a faixa de teste interno | `EXPO_TOKEN` e conta de serviço do Play Console. A primeira publicação é manual |
-| API na AWS (futuro) | push em `main` com `cdk deploy` | role AWS via OIDC, sem chaves de longa duração |
-
-Regras: nenhum segredo no repositório; migrations só avançam (sem rollback automático); deploy de produção só depois do CI verde e da aprovação do ambiente.
-
-Os workflows de CD ainda não existem porque dependem de contas e segredos que não foram criados (projeto Supabase, Chrome Web Store, Play Console). Eles entram assim que cada alvo estiver configurado.
-
-## iOS
-
-Pausado até confirmar Mac e conta Apple Developer (o entitlement `com.apple.developer.family-controls` é concedido pela Apple). Pontos de design já conhecidos:
-
-- A Apple só entrega tokens opacos pelo seletor do Screen Time, e só de apps instalados. Não dá para bloquear app não instalado.
-- Aplicar horários sem o app aberto exige uma extensão `DeviceActivityMonitor`, que é um target separado do app.
+1. **Extensão Firefox**: empacotamento para Gecko com manifest v2/v3 híbrido.
+2. **App iOS**: ativação com Screen Time API e `DeviceActivityMonitor` quando houver ambiente Mac.
+3. **Limites de Regras**: implementação de cotas por plano/usuário no backend.

@@ -29,5 +29,6 @@ module "admin_function" {
     TABLE_NAME       = var.table_name
     USER_POOL_ID     = var.user_pool_id
     ADMIN_GROUP_NAME = var.admin_group_name
+    USER_GROUP_NAME  = var.user_group_name
   }
 }

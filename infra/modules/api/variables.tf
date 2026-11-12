@@ -70,3 +70,8 @@ variable "admin_group_name" {
   description = "Grupo do Cognito que identifica administradores."
   type        = string
 }
+
+variable "user_group_name" {
+  description = "Grupo do Cognito dos usuários comuns."
+  type        = string
+}

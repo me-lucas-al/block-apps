@@ -18,6 +18,11 @@ output "admin_group_name" {
   value       = aws_cognito_user_group.admin.name
 }
 
+output "user_group_name" {
+  description = "Grupo dos usuários comuns."
+  value       = aws_cognito_user_group.user.name
+}
+
 output "admin_web_client_id" {
   description = "Client do painel administrativo."
   value       = aws_cognito_user_pool_client.admin_web.id

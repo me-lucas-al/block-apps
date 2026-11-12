@@ -21,12 +21,10 @@ data "aws_iam_policy_document" "admin_function" {
     effect = "Allow"
     actions = [
       "dynamodb:GetItem",
-      "dynamodb:PutItem",
       "dynamodb:UpdateItem",
       "dynamodb:DeleteItem",
       "dynamodb:Query",
       "dynamodb:BatchWriteItem",
-      "dynamodb:ConditionCheckItem",
     ]
     resources = [var.table_arn]
   }
@@ -39,7 +37,9 @@ data "aws_iam_policy_document" "admin_function" {
       "cognito-idp:AdminDeleteUser",
       "cognito-idp:AdminGetUser",
       "cognito-idp:AdminUpdateUserAttributes",
-      "cognito-idp:AdminSetUserPassword",
+      "cognito-idp:AdminDeleteUserAttributes",
+      "cognito-idp:AdminResetUserPassword",
+      "cognito-idp:AdminUserGlobalSignOut",
       "cognito-idp:AdminAddUserToGroup",
       "cognito-idp:AdminRemoveUserFromGroup",
       "cognito-idp:AdminListGroupsForUser",

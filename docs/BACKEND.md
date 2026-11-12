@@ -27,6 +27,26 @@ src/
 
 O `userId` vem sempre do `sub` do token validado pelo API Gateway; nenhuma rota aceita `userId` no corpo. O id de uma regra é `<app|site>~<alvo>` e o alvo é minúsculo, só com letras, dígitos, ponto, hífen e sublinhado.
 
+## Rotas da função `admin`
+
+| Rota | O que faz |
+| --- | --- |
+| `GET /admin/me` | confirma o token de um administrador |
+| `GET /admin/users` | lista usuários com papel, cooldown e se falta trocar a senha |
+| `POST /admin/users` | convida um usuário por e-mail (`email`, `displayName?`, `role?`, `cooldownHours?`) |
+| `PATCH /admin/users/:userId` | altera `displayName`, `role`, `cooldownHours` ou pede `resetPassword` |
+| `DELETE /admin/users/:userId` | remove o usuário no Cognito e apaga os dados dele no DynamoDB |
+
+Salvaguardas, todas no código porque o IAM do Cognito não separa grupos nem usuários-alvo:
+
+- O token precisa do grupo `admin`, e **cada chamada confere de novo no Cognito** que o chamador ainda é administrador, está habilitado e já trocou a senha temporária. Token antigo de quem foi rebaixado não vale. O chamador e o alvo são achados pelo `sub` (que é o `userId` da API), inclusive contas do Google, cujo `Username` no Cognito é outro.
+- `:userId` precisa ser um UUID: e-mail na URL é recusado, para que a regra de auto-exclusão compare sempre o id canônico.
+- Ninguém exclui a própria conta nem muda o próprio papel; o último administrador não pode ser rebaixado nem excluído.
+- Promover alguém a administrador **reseta a senha** (`AdminResetUserPassword`) *antes* de mudar o grupo e encerra as sessões, para não herdar uma senha que outra pessoa já conhecia; se o reset falhar, o papel não muda. Quem ainda não definiu senha (convite pendente) ou entra pelo Google não tem senha para resetar, então a promoção não faz reset, e `resetPassword: true` nesses casos devolve 400. Trocar o papel remove o grupo antigo antes de adicionar o novo, e encerra as sessões.
+- "Último administrador" conta só administradores utilizáveis (habilitados, com senha definida). Como o chamador também precisa ser um administrador utilizável e não age sobre si mesmo, a trava só dispara numa corrida.
+- Criar usuário desfaz a criação no Cognito se gravar o cooldown falhar.
+- Não há senha na API: o usuário novo recebe o convite do Cognito por e-mail (senha temporária, troca obrigatória).
+
 ## Testes
 
 Os mesmos testes de API rodam contra um banco em memória e, quando `DYNAMODB_ENDPOINT` existe, contra o DynamoDB local:
@@ -37,7 +57,7 @@ $env:DYNAMODB_ENDPOINT = 'http://127.0.0.1:8000'
 pnpm --filter @block-apps/backend test
 ```
 
-Sem a variável, só o banco em memória roda. O CI sobe o DynamoDB local como serviço.
+Sem a variável, só o banco em memória roda. As rotas administrativas rodam contra um Cognito falso (`tests/helpers/cognito/FakeCognito.ts`) que implementa os comandos usados; não existe Cognito local, então o comportamento real só é confirmado depois do primeiro `terraform apply`. O CI sobe o DynamoDB local como serviço.
 
 ## Pacote da Lambda
 
@@ -47,7 +67,12 @@ Sem a variável, só o banco em memória roda. O CI sobe o DynamoDB local como s
 
 - O índice `due-changes` usa um balde único (`DUE`). Serve para este volume; com muitos usuários, divida em baldes.
 - Ninguém dispara `applyAllDueChanges` ainda (falta o EventBridge Scheduler); hoje as mudanças vencidas são aplicadas quando o próprio usuário chama a API.
-- `adminHandler` só confere o grupo `admin` e responde `GET /admin/me`. As rotas de usuários vêm na próxima fase.
+- A regra do último administrador é conferida por contagem no Cognito, sem trava atômica: dois administradores rebaixando um ao outro no mesmo instante poderiam zerar os administradores. A saída de emergência é o administrador inicial do Terraform (ou o console do Cognito).
+- Depois de excluir ou rebaixar alguém, o token de acesso já emitido vale até 15 minutos nas rotas comuns (`api`), que não consultam o Cognito; as rotas `admin` consultam a cada chamada.
+- A listagem lê o cooldown de cada usuário no DynamoDB e não tem paginação: serve para algumas centenas de usuários.
+- Depois do reset de senha o usuário fica em `RESET_REQUIRED` e precisa do fluxo "esqueci a senha"; o painel (fase 4) precisa tratar isso.
+- A listagem de usuários não traz último acesso (o Cognito não guarda esse dado).
+- Se apagar os dados de um usuário falhar depois de ele ser removido do Cognito, os itens ficam órfãos no DynamoDB e a chamada devolve 500.
 - O cooldown do usuário vive no item `SETTINGS` e ainda não tem rota de escrita: fica em 24h até a fase de administração. Valor inválido (fora de 0 a 168 horas, ou não inteiro) volta para 24h.
 - Sem limite de quantidade de regras e dispositivos por usuário.
 - Alvos de site são reduzidos ao domínio (`https://www.Exemplo.com/x` vira `exemplo.com`); identificadores de app mantêm a caixa original.

@@ -40,6 +40,7 @@ module "api" {
   user_pool_id          = module.auth.user_pool_id
   user_pool_arn         = module.auth.user_pool_arn
   admin_group_name      = module.auth.admin_group_name
+  user_group_name       = module.auth.user_group_name
   issuer_url            = module.auth.issuer_url
   client_ids            = module.auth.client_ids
   allowed_origins       = var.allowed_origins

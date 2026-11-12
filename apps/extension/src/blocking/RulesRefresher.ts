@@ -21,7 +21,7 @@ export class RulesRefresher {
     const { ruleRepository, pendingRuleChanges, ruleCache, sessionGate, enforcer } = this.dependencies
     try {
       if (await sessionGate.hasSession()) {
-        await pendingRuleChanges.applyDueChanges()
+        await pendingRuleChanges.applyDueChanges().catch(() => undefined)
         await ruleCache.save(await ruleRepository.list())
       }
     } finally {

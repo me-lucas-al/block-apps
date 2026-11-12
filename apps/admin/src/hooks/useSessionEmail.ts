@@ -7,13 +7,15 @@ type SessionState = {
 }
 
 export function useSessionEmail(): SessionState {
-  const { auth } = useServices()
-  const [state, setState] = useState<SessionState>({ email: null, loading: true })
+  const { userSession } = useServices()
+  const [sessionState, setSessionState] = useState<SessionState>({ email: null, loading: true })
 
   useEffect(() => {
-    void auth.currentUserEmail().then((email) => setState({ email, loading: false }))
-    return auth.onChange((email) => setState({ email, loading: false }))
-  }, [auth])
+    void userSession
+      .currentUserEmail()
+      .then((email) => setSessionState({ email, loading: false }))
+    return userSession.watchUserEmail((email) => setSessionState({ email, loading: false }))
+  }, [userSession])
 
-  return state
+  return sessionState
 }

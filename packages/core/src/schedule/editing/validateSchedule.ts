@@ -1,4 +1,4 @@
-import type { BlockMode, TimeWindow } from '../../rules/types'
+import type { BlockMode, TimeWindow } from '../../rules/blockRule'
 import { parseTimeOfDay } from '../evaluation/parseTimeOfDay'
 
 export type ScheduleError = 'no-windows' | 'no-days' | 'invalid-time' | null

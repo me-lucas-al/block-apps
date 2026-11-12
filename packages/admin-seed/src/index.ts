@@ -1,5 +1,5 @@
-export type { AdminAccountGateway, NewAdminAccount } from './AdminAccountGateway.ts'
-export { SupabaseAdminAccountGateway } from './SupabaseAdminAccountGateway.ts'
+export type { AdminAccountGateway, NewAdminAccount } from './gateway/AdminAccountGateway.ts'
+export { SupabaseAdminAccountGateway } from './gateway/SupabaseAdminAccountGateway.ts'
 export { createInitialAdmin } from './createInitialAdmin.ts'
 export type { CreatedAdmin } from './createInitialAdmin.ts'
-export type { AdminSeedSettings } from './readAdminSeedSettings.ts'
+export type { AdminSeedSettings } from './settings/readAdminSeedSettings.ts'

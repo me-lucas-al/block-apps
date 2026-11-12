@@ -1,4 +1,4 @@
-import type { DayOfWeek, TimeWindow } from '../../rules/types'
+import type { DayOfWeek, TimeWindow } from '../../rules/blockRule'
 import { parseTimeOfDay } from './parseTimeOfDay'
 
 function previousDay(day: DayOfWeek): DayOfWeek {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { BlockRule, TimeWindow } from '../../../rules/types'
+import type { BlockRule, TimeWindow } from '../../../rules/blockRule'
 import { isBlockedNow } from '../isBlockedNow'
 
 const MONDAY = 1

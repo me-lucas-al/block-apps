@@ -12,18 +12,18 @@ function messageOf(failure: unknown): string {
 }
 
 export function useAppRules() {
-  const { ruleRepository, rulesSync } = useServices()
+  const { ruleRepository, pendingRuleChanges, rulesSync } = useServices()
   const [rules, setRules] = useState<BlockRule[]>([])
   const [pendingChanges, setPendingChanges] = useState<PendingRuleChange[]>([])
   const [error, setError] = useState<string | null>(null)
 
   const reload = useCallback(async () => {
-    await ruleRepository.applyDueChanges()
+    await pendingRuleChanges.applyDueChanges()
     const allRules = await ruleRepository.list()
     setRules(onlyApps(allRules))
-    setPendingChanges(await ruleRepository.listPendingChanges())
+    setPendingChanges(await pendingRuleChanges.listPendingChanges())
     rulesSync.push(allRules)
-  }, [ruleRepository, rulesSync])
+  }, [ruleRepository, pendingRuleChanges, rulesSync])
 
   const run = useCallback(
     async (action: () => Promise<unknown>) => {
@@ -42,7 +42,7 @@ export function useAppRules() {
   useEffect(() => {
     const refresh = () => void reload().catch((failure: unknown) => setError(messageOf(failure)))
     refresh()
-    return ruleRepository.subscribe(refresh)
+    return ruleRepository.subscribeToRuleChanges(refresh)
   }, [reload, ruleRepository])
 
   return {
@@ -51,8 +51,8 @@ export function useAppRules() {
     error,
     create: (rule: NewBlockRule) => run(() => ruleRepository.create(rule)),
     requestRemoval: (ruleId: string) =>
-      run(() => ruleRepository.requestRemoval(ruleId)).catch(() => undefined),
+      run(() => pendingRuleChanges.requestRemoval(ruleId)).catch(() => undefined),
     cancelChange: (changeId: string) =>
-      run(() => ruleRepository.cancelPendingChange(changeId)).catch(() => undefined),
+      run(() => pendingRuleChanges.cancelPendingChange(changeId)).catch(() => undefined),
   }
 }

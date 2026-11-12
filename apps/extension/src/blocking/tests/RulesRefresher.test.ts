@@ -23,7 +23,8 @@ function createRefresher(options: { hasSession: boolean; listFails?: boolean }) 
     return [remoteRule]
   })
   const refresher = new RulesRefresher({
-    repository: { list, applyDueChanges },
+    ruleRepository: { list },
+    pendingRuleChanges: { applyDueChanges },
     ruleCache: { load: async () => [], save },
     sessionGate: { hasSession: async () => options.hasSession },
     enforcer: { sync },

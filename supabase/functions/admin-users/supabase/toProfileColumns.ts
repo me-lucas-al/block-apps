@@ -1,4 +1,4 @@
-import type { UpdateUserInput } from '../../_shared/admin-users/types.ts'
+import type { UpdateUserInput } from '../../_shared/admin-users/model/userInputs.ts'
 
 export function toProfileColumns(changes: UpdateUserInput): Record<string, unknown> {
   const profileColumns: Record<string, unknown> = {}

@@ -1,17 +1,19 @@
-import { AdminGuard } from './AdminGuard.ts'
-import type { AdminUsersUseCases } from './buildAdminUsersResponse.ts'
-import type { UserDirectory } from './types.ts'
+import { AdminCallerGuard } from './guards/AdminCallerGuard.ts'
+import { ExistingUserGuard } from './guards/ExistingUserGuard.ts'
+import type { AdminUsersUseCases } from './http/adminUsersContracts.ts'
+import type { UserDirectory } from './model/UserDirectory.ts'
 import { CreateUserUseCase } from './use-cases/CreateUserUseCase.ts'
 import { DeleteUserUseCase } from './use-cases/DeleteUserUseCase.ts'
 import { ListUsersUseCase } from './use-cases/ListUsersUseCase.ts'
 import { UpdateUserUseCase } from './use-cases/UpdateUserUseCase.ts'
 
 export function composeAdminUsersUseCases(userDirectory: UserDirectory): AdminUsersUseCases {
-  const adminGuard = new AdminGuard(userDirectory)
+  const adminCallerGuard = new AdminCallerGuard(userDirectory)
+  const existingUserGuard = new ExistingUserGuard(userDirectory)
   return {
-    listUsersUseCase: new ListUsersUseCase(userDirectory, adminGuard),
-    createUserUseCase: new CreateUserUseCase(userDirectory, adminGuard),
-    updateUserUseCase: new UpdateUserUseCase(userDirectory, adminGuard),
-    deleteUserUseCase: new DeleteUserUseCase(userDirectory, adminGuard),
+    listUsersUseCase: new ListUsersUseCase(userDirectory, adminCallerGuard),
+    createUserUseCase: new CreateUserUseCase(userDirectory, adminCallerGuard),
+    updateUserUseCase: new UpdateUserUseCase(userDirectory, adminCallerGuard, existingUserGuard),
+    deleteUserUseCase: new DeleteUserUseCase(userDirectory, adminCallerGuard, existingUserGuard),
   }
 }

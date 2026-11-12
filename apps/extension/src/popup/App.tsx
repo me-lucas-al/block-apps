@@ -5,7 +5,7 @@ import { useSessionEmail } from './hooks/useSessionEmail'
 import { useServices } from './services/ServicesContext'
 
 export function App() {
-  const { auth } = useServices()
+  const { authenticator } = useServices()
   const { email, loading } = useSessionEmail()
 
   if (loading) return <p className="hint">Carregando…</p>
@@ -15,7 +15,7 @@ export function App() {
     <main className="stack">
       <header className="row between">
         <span className="hint">{email}</span>
-        <button type="button" className="secondary" onClick={() => void auth.signOut()}>
+        <button type="button" className="secondary" onClick={() => void authenticator.signOut()}>
           Sair
         </button>
       </header>

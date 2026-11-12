@@ -5,10 +5,10 @@ import { TextField } from '../components/ui/TextField'
 import { useServices } from '../services/ServicesContext'
 import { colors } from '../theme'
 
-type AuthAction = 'signIn' | 'signUp'
+type AuthAction = 'signInWithPassword' | 'signUpWithPassword'
 
 export function LoginScreen() {
-  const { auth } = useServices()
+  const { authenticator } = useServices()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -16,7 +16,7 @@ export function LoginScreen() {
   const submit = async (action: AuthAction) => {
     try {
       setError(null)
-      await auth[action](email.trim(), password)
+      await authenticator[action](email.trim(), password)
     } catch (failure) {
       setError(failure instanceof Error ? failure.message : 'Erro inesperado')
     }
@@ -30,8 +30,8 @@ export function LoginScreen() {
       <TextField placeholder="Senha" secureTextEntry value={password}
         onChangeText={setPassword} />
       {error && <Text style={styles.error}>{error}</Text>}
-      <Button label="Entrar" onPress={() => void submit('signIn')} />
-      <Button label="Criar conta" variant="secondary" onPress={() => void submit('signUp')} />
+      <Button label="Entrar" onPress={() => void submit('signInWithPassword')} />
+      <Button label="Criar conta" variant="secondary" onPress={() => void submit('signUpWithPassword')} />
     </View>
   )
 }

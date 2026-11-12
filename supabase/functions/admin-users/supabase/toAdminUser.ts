@@ -1,4 +1,4 @@
-import type { AdminUser } from '../../_shared/admin-users/types.ts'
+import type { AdminUser } from '../../_shared/admin-users/model/adminUser.ts'
 import type { AuthUserRecord, ProfileRecord } from './profileRecords.ts'
 
 const LEAST_PRIVILEGED_PROFILE = {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { PendingRuleChange } from '../../rules/types'
+import type { PendingRuleChange } from '../../rules/pendingRuleChange'
 import { describePendingChange } from '../describePendingChange'
 
 const NOW = new Date('2026-01-05T12:00:00.000Z')

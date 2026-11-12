@@ -1,4 +1,4 @@
-import type { AppSuggestion, KnownApp } from '../catalog/types'
+import type { AppSuggestion, KnownApp } from '../catalog/appSuggestion'
 
 export function buildAppLabeler(
   installed: readonly KnownApp[],

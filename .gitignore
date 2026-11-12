@@ -13,3 +13,16 @@ apps/mobile/android
 apps/mobile/ios
 .gradle/
 .serena/
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+plan.tfplan
+crash.log
+*.tfvars
+!*.tfvars.example
+backend.hcl
+*.tfvars.json
+override.tf
+override.tf.json
+*_override.tf

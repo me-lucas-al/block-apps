@@ -10,6 +10,13 @@ describe('buildAppRule', () => {
     )
   })
 
+  it.each(['instagram', 'instagram.com', 'not a package'])(
+    'rejects %j as an app package',
+    (packageName) => {
+      expect(buildAppRule({ packageName, mode: 'always', windows: [] }).error).toBe('invalid-app')
+    },
+  )
+
   it('drops windows for always mode', () => {
     const { rule } = buildAppRule({
       packageName: 'com.instagram.android',

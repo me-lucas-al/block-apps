@@ -1,7 +1,7 @@
 import type { TimeWindow } from '@block-apps/core'
 import { StyleSheet, Text, View } from 'react-native'
-import { colors } from '../../theme'
-import { Button } from '../ui/Button'
+import { colors } from '../../../theme'
+import { Button } from '../../ui/Button'
 import { WindowCard } from './WindowCard'
 
 const DEFAULT_WINDOW: TimeWindow = {

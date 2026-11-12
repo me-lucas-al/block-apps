@@ -1,7 +1,7 @@
 import { type BlockRule, type PendingRuleChange, describePendingChange } from '@block-apps/core'
 import { StyleSheet, Text, View } from 'react-native'
-import { colors } from '../../theme'
-import { Button } from '../ui/Button'
+import { colors } from '../../../theme'
+import { Button } from '../../ui/Button'
 
 type AppRuleItemProps = {
   rule: BlockRule

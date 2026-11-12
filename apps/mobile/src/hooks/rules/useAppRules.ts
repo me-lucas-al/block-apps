@@ -1,7 +1,7 @@
 import type { NewBlockRule } from '@block-apps/api'
 import type { BlockRule, PendingRuleChange } from '@block-apps/core'
 import { useCallback, useEffect, useState } from 'react'
-import { useServices } from '../services/ServicesContext'
+import { useServices } from '../../services/ServicesContext'
 
 function onlyApps(rules: BlockRule[]): BlockRule[] {
   return rules.filter((rule) => rule.targetType === 'app')

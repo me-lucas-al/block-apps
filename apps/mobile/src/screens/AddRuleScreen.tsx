@@ -3,20 +3,22 @@ import type { BlockMode, TimeWindow } from '@block-apps/core'
 import { useState } from 'react'
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import type { InstalledApp } from '../../modules/app-blocker'
-import { AppPicker } from '../components/rules/AppPicker'
-import { ScheduleEditor } from '../components/rules/ScheduleEditor'
+import { AppPicker } from '../components/rules/apps/AppPicker'
+import { ScheduleEditor } from '../components/rules/schedule/ScheduleEditor'
 import { Button } from '../components/ui/Button'
+import { useAppCatalog } from '../hooks/rules/useAppCatalog'
 import { buildAppRule } from '../rules/buildAppRule'
 import { ruleErrorMessage } from '../rules/ruleErrorMessage'
 import { colors } from '../theme'
 
 type AddRuleScreenProps = {
-  apps: readonly InstalledApp[]
+  installedApps: readonly InstalledApp[]
   onSubmit: (rule: NewBlockRule) => Promise<void>
   onCancel: () => void
 }
 
-export function AddRuleScreen({ apps, onSubmit, onCancel }: AddRuleScreenProps) {
+export function AddRuleScreen({ installedApps, onSubmit, onCancel }: AddRuleScreenProps) {
+  const { suggestions, labelFor } = useAppCatalog(installedApps)
   const [packageName, setPackageName] = useState<string | null>(null)
   const [mode, setMode] = useState<BlockMode>('always')
   const [windows, setWindows] = useState<TimeWindow[]>([])
@@ -26,15 +28,25 @@ export function AddRuleScreen({ apps, onSubmit, onCancel }: AddRuleScreenProps) 
     const result = buildAppRule({ packageName, mode, windows })
     if (!result.rule) return setError(ruleErrorMessage(result.error))
 
-    setError(null)
-    await onSubmit(result.rule)
-    onCancel()
+    try {
+      setError(null)
+      await onSubmit(result.rule)
+      onCancel()
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : 'Erro inesperado')
+    }
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
       <Text style={styles.title}>Bloquear app</Text>
-      <AppPicker apps={apps} selectedPackage={packageName} onSelect={setPackageName} />
+      <AppPicker
+        installedApps={installedApps}
+        suggestions={suggestions}
+        labelFor={labelFor}
+        selectedPackage={packageName}
+        onSelect={setPackageName}
+      />
       <View style={styles.modes}>
         <Button label="Sempre" variant={mode === 'always' ? 'primary' : 'secondary'}
           onPress={() => setMode('always')} />

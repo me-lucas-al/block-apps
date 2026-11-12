@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { AppState } from 'react-native'
-import { useServices } from '../services/ServicesContext'
+import { useServices } from '../../services/ServicesContext'
 
 export type ProtectionStatus = {
   accessibilityEnabled: boolean

@@ -1,3 +1,5 @@
+> **Legado:** este guia descreve o login com Google no Supabase. Para a AWS, veja `docs/INFRA.md` (seção "Login com Google").
+
 # Login com Google
 
 O painel de administração já tem o botão **Entrar com Google**. Falta ligar o provedor no Supabase, o que exige credenciais criadas na sua conta do Google.

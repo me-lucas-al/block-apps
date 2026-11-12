@@ -5,7 +5,7 @@ locals {
 
 resource "aws_cognito_identity_provider" "google" {
   count         = local.google_enabled ? 1 : 0
-  user_pool_id  = aws_cognito_user_pool.main.id
+  user_pool_id  = aws_cognito_user_pool.users.id
   provider_name = "Google"
   provider_type = "Google"
 
@@ -16,14 +16,15 @@ resource "aws_cognito_identity_provider" "google" {
   }
 
   attribute_mapping = {
-    email    = "email"
-    username = "sub"
+    email          = "email"
+    email_verified = "email_verified"
+    username       = "sub"
   }
 }
 
-resource "aws_cognito_user_pool_client" "web" {
+resource "aws_cognito_user_pool_client" "admin_web" {
   name         = "${var.name_prefix}-admin-web"
-  user_pool_id = aws_cognito_user_pool.main.id
+  user_pool_id = aws_cognito_user_pool.users.id
 
   generate_secret                      = false
   explicit_auth_flows                  = ["ALLOW_USER_SRP_AUTH", "ALLOW_REFRESH_TOKEN_AUTH"]
@@ -34,10 +35,12 @@ resource "aws_cognito_user_pool_client" "web" {
   allowed_oauth_flows                  = ["code"]
   allowed_oauth_scopes                 = ["openid", "email", "profile"]
   callback_urls                        = var.web_callback_urls
-  logout_urls                          = var.web_callback_urls
+  logout_urls                          = var.web_logout_urls
+  read_attributes                      = ["email", "email_verified"]
+  write_attributes                     = ["email"]
 
-  access_token_validity  = 60
-  id_token_validity      = 60
+  access_token_validity  = 15
+  id_token_validity      = 15
   refresh_token_validity = 30
 
   token_validity_units {
@@ -51,15 +54,17 @@ resource "aws_cognito_user_pool_client" "web" {
 
 resource "aws_cognito_user_pool_client" "device" {
   name         = "${var.name_prefix}-device"
-  user_pool_id = aws_cognito_user_pool.main.id
+  user_pool_id = aws_cognito_user_pool.users.id
 
   generate_secret               = false
   explicit_auth_flows           = ["ALLOW_USER_SRP_AUTH", "ALLOW_REFRESH_TOKEN_AUTH"]
   prevent_user_existence_errors = "ENABLED"
   enable_token_revocation       = true
+  read_attributes               = ["email", "email_verified"]
+  write_attributes              = ["email"]
 
-  access_token_validity  = 60
-  id_token_validity      = 60
+  access_token_validity  = 15
+  id_token_validity      = 15
   refresh_token_validity = 90
 
   token_validity_units {

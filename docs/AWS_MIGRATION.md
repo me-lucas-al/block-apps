@@ -26,7 +26,7 @@ Lambda "lambdalith" (Node 24, arm64, Hono)
 | RLS | a API é o único caminho: o token define o `userId`, e cada use case só lê e escreve a partição `USER#<id>` |
 | Funções SQL do cooldown | use cases `RequestRuleRemoval`, `ApplyDueRuleChanges` etc. na Lambda |
 | Trigger do último administrador | checagem condicional no DynamoDB (item guardião) |
-| Edge Function `admin-users` | rotas `/admin/users` na Lambda, usando a API de administração do Cognito |
+| Edge Function `admin-users` | Lambda `admin` separada (rotas `/admin/*`), a única com a API de administração do Cognito |
 | Realtime | sync periódico e ao abrir (sem WebSocket) |
 | Supabase local (Docker) | DynamoDB local (1 container) para testes de integração |
 
@@ -43,7 +43,7 @@ O índice `due-changes` (`dueBucket`, `effectiveAt`) permite achar mudanças ven
 
 ## Fases (uma PR por fase)
 
-1. **Infra em Terraform** (esta PR): tabela, Cognito, Lambda e API Gateway. Valida offline; aplicar exige credenciais e a sua confirmação.
+1. **Infra em Terraform** (esta PR): tabela, Cognito, duas Lambdas (`api` e `admin`) e API Gateway. Valida offline; aplicar exige credenciais e a sua confirmação.
 2. **Backend**: pacote `packages/backend` com Hono, use cases e adaptadores DynamoDB, testado contra DynamoDB local.
 3. **Usuários e administradores**: rotas administrativas sobre o Cognito, com as mesmas salvaguardas de hoje (não excluir a si mesmo, manter um administrador, promoção exige nova senha).
 4. **Clientes**: `packages/api` vira cliente HTTP + Cognito; app, extensão e painel trocam os adaptadores do Supabase.
@@ -56,3 +56,4 @@ O índice `due-changes` (`dueBucket`, `effectiveAt`) permite achar mudanças ven
 - Cognito cobra por usuário ativo acima do free tier; para este projeto fica dentro do gratuito por muito tempo.
 - O estado do Terraform guarda segredos (senha temporária, segredo do Google): bucket versionado, criptografado e privado (`infra/bootstrap`).
 - O framework AWS Blocks gera CDK, então não foi usado: a regra do projeto é Terraform.
+- Autocadastro, MFA obrigatório só para administradores (hoje opcional para todos) e Google no app e na extensão são decisões de produto em aberto.

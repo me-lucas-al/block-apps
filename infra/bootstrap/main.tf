@@ -1,38 +1,9 @@
-terraform {
-  required_version = ">= 1.9"
-
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 6.0"
-    }
-  }
-}
-
-variable "aws_region" {
-  description = "Região da AWS."
-  type        = string
-  default     = "sa-east-1"
-}
-
-variable "state_bucket_name" {
-  description = "Nome único do bucket S3 que guarda o estado do Terraform."
-  type        = string
-}
-
-provider "aws" {
-  region = var.aws_region
-
-  default_tags {
-    tags = {
-      Project   = "block-apps"
-      ManagedBy = "terraform"
-    }
-  }
-}
-
 resource "aws_s3_bucket" "state" {
   bucket = var.state_bucket_name
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "aws_s3_bucket_versioning" "state" {
@@ -47,6 +18,8 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "state" {
   bucket = aws_s3_bucket.state.id
 
   rule {
+    bucket_key_enabled = true
+
     apply_server_side_encryption_by_default {
       sse_algorithm = "aws:kms"
     }
@@ -61,7 +34,46 @@ resource "aws_s3_bucket_public_access_block" "state" {
   restrict_public_buckets = true
 }
 
-output "state_bucket_name" {
-  description = "Use este nome no backend.hcl do ambiente."
-  value       = aws_s3_bucket.state.id
+resource "aws_s3_bucket_lifecycle_configuration" "state" {
+  bucket = aws_s3_bucket.state.id
+
+  rule {
+    id     = "expire-old-state-versions"
+    status = "Enabled"
+
+    filter {}
+
+    noncurrent_version_expiration {
+      noncurrent_days = 90
+    }
+  }
+
+  depends_on = [aws_s3_bucket_versioning.state]
+}
+
+data "aws_iam_policy_document" "state_requires_tls" {
+  statement {
+    sid       = "DenyInsecureTransport"
+    effect    = "Deny"
+    actions   = ["s3:*"]
+    resources = [aws_s3_bucket.state.arn, "${aws_s3_bucket.state.arn}/*"]
+
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
+
+    condition {
+      test     = "Bool"
+      variable = "aws:SecureTransport"
+      values   = ["false"]
+    }
+  }
+}
+
+resource "aws_s3_bucket_policy" "state_requires_tls" {
+  bucket = aws_s3_bucket.state.id
+  policy = data.aws_iam_policy_document.state_requires_tls.json
+
+  depends_on = [aws_s3_bucket_public_access_block.state]
 }

@@ -65,3 +65,8 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "admin_group_name" {
+  description = "Grupo do Cognito que identifica administradores."
+  type        = string
+}

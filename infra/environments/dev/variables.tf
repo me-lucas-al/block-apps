@@ -5,13 +5,13 @@ variable "aws_region" {
 }
 
 variable "environment_name" {
-  description = "Nome do ambiente, por exemplo dev ou prod."
+  description = "Nome do ambiente. Este diretório é o ambiente de desenvolvimento; produção terá o seu próprio diretório."
   type        = string
   default     = "dev"
 }
 
 variable "lambda_zip_path" {
-  description = "Caminho do pacote .zip da API (gerado por `pnpm --filter @block-apps/backend package`)."
+  description = "Caminho do pacote .zip da API, relativo a esta pasta (gerado por `pnpm --filter @block-apps/backend package`)."
   type        = string
   default     = "../../../packages/backend/dist/lambda.zip"
 }
@@ -22,7 +22,13 @@ variable "hosted_domain_prefix" {
 }
 
 variable "web_callback_urls" {
-  description = "URLs de retorno do painel administrativo."
+  description = "URLs de retorno do login do painel administrativo."
+  type        = list(string)
+  default     = ["http://localhost:5173", "http://localhost:8080"]
+}
+
+variable "web_logout_urls" {
+  description = "URLs para onde o painel volta depois do logout."
   type        = list(string)
   default     = ["http://localhost:5173", "http://localhost:8080"]
 }
@@ -33,6 +39,12 @@ variable "allowed_origins" {
   default     = ["http://localhost:5173", "http://localhost:8080"]
 }
 
+variable "allow_self_signup" {
+  description = "Permite que qualquer pessoa crie conta pelo app. Desligado, só administradores criam usuários."
+  type        = bool
+  default     = true
+}
+
 variable "google_client_id" {
   description = "ID do cliente OAuth do Google (vazio desliga o login com Google)."
   type        = string
@@ -40,20 +52,20 @@ variable "google_client_id" {
 }
 
 variable "google_client_secret" {
-  description = "Chave secreta do cliente OAuth do Google."
+  description = "Chave secreta do cliente OAuth do Google. Passe por TF_VAR_google_client_secret."
   type        = string
   default     = ""
   sensitive   = true
 }
 
 variable "initial_admin_email" {
-  description = "E-mail do primeiro administrador (vazio não cria ninguém)."
+  description = "E-mail do primeiro administrador, que recebe o convite do Cognito (vazio não cria ninguém)."
   type        = string
   default     = ""
 }
 
 variable "protect_from_deletion" {
-  description = "Liga a proteção contra exclusão da tabela e do user pool."
+  description = "Liga a proteção contra exclusão da tabela e do user pool na AWS."
   type        = bool
   default     = false
 }

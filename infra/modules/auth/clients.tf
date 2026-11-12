@@ -30,12 +30,8 @@ resource "aws_cognito_user_pool_client" "admin_web" {
   explicit_auth_flows                  = ["ALLOW_USER_SRP_AUTH", "ALLOW_REFRESH_TOKEN_AUTH"]
   prevent_user_existence_errors        = "ENABLED"
   enable_token_revocation              = true
-  supported_identity_providers         = local.identity_providers
-  allowed_oauth_flows_user_pool_client = true
-  allowed_oauth_flows                  = ["code"]
-  allowed_oauth_scopes                 = ["openid", "email", "profile"]
-  callback_urls                        = var.web_callback_urls
-  logout_urls                          = var.web_logout_urls
+  supported_identity_providers         = ["COGNITO"]
+  allowed_oauth_flows_user_pool_client = false
   read_attributes                      = ["email", "email_verified"]
   write_attributes                     = ["email"]
 

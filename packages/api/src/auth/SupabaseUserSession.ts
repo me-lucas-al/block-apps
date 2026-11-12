@@ -10,6 +10,16 @@ export class SupabaseUserSession implements UserSession {
     return sessionResponse.session?.user.email ?? null
   }
 
+  async currentIdToken(): Promise<string | null> {
+    const { data } = await this.client.auth.getSession()
+    return data.session?.access_token ?? null
+  }
+
+  async currentAccessToken(): Promise<string | null> {
+    const { data } = await this.client.auth.getSession()
+    return data.session?.access_token ?? null
+  }
+
   watchUserEmail(onUserEmailChanged: (email: string | null) => void): Unsubscribe {
     const { data: authSubscription } = this.client.auth.onAuthStateChange((_event, session) => {
       onUserEmailChanged(session?.user.email ?? null)

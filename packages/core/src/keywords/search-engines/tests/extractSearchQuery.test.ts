@@ -7,6 +7,7 @@ describe('extractSearchQuery', () => {
     ['https://www.google.com.br/search?q=apostas%20esportivas', 'apostas esportivas'],
     ['https://google.de/search?q=casino', 'casino'],
     ['https://encrypted.google.com/search?q=poker', 'poker'],
+    ['https://www.google.com./search?q=poker', 'poker'],
     ['https://www.bing.com/search?q=poker&form=QBLH', 'poker'],
     ['https://www.bing.com/images/search?q=poker', 'poker'],
     ['https://cn.bing.com/videos/search?q=poker', 'poker'],

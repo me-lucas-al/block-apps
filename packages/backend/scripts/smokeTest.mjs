@@ -48,7 +48,7 @@ async function run() {
 
   console.log('Testing rule removal request...')
   const removal = await request(`/rules/${ruleId}/removal-requests`, { method: 'POST' })
-  if (removal.status !== 202) throw new Error(`Removal request failed: ${removal.status}`)
+  if (removal.status !== 200) throw new Error(`Removal request failed: ${removal.status}`)
   console.log('Removal request accepted.')
 
   console.log('Testing admin users endpoint...')

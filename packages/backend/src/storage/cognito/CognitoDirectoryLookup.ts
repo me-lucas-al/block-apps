@@ -3,6 +3,7 @@ import {
   CognitoIdentityProviderClient,
   ListUsersCommand,
 } from '@aws-sdk/client-cognito-identity-provider'
+import { buildEmailFilter, findLinkableNativeUser } from './findLinkableNativeUser'
 import type { UserDirectoryLookup } from '../../auth/use-cases/LinkFederatedUserUseCase'
 
 export class CognitoDirectoryLookup implements UserDirectoryLookup {
@@ -15,15 +16,11 @@ export class CognitoDirectoryLookup implements UserDirectoryLookup {
     const reply = await this.client.send(
       new ListUsersCommand({
         UserPoolId: userPoolId,
-        Filter: `email = "${email}"`,
+        Filter: buildEmailFilter(email),
         Limit: 5,
       }),
     )
-    const users = reply.Users ?? []
-    const native = users.find(
-      (user) => user.UserStatus !== 'EXTERNAL_PROVIDER' && user.Username && !user.Username.includes('_'),
-    )
-    return native?.Username ? { username: native.Username } : null
+    return findLinkableNativeUser(reply.Users ?? [])
   }
 
   async linkProvider(input: {

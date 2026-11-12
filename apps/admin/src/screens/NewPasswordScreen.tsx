@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { useServices } from '../services/ServicesContext'
+import { MINIMUM_PASSWORD_LENGTH } from '../users/minimumPasswordLength'
 
 type Props = {
   readonly onCompleted: () => void
@@ -33,7 +34,7 @@ export function NewPasswordScreen({ onCompleted, onCancel }: Props) {
           <input
             type="password"
             required
-            minLength={8}
+            minLength={MINIMUM_PASSWORD_LENGTH}
             autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}

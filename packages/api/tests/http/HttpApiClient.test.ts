@@ -58,4 +58,27 @@ describe('HttpApiClient', () => {
 
     await expect(client.delete('/rules/123')).rejects.toThrow(ApiError)
   })
+
+  it('refreshes the token only once for simultaneous unauthorized requests', async () => {
+    const fetchMock = vi.fn(async (_url: string, request: RequestInit) => {
+      const headers = request.headers as Record<string, string>
+      const isStaleToken = headers['authorization'] === 'Bearer stale-token'
+      return isStaleToken
+        ? new Response('Unauthorized', { status: 401 })
+        : new Response(JSON.stringify({ recovered: true }), { status: 200 })
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const onUnauthorized = vi.fn().mockResolvedValue('refreshed-token')
+    const client = new HttpApiClient({
+      baseUrl: 'https://api.example.com',
+      getToken: async () => 'stale-token',
+      onUnauthorized,
+    })
+
+    const results = await Promise.all([client.get('/rules'), client.get('/devices')])
+
+    expect(results).toEqual([{ recovered: true }, { recovered: true }])
+    expect(onUnauthorized).toHaveBeenCalledTimes(1)
+  })
 })

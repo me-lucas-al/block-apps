@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { useServices } from '../services/ServicesContext'
+import { MINIMUM_PASSWORD_LENGTH } from '../users/minimumPasswordLength'
 
 type Props = {
   readonly initialEmail: string
@@ -53,7 +54,7 @@ export function ResetPasswordScreen({ initialEmail, onCompleted, onCancel }: Pro
             <input
               type="password"
               required
-              minLength={8}
+              minLength={MINIMUM_PASSWORD_LENGTH}
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
             />

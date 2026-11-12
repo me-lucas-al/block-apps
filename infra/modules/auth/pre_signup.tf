@@ -20,7 +20,7 @@ data "aws_iam_policy_document" "pre_signup" {
       "cognito-idp:AdminLinkProviderForUser",
     ]
     resources = [
-      "arn:aws:cognito-idp:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:userpool/*"
+      aws_cognito_user_pool.users.arn
     ]
   }
 }

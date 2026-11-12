@@ -5,14 +5,17 @@ export type IdTokenPayload = {
   readonly 'cognito:groups'?: readonly string[]
 }
 
+function decodeBase64UrlText(base64UrlText: string): string {
+  const base64Text = base64UrlText.replace(/-/g, '+').replace(/_/g, '/')
+  const bytes = Uint8Array.from(atob(base64Text), (character) => character.charCodeAt(0))
+  return new TextDecoder().decode(bytes)
+}
+
 export function decodeJwtPayload(token: string): IdTokenPayload | null {
+  const payloadPart = token.split('.')[1]
+  if (!payloadPart) return null
   try {
-    const parts = token.split('.')
-    const payloadPart = parts[1]
-    if (!payloadPart) return null
-    const base64 = payloadPart.replace(/-/g, '+').replace(/_/g, '/')
-    const json = typeof atob === 'function' ? atob(base64) : Buffer.from(base64, 'base64').toString('utf-8')
-    return JSON.parse(json) as IdTokenPayload
+    return JSON.parse(decodeBase64UrlText(payloadPart)) as IdTokenPayload
   } catch {
     return null
   }

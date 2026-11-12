@@ -21,6 +21,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     if: github.repository == 'me-lucas-al/block-apps'
+    env:
+      TF_VAR_hosted_domain_prefix: ${{ vars.HOSTED_DOMAIN_PREFIX }}
+      TF_VAR_google_client_id: ${{ vars.GOOGLE_CLIENT_ID }}
+      TF_VAR_google_client_secret: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+      TF_VAR_initial_admin_email: ${{ vars.INITIAL_ADMIN_EMAIL }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4

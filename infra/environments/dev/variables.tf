@@ -17,9 +17,8 @@ variable "lambda_zip_path" {
 }
 
 variable "hosted_domain_prefix" {
-  description = "Prefixo único do domínio de login do Cognito."
+  description = "Prefixo único do domínio de login do Cognito. Sem valor padrão: passe por TF_VAR_hosted_domain_prefix."
   type        = string
-  default     = "block-apps-auth-dev"
 }
 
 variable "web_callback_urls" {

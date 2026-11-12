@@ -30,15 +30,6 @@ export function LoginScreen() {
     }
   }
 
-  const startGoogleSignIn = async () => {
-    try {
-      setError(null)
-      await authenticator.signInWithGoogle(window.location.origin)
-    } catch {
-      setError('O login com Google não está configurado neste ambiente.')
-    }
-  }
-
   if (view === 'new_password') return <NewPasswordScreen onCompleted={() => setView('login')} onCancel={() => setView('login')} />
   if (view === 'totp') return <TotpScreen onCompleted={() => setView('login')} onCancel={() => setView('login')} />
   if (view === 'mfa_setup') return <MfaSetupScreen onCompleted={() => setView('login')} onCancel={() => setView('login')} />
@@ -59,9 +50,6 @@ export function LoginScreen() {
         </label>
         {error && <p className="error" role="alert">{error}</p>}
         <button type="submit">Entrar</button>
-        <button type="button" className="secondary" onClick={() => void startGoogleSignIn()}>
-          Entrar com Google
-        </button>
         <button type="button" className="secondary" onClick={() => setView('reset_password')}>
           Esqueci a senha
         </button>

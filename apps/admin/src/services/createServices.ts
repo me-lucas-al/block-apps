@@ -12,7 +12,6 @@ import { readAdminConfig } from '../adapters/readAdminConfig'
 import { WebSessionStorage } from '../adapters/WebSessionStorage'
 import type { AdminUsersGateway } from '../ports/AdminUsersGateway'
 import type { ProfileGateway } from '../ports/ProfileGateway'
-import { handleAdminOAuthCallback } from './handleAdminOAuthCallback'
 
 export type Services = {
   readonly userSession: UserSession
@@ -46,8 +45,6 @@ export function createServices(): Services {
   const httpAdminUsers = new HttpAdminUsersGateway(http)
   const users = new HttpAdminUsersAdapter(httpAdminUsers)
   const profile = new HttpProfileGateway(userSession, httpAdminUsers, authenticator)
-
-  void handleAdminOAuthCallback(authenticator)
 
   return { userSession, authenticator, users, profile }
 }

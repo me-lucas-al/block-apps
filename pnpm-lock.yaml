@@ -289,6 +289,9 @@ importers:
 
   packages/backend:
     dependencies:
+      '@aws-sdk/client-cognito-identity-provider':
+        specifier: 3.1159.0
+        version: 3.1159.0
       '@aws-sdk/client-dynamodb':
         specifier: 3.1159.0
         version: 3.1159.0
@@ -360,6 +363,10 @@ packages:
     peerDependenciesMeta:
       typescript:
         optional: true
+
+  '@aws-sdk/client-cognito-identity-provider@3.1159.0':
+    resolution: {integrity: sha512-7REListLJT7sOXCoSbuimz58eH/jzauz83/0WN5GAxMK9I3CZe7XohX6vVPAeQZrABCW43aShjVJxJbzJMs9ig==}
+    engines: {node: '>=20.0.0'}
 
   '@aws-sdk/client-dynamodb@3.1159.0':
     resolution: {integrity: sha512-vdIwN77VEj/ojm6l1AJ7PFv7rCK+DLmYBjFh2RCcta7dQ5uwhPZNkVX05xzRLLRV3G0AvDpyS9152NtwzKm46A==}
@@ -3532,6 +3539,17 @@ snapshots:
   2g@1.0.1(typescript@6.0.3):
     optionalDependencies:
       typescript: 6.0.3
+
+  '@aws-sdk/client-cognito-identity-provider@3.1159.0':
+    dependencies:
+      '@aws-sdk/core': 3.981.0
+      '@aws-sdk/credential-provider-node': 3.972.96
+      '@aws-sdk/types': 3.975.1
+      '@smithy/core': 3.40.0
+      '@smithy/fetch-http-handler': 5.8.1
+      '@smithy/node-http-handler': 4.14.2
+      '@smithy/types': 4.20.0
+      tslib: 2.8.1
 
   '@aws-sdk/client-dynamodb@3.1159.0':
     dependencies:

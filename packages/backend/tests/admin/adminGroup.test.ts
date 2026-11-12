@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { createAdminApp } from '../../src/http/app/createAdminApp'
 import { callApi } from '../helpers/callApi'
+import { buildAdminBackend } from '../helpers/admin/buildAdminBackend'
 
-describe('admin app', () => {
-  const app = createAdminApp('admin')
+describe('admin app access', () => {
+  const { app } = buildAdminBackend()
 
   it('lets a member of the admin group in', async () => {
     const reply = await callApi(app, { method: 'GET', path: '/admin/me', groups: ['admin'] })
@@ -23,5 +23,10 @@ describe('admin app', () => {
   it('rejects a request without a signed-in user', async () => {
     const reply = await callApi(app, { method: 'GET', path: '/admin/me', userId: null })
     expect(reply.status).toBe(401)
+  })
+
+  it('answers unknown admin routes with a JSON 404', async () => {
+    const reply = await callApi(app, { method: 'GET', path: '/admin/nothing', groups: ['admin'] })
+    expect(reply).toEqual({ status: 404, json: { error: 'not found' } })
   })
 })

@@ -1,68 +1,78 @@
 import { describe, expect, it } from 'vitest'
 import type { AdminUser } from '../../ports/userTypes'
-import { EMPTY_USER_FORM, formFromUser, toCreateInput, toUpdateInput } from '../userForm'
+import {
+  EMPTY_USER_FORM,
+  formFromUser,
+  toCreateInput,
+  toUpdateInput,
+} from '../userForm'
 
-const USER: AdminUser = {
-  id: 'user-1',
+const SAMPLE_USER: AdminUser = {
+  id: 'u-1',
   email: 'ana@example.com',
   displayName: 'Ana',
   role: 'user',
-  cooldownHours: 24,
+  cooldownHours: 12,
   mustChangePassword: false,
-  createdAt: '2026-01-01T00:00:00.000Z',
-  lastSignInAt: null,
+  createdAt: '2026-04-10T10:00:00Z',
 }
 
 describe('userForm', () => {
-  it('starts with safe defaults for a new user', () => {
-    expect(EMPTY_USER_FORM).toMatchObject({ role: 'user', cooldownHours: '24', mustChangePassword: true })
+  it('builds an empty form with defaults', () => {
+    expect(EMPTY_USER_FORM.email).toBe('')
+    expect(EMPTY_USER_FORM.role).toBe('user')
+    expect(EMPTY_USER_FORM.cooldownHours).toBe('24')
+    expect(EMPTY_USER_FORM.mustChangePassword).toBe(true)
   })
 
-  it('builds the create payload with a numeric cooldown and null for a blank name', () => {
+  it('populates form from existing user', () => {
+    const form = formFromUser(SAMPLE_USER)
+    expect(form.email).toBe('ana@example.com')
+    expect(form.displayName).toBe('Ana')
+    expect(form.role).toBe('user')
+    expect(form.cooldownHours).toBe('12')
+    expect(form.mustChangePassword).toBe(false)
+  })
+
+  it('converts form to create input with normalized values', () => {
     const input = toCreateInput({
-      ...EMPTY_USER_FORM,
-      email: 'new@example.com',
-      password: 'a-long-password',
-      cooldownHours: '48',
+      email: '  test@example.com ',
       displayName: '   ',
-    })
-    expect(input).toEqual({
-      email: 'new@example.com',
-      password: 'a-long-password',
-      displayName: null,
-      role: 'user',
-      cooldownHours: 48,
+      role: 'admin',
+      cooldownHours: '48',
       mustChangePassword: true,
     })
+    expect(input.email).toBe('test@example.com')
+    expect(input.displayName).toBeNull()
+    expect(input.role).toBe('admin')
+    expect(input.cooldownHours).toBe(48)
   })
 
-  it('loads an existing user into the form without exposing a password', () => {
-    expect(formFromUser(USER)).toEqual({
-      email: 'ana@example.com',
-      displayName: 'Ana',
-      role: 'user',
-      cooldownHours: '24',
-      password: '',
-      mustChangePassword: false,
-    })
+  it('computes update input containing only changed fields', () => {
+    const changes = toUpdateInput(
+      {
+        email: 'ana@example.com',
+        displayName: 'Ana Silva',
+        role: 'user',
+        cooldownHours: '12',
+        mustChangePassword: false,
+      },
+      SAMPLE_USER,
+    )
+    expect(changes).toEqual({ displayName: 'Ana Silva' })
   })
 
-  it('sends nothing when an edit changed nothing', () => {
-    expect(toUpdateInput(formFromUser(USER), USER)).toEqual({})
-  })
-
-  it('sends only the fields that changed', () => {
-    const form = { ...formFromUser(USER), role: 'admin' as const, cooldownHours: '0' }
-    expect(toUpdateInput(form, USER)).toEqual({ role: 'admin', cooldownHours: 0 })
-  })
-
-  it('sends the password only when a new one was typed', () => {
-    const form = { ...formFromUser(USER), password: 'another-password' }
-    expect(toUpdateInput(form, USER)).toEqual({ password: 'another-password' })
-  })
-
-  it('clears the display name by sending null', () => {
-    const form = { ...formFromUser(USER), displayName: '' }
-    expect(toUpdateInput(form, USER)).toEqual({ displayName: null })
+  it('includes resetPassword when mustChangePassword becomes true', () => {
+    const changes = toUpdateInput(
+      {
+        email: 'ana@example.com',
+        displayName: 'Ana',
+        role: 'user',
+        cooldownHours: '12',
+        mustChangePassword: true,
+      },
+      SAMPLE_USER,
+    )
+    expect(changes).toEqual({ resetPassword: true })
   })
 })

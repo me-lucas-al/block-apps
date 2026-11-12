@@ -1,13 +1,15 @@
 {
   "name": "block-apps",
   "private": true,
+  "packageManager": "pnpm@12.10.1",
   "type": "module",
   "scripts": {
     "test": "pnpm -r test",
-    "typecheck": "pnpm -r typecheck"
+    "typecheck": "pnpm -r typecheck",
+    "check:no-any": "node scripts/checkNoExplicitAny.mjs"
   },
   "devDependencies": {
-    "typescript": "^5.6.3",
+    "typescript": "~6.0.3",
     "vitest": "^2.1.4"
   }
 }

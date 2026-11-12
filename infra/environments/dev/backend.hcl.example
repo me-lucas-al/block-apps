@@ -1,0 +1,5 @@
+bucket       = "NOME-DO-BUCKET-CRIADO-PELO-BOOTSTRAP"
+key          = "block-apps/dev/terraform.tfstate"
+region       = "sa-east-1"
+encrypt      = true
+use_lockfile = true

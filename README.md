@@ -71,7 +71,7 @@ Para impedir mudanças impulsivas, regras ativas não podem ser removidas ou afr
 - **MFA Obrigatório para Admins:** acesso a rotas administrativas (`/admin/*`) exige autenticação TOTP ativa (`AdminCallerGuard`).
 
 ### 3. Bloqueio Offline e Anti-Burla
-- Clientes realizam cache local das regras (`chrome.storage.local` e `expo-secure-store`).
+- Clientes realizam cache local das regras (`chrome.storage.local` na extensão e `SharedPreferences` do módulo nativo no Android).
 - Mesmo sem conexão ou se o usuário fizer logout, as regras locais continuam ativas para evitar burlas.
 - No Android, o módulo nativo com `DeviceAdmin` e `WorkManager` restaura regras mesmo após reinício do aparelho.
 
@@ -92,7 +92,7 @@ block-apps/
 ├── infra/            # Infraestrutura como Código (Terraform)
 │   ├── bootstrap/    # S3 bucket para estado remoto
 │   ├── modules/      # Módulos reutilizáveis (auth, api, data, admin_site)
-│   └── environments/ # Ambientes dev e produção
+│   └── environments/ # Ambiente dev
 └── docs/             # Documentações detalhadas de arquitetura e infra
 ```
 

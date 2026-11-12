@@ -25,14 +25,14 @@ Roda em toda PR e em todo push para `main`:
 - `terraform`: formatação estrita (`terraform fmt -check`), empacotamento Lambda e `terraform validate` de bootstrap e ambiente `dev`.
 
 ### Planejamento (`.github/workflows/terraform-plan.yml`)
-Roda em PRs com alterações em `infra/**` ou `packages/backend/**`:
+Roda em PRs com alterações em `infra/**`, `packages/backend/**` ou `packages/core/**`:
 - Autentica na AWS via GitHub OIDC (`AWS_ROLE_ARN`).
-- Executa `terraform plan -no-color` comentando o plano na PR.
+- Executa `terraform plan -no-color`; o plano fica no log do job. Sem o secret `AWS_ROLE_ARN` o plano é pulado com aviso.
 
 ### CD / Release (`.github/workflows/release.yml`)
-Roda no push da branch `main`:
+Roda só por disparo manual (`workflow_dispatch`) a partir da branch `main`:
 - Empacota Lambda backend (`packages/backend/dist/lambda.zip`) e extensão (`block-apps-extension.zip`).
-- Aplica Terraform com aprovação manual no ambiente `production`.
+- Aplica Terraform no ambiente `production`. A aprovação manual depende de configurar revisores nesse ambiente no GitHub; sem isso o apply roda direto.
 - Compila o painel admin (`apps/admin/dist`), sincroniza com o bucket S3 privado e invalida cache no CloudFront.
 
 ## Próximos Passos (Futuro)

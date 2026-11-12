@@ -25,7 +25,7 @@ export class AppRulesSync {
     const { ruleRepository, pendingRuleChanges, userSession } = this.dependencies
     if (!(await userSession.currentUserEmail())) return
 
-    await pendingRuleChanges.applyDueChanges()
+    await pendingRuleChanges.applyDueChanges().catch(() => undefined)
     this.push(await ruleRepository.list())
   }
 }

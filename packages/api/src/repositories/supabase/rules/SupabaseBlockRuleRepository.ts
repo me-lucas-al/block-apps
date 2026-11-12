@@ -1,8 +1,12 @@
-import type { BlockRule } from '@block-apps/core'
+import type { BlockRule, PendingRuleChange } from '@block-apps/core'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { requireSupabaseData } from '../../../supabase/requireSupabaseData'
 import type { Unsubscribe } from '../../../subscription/Unsubscribe'
-import type { BlockRuleRepository, NewBlockRule } from '../../contracts/BlockRuleRepository'
+import type {
+  BlockRuleRepository,
+  NewBlockRule,
+  RuleUpdateInput,
+} from '../../contracts/BlockRuleRepository'
 import { type BlockRuleRow, toBlockRule, toBlockRuleInsertRow } from './blockRuleRow'
 
 const RULES_TABLE = 'block_rules'
@@ -22,6 +26,10 @@ export class SupabaseBlockRuleRepository implements BlockRuleRepository {
       await this.client.from(RULES_TABLE).insert(toBlockRuleInsertRow(newRule)).select().single(),
     ) as BlockRuleRow
     return toBlockRule(createdRow)
+  }
+
+  async requestUpdate(_ruleId: string, _update: RuleUpdateInput): Promise<PendingRuleChange> {
+    throw new Error('requestUpdate is not supported on SupabaseBlockRuleRepository')
   }
 
   subscribeToRuleChanges(onRuleChanged: () => void): Unsubscribe {

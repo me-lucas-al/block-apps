@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import { useServices } from '../services/ServicesContext'
 import type { MyProfile } from '../ports/ProfileGateway'
 import { describeFailure } from '../users/adminErrorMessage'
+import { MINIMUM_PASSWORD_LENGTH } from '../users/minimumPasswordLength'
 
 type MyAccountScreenProps = {
   profile: MyProfile
@@ -12,7 +13,6 @@ type MyAccountScreenProps = {
 export function MyAccountScreen({ profile, onChanged }: MyAccountScreenProps) {
   const { profile: gateway } = useServices()
   const [displayName, setDisplayName] = useState(profile.displayName ?? '')
-  const [email, setEmail] = useState(profile.email)
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -24,11 +24,10 @@ export function MyAccountScreen({ profile, onChanged }: MyAccountScreenProps) {
       setMessage(null)
       const name = displayName.trim()
       await gateway.updateMyDisplayName(name === '' ? null : name)
-      if (email.trim() !== profile.email) await gateway.changeEmail(email.trim())
       if (password !== '') await gateway.changePassword(password)
       setPassword('')
       await onChanged()
-      setMessage('Dados salvos. Se mudou o e-mail, confirme pelo link enviado.')
+      setMessage('Dados salvos.')
     } catch (failure) {
       setError(describeFailure(failure))
     }
@@ -44,11 +43,11 @@ export function MyAccountScreen({ profile, onChanged }: MyAccountScreenProps) {
         </label>
         <label>
           E-mail
-          <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+          <input type="email" value={profile.email} readOnly />
         </label>
         <label>
           Nova senha (deixe em branco para manter)
-          <input type="password" autoComplete="new-password" minLength={8} maxLength={72}
+          <input type="password" autoComplete="new-password" minLength={MINIMUM_PASSWORD_LENGTH} maxLength={72}
             value={password} onChange={(e) => setPassword(e.target.value)} />
         </label>
         {error && <p className="error" role="alert">{error}</p>}

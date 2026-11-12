@@ -1,8 +1,6 @@
 name: Release and Deploy
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 concurrency:
@@ -10,8 +8,7 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  id-token: write
-  contents: write
+  contents: read
 
 jobs:
   build-and-package:
@@ -56,7 +53,13 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     timeout-minutes: 20
-    if: github.repository == 'me-lucas-al/block-apps'
+    if: github.repository == 'me-lucas-al/block-apps' && github.ref == 'refs/heads/main'
+    permissions:
+      id-token: write
+      contents: read
+    outputs:
+      admin_site_bucket_name: ${{ steps.read-outputs.outputs.admin_site_bucket_name }}
+      admin_site_distribution_id: ${{ steps.read-outputs.outputs.admin_site_distribution_id }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
@@ -70,10 +73,20 @@ jobs:
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.11.0
+          terraform_wrapper: false
       - name: Terraform apply
         run: |
-          terraform -chdir=infra/environments/dev init -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}" -backend-config="region=sa-east-1" -backend-config="key=block-apps/dev/terraform.tfstate" -backend-config="use_lockfile=true"
-          terraform -chdir=infra/environments/dev apply -auto-approve
+          terraform -chdir=infra/environments/dev init -input=false \
+            -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}" \
+            -backend-config="region=sa-east-1" \
+            -backend-config="key=block-apps/dev/terraform.tfstate" \
+            -backend-config="use_lockfile=true"
+          terraform -chdir=infra/environments/dev apply -input=false -auto-approve
+      - name: Read admin site outputs
+        id: read-outputs
+        run: |
+          echo "admin_site_bucket_name=$(terraform -chdir=infra/environments/dev output -raw admin_site_bucket_name)" >> "$GITHUB_OUTPUT"
+          echo "admin_site_distribution_id=$(terraform -chdir=infra/environments/dev output -raw admin_site_distribution_id)" >> "$GITHUB_OUTPUT"
 
   deploy-admin-site:
     name: Deploy Admin Panel to S3/CloudFront
@@ -81,9 +94,14 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     timeout-minutes: 10
-    if: github.repository == 'me-lucas-al/block-apps'
+    if: github.repository == 'me-lucas-al/block-apps' && github.ref == 'refs/heads/main'
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      ADMIN_SITE_BUCKET_NAME: ${{ needs.deploy-infra.outputs.admin_site_bucket_name }}
+      ADMIN_SITE_DISTRIBUTION_ID: ${{ needs.deploy-infra.outputs.admin_site_distribution_id }}
     steps:
-      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           name: admin-site-dist
@@ -94,5 +112,5 @@ jobs:
           aws-region: sa-east-1
       - name: Sync to S3 and invalidate CloudFront
         run: |
-          aws s3 sync apps/admin/dist s3://${{ secrets.ADMIN_SITE_BUCKET_NAME }} --delete
-          aws cloudfront create-invalidation --distribution-id ${{ secrets.ADMIN_SITE_DISTRIBUTION_ID }} --paths "/*"
+          aws s3 sync apps/admin/dist "s3://$ADMIN_SITE_BUCKET_NAME" --delete
+          aws cloudfront create-invalidation --distribution-id "$ADMIN_SITE_DISTRIBUTION_ID" --paths "/*"

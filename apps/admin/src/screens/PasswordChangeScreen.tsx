@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { useServices } from '../services/ServicesContext'
 import { describeFailure } from '../users/adminErrorMessage'
+import { MINIMUM_PASSWORD_LENGTH } from '../users/minimumPasswordLength'
 
 type PasswordChangeScreenProps = {
   onPasswordChanged: () => Promise<void>
@@ -30,7 +31,7 @@ export function PasswordChangeScreen({ onPasswordChanged }: PasswordChangeScreen
         <p className="hint">Sua senha atual é temporária. Escolha uma nova para continuar.</p>
         <label>
           Nova senha
-          <input type="password" required minLength={8} maxLength={72} autoComplete="new-password"
+          <input type="password" required minLength={MINIMUM_PASSWORD_LENGTH} maxLength={72} autoComplete="new-password"
             value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
         </label>
         {errorMessage && <p className="error" role="alert">{errorMessage}</p>}

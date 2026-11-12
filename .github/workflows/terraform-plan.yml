@@ -5,11 +5,15 @@ on:
     paths:
       - 'infra/**'
       - 'packages/backend/**'
+      - 'packages/core/**'
+
+concurrency:
+  group: terraform-plan-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   id-token: write
   contents: read
-  pull-requests: write
 
 jobs:
   plan:
@@ -32,11 +36,14 @@ jobs:
           terraform_version: 1.11.0
       - name: Check AWS credentials available
         id: check-creds
+        env:
+          AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
         run: |
-          if [ -n "${{ secrets.AWS_ROLE_ARN }}" ]; then
+          if [ -n "$AWS_ROLE_ARN" ]; then
             echo "has_role=true" >> "$GITHUB_OUTPUT"
           else
             echo "has_role=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Terraform plan skipped because the AWS_ROLE_ARN secret is not configured."
           fi
       - name: Configure AWS credentials
         if: steps.check-creds.outputs.has_role == 'true'
@@ -47,9 +54,9 @@ jobs:
       - name: Terraform plan
         if: steps.check-creds.outputs.has_role == 'true'
         run: |
-          terraform -chdir=infra/environments/dev init \
+          terraform -chdir=infra/environments/dev init -input=false \
             -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}" \
             -backend-config="region=sa-east-1" \
             -backend-config="key=block-apps/dev/terraform.tfstate" \
             -backend-config="use_lockfile=true"
-          terraform -chdir=infra/environments/dev plan -no-color
+          terraform -chdir=infra/environments/dev plan -input=false -lock=false -no-color

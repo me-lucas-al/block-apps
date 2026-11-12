@@ -18,4 +18,10 @@ describe('normalizeSiteTarget', () => {
       expect(normalizeSiteTarget(input)).toBeNull()
     },
   )
+
+  it('rejects hostnames longer than 253 characters', () => {
+    const longHostname = `${'a.'.repeat(126)}com`
+    expect(longHostname.length).toBeGreaterThan(253)
+    expect(normalizeSiteTarget(longHostname)).toBeNull()
+  })
 })

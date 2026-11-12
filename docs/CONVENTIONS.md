@@ -14,13 +14,13 @@ Regras valem para TypeScript, Kotlin e Swift. As referências vêm da documenta�
 
 ```
 packages/
-  core/src/        rules/, schedule/{evaluation,editing}/, cooldown/, apps/{catalog,search}/, sites/
+  core/src/        rules/, schedule/{evaluation,editing}/, cooldown/, apps/{catalog,search}/, sites/, keywords/{matching,search-engines}/
   api/src/         auth/, repositories/{contracts,supabase}/
   database/src/    harness/ (Postgres em memória), tests/ (RLS e cooldown)
 supabase/
   migrations/      schema, RLS e funções (única fonte de verdade do banco)
 apps/
-  extension/src/   ports/{browser,data}/, adapters/{chrome,supabase}/, blocking/, device/, popup/, background/
+  extension/src/   ports/{browser,data}/, adapters/{chrome,supabase}/, blocking/{,keywords/}, device/, popup/, background/
   mobile/
     src/           ports/, sync/, hooks/, screens/, components/
     modules/app-blocker/

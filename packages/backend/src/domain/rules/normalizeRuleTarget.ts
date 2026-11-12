@@ -1,4 +1,4 @@
-import { normalizeSiteTarget, type TargetType } from '@block-apps/core'
+import { normalizeKeywordTarget, normalizeSiteTarget, type TargetType } from '@block-apps/core'
 import { ValidationError } from '../errors/ValidationError'
 
 const APP_IDENTIFIER = /^[A-Za-z0-9._-]{1,253}$/
@@ -8,6 +8,11 @@ export function normalizeRuleTarget(targetType: TargetType, rawTarget: string): 
     const hostname = normalizeSiteTarget(rawTarget)
     if (!hostname) throw new ValidationError('target must be a valid domain')
     return hostname
+  }
+  if (targetType === 'keyword') {
+    const keyword = normalizeKeywordTarget(rawTarget)
+    if (!keyword) throw new ValidationError('target must be a valid keyword')
+    return keyword
   }
   const appIdentifier = rawTarget.trim()
   if (!APP_IDENTIFIER.test(appIdentifier)) {

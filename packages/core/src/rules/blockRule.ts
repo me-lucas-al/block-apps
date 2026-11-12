@@ -1,4 +1,4 @@
-export type TargetType = 'app' | 'site'
+export type TargetType = 'app' | 'site' | 'keyword'
 
 export type BlockMode = 'always' | 'schedule'
 

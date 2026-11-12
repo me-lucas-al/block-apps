@@ -4,13 +4,10 @@ import {
   RULES_CHANGED_MESSAGE,
 } from '../shared/messages'
 import type { BackgroundServices } from './composition'
+import { logFailure } from './logFailure'
 
 const ENFORCE_PERIOD_MINUTES = 1
 const REFRESH_PERIOD_MINUTES = 5
-
-function logFailure(task: string) {
-  return (error: unknown) => console.error(`[block-apps] ${task} failed`, error)
-}
 
 async function refreshAndReport({ refresher, reporter }: BackgroundServices) {
   await refresher.refresh().catch(logFailure('refresh'))

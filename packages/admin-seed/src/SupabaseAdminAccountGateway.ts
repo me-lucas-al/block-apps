@@ -40,10 +40,13 @@ export class SupabaseAdminAccountGateway implements AdminAccountGateway {
   }
 
   async deleteAuthUser(userId: string): Promise<void> {
-    await this.sendRequest(`${this.supabaseUrl}/auth/v1/admin/users/${userId}`, {
+    const response = await this.sendRequest(`${this.supabaseUrl}/auth/v1/admin/users/${userId}`, {
       method: 'DELETE',
       headers: this.serviceHeaders(),
     })
+    if (!response.ok) {
+      throw new Error(`could not remove the half-created auth user ${userId} (status ${response.status})`)
+    }
   }
 
   private serviceHeaders(): Record<string, string> {

@@ -41,10 +41,22 @@ export async function createSignedInAdmin(settings: LocalStackSettings): Promise
       supabaseUrl: settings.apiUrl,
       serviceRoleKey: settings.serviceRoleKey,
       adminEmail: email,
-      adminPassword: 'e2e-admin-password',
+      adminPassword: 'e2e-temporary-password',
       adminDisplayName: 'E2E Admin',
     },
     gateway,
   )
   return signIn(settings, email, createdAdmin.temporaryPassword)
+}
+
+export async function createSignedInAdminWithPermanentPassword(
+  settings: LocalStackSettings,
+): Promise<SignedInAccount> {
+  const adminWithTemporaryPassword = await createSignedInAdmin(settings)
+  const permanentPassword = 'e2e-permanent-password'
+  const { error } = await adminWithTemporaryPassword.client.auth.updateUser({
+    password: permanentPassword,
+  })
+  if (error) throw new Error(`could not change the temporary password: ${error.message}`)
+  return { ...adminWithTemporaryPassword, password: permanentPassword }
 }

@@ -8,6 +8,7 @@ import {
   type SignedInAccount,
   createClientWithoutSession,
   createSignedInAdmin,
+  createSignedInAdminWithPermanentPassword,
   signIn,
 } from '../harness/createSignedInAccounts.ts'
 import { readLocalStackSettings } from '../harness/readLocalStackSettings.ts'
@@ -19,10 +20,49 @@ describe.skipIf(!settings)('admin-users function on the local stack', () => {
   const commonUserEmail = `common-${Date.now()}@e2e.local`
 
   beforeAll(async () => {
-    admin = await createSignedInAdmin(settings!)
+    admin = await createSignedInAdminWithPermanentPassword(settings!)
   })
 
   const sendAsAdmin = (requestBody: object) => callAdminUsersFunction(settings!, admin, requestBody)
+
+  it('refuses an admin that has not replaced the temporary password yet', async () => {
+    const adminWithTemporaryPassword = await createSignedInAdmin(settings!)
+    const reply = await callAdminUsersFunction(settings!, adminWithTemporaryPassword, { action: 'list' })
+    expect(reply.status).toBe(403)
+    expect(reply.body.error?.code).toBe('password_change_required')
+  })
+
+  it('accepts the same admin right after the password is changed', async () => {
+    const adminWithTemporaryPassword = await createSignedInAdmin(settings!)
+    await adminWithTemporaryPassword.client.auth.updateUser({ password: 'e2e-permanent-password' })
+    const reply = await callAdminUsersFunction(settings!, adminWithTemporaryPassword, { action: 'list' })
+    expect(reply.status).toBe(200)
+  })
+
+  it('does not let a user clear the temporary password flag without changing the password', async () => {
+    const email = `flag-${Date.now()}@e2e.local`
+    await sendAsAdmin({ action: 'create', user: { email, password: 'common-password-1' } })
+    const commonUser = await signIn(settings!, email, 'common-password-1')
+    const attempt = await commonUser.client.rpc('acknowledge_password_change')
+    expect(attempt.error).not.toBeNull()
+    const profile = await commonUser.client.from('profiles').select('must_change_password').single()
+    expect(profile.data?.must_change_password).toBe(true)
+  })
+
+  it('requires a new password to promote a user to admin and forces its change', async () => {
+    const email = `promote-${Date.now()}@e2e.local`
+    const created = requireUserInReply(
+      await sendAsAdmin({ action: 'create', user: { email, password: 'common-password-1' } }),
+    )
+    const withoutPassword = await sendAsAdmin({ action: 'update', id: created.id, user: { role: 'admin' } })
+    expect(withoutPassword.status).toBe(400)
+    const promoted = await sendAsAdmin({
+      action: 'update',
+      id: created.id,
+      user: { role: 'admin', password: 'brand-new-password' },
+    })
+    expect(requireUserInReply(promoted)).toMatchObject({ role: 'admin', mustChangePassword: true })
+  })
 
   it('rejects calls without a session', async () => {
     const anonymousReply = await fetch(`${settings!.apiUrl}/functions/v1/admin-users`, {

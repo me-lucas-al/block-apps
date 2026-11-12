@@ -17,6 +17,20 @@ describe('readAdminSeedSettings', () => {
     })
   })
 
+  it('refuses a chosen password shorter than 12 characters', () => {
+    expect(() =>
+      readAdminSeedSettings({ SUPABASE_SERVICE_ROLE_KEY: 'key', ADMIN_PASSWORD: 'short-pass' }),
+    ).toThrow(/at least 12/)
+  })
+
+  it('accepts a chosen password with enough characters', () => {
+    const settings = readAdminSeedSettings({
+      SUPABASE_SERVICE_ROLE_KEY: 'key',
+      ADMIN_PASSWORD: 'a-long-enough-password',
+    })
+    expect(settings.adminPassword).toBe('a-long-enough-password')
+  })
+
   it('removes trailing slashes from the Supabase URL', () => {
     const settings = readAdminSeedSettings({ SUPABASE_SERVICE_ROLE_KEY: 'key', SUPABASE_URL: 'https://x.supabase.co//' })
     expect(settings.supabaseUrl).toBe('https://x.supabase.co')

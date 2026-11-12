@@ -1,0 +1,13 @@
+services:
+  admin:
+    build:
+      context: .
+      dockerfile: docker/admin/Dockerfile
+      args:
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL:-http://127.0.0.1:54321}
+        VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY:?defina VITE_SUPABASE_ANON_KEY com a ANON_KEY do supabase status}
+    environment:
+      SUPABASE_URL: ${VITE_SUPABASE_URL:-http://127.0.0.1:54321}
+    ports:
+      - "127.0.0.1:8080:8080"
+    restart: unless-stopped

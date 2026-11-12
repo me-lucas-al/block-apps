@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "test": "pnpm -r test",
-    "typecheck": "pnpm -r typecheck"
+    "typecheck": "pnpm -r typecheck",
+    "check:no-any": "node scripts/checkNoExplicitAny.mjs"
   },
   "devDependencies": {
     "typescript": "~6.0.3",

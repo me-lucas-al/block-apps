@@ -25,6 +25,7 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm check:no-any
       - run: pnpm typecheck
       - run: pnpm test
       - name: Build extension

@@ -47,4 +47,18 @@ describe('admin users access', () => {
     backend.cognito.users.get(ADMIN_ONE)!.enabled = false
     expect((await callAdminApi(backend, 'GET', '/admin/users')).status).toBe(403)
   })
+
+  it('blocks an admin whose TOTP MFA is not active', async () => {
+    const backend = buildAdminBackend()
+    backend.cognito.users.get(ADMIN_ONE)!.mfaSettingList = []
+    const reply = await callAdminApi(backend, 'GET', '/admin/users')
+    expect(reply.status).toBe(403)
+  })
+
+  it('allows an admin without MFA when requireMfa is disabled', async () => {
+    const backend = buildAdminBackend({ requireMfa: false })
+    backend.cognito.users.get(ADMIN_ONE)!.mfaSettingList = []
+    const reply = await callAdminApi(backend, 'GET', '/admin/users')
+    expect(reply.status).toBe(200)
+  })
 })

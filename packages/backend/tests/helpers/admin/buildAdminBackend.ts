@@ -32,7 +32,7 @@ function seedUsers(cognito: FakeCognito): void {
   })
 }
 
-export function buildAdminBackend(): AdminBackend {
+export function buildAdminBackend(options?: { requireMfa?: boolean }): AdminBackend {
   const cognito = new FakeCognito()
   seedUsers(cognito)
   const settings = new InMemoryUserSettings()
@@ -41,6 +41,6 @@ export function buildAdminBackend(): AdminBackend {
     cooldownSettingsStore: settings,
     cooldownSettingsWriter: settings,
   })
-  const app = createAdminApp('admin', createAdminUseCases(collaborators))
+  const app = createAdminApp('admin', createAdminUseCases(collaborators, options))
   return { app, cognito, settings }
 }

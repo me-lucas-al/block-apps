@@ -6,9 +6,10 @@ Toda a infraestrutura AWS vive em `infra/` e só é criada ou alterada por Terra
 infra/
   bootstrap/              bucket S3 do estado (aplicado uma vez, com estado local)
   modules/data            tabela DynamoDB
-  modules/auth            Cognito: user pool, grupos, clients, Google, primeiro administrador
+  modules/auth            Cognito: user pool, grupos, clients, Google, primeiro admin, PreSignUp
   modules/lambda_function uma função Lambda com a própria role, logs e tracing
-  modules/api             duas Lambdas (api e admin) atrás de um API Gateway HTTP com authorizer JWT
+  modules/api             Lambdas (api, admin, scheduler), API Gateway HTTP, alarmes e scheduler
+  modules/admin_site      hospedagem do painel administrativo (S3 privado + CloudFront com OAC e CSP)
   environments/dev        junta os módulos (produção terá o seu próprio diretório)
 ```
 
@@ -76,15 +77,17 @@ e só então limpe `initial_admin_email`.
 
 Crie as credenciais OAuth no Google Cloud e informe o ID em `google_client_id` no `terraform.tfvars`. A **chave secreta** vai por variável de ambiente, nunca em arquivo: `$env:TF_VAR_google_client_secret = '...'`. A URL de callback autorizada no Google é `https://<hosted_login_domain>/oauth2/idpresponse`.
 
-Contas do Google e contas com senha **não são vinculadas** automaticamente: a mesma pessoa que usar os dois métodos terá duas identidades. A vinculação segura (só quando o e-mail nativo já está verificado) fica para uma fase seguinte. O login com Google existe no painel; o app e a extensão usam e-mail e senha.
+Contas do Google e contas com senha são vinculadas pelo gatilho **PreSignUp** quando o e-mail do Google já está verificado (`AdminLinkProviderForUser`), evitando contas duplicadas e tomada de conta. O login Google está habilitado no painel, app e extensão (via OAuth code + PKCE).
 
 ## O que a infraestrutura garante (e o que não)
 
-- **Duas Lambdas, duas roles.** A função `api` (regras, dispositivos) só acessa o DynamoDB. A função `admin` é a única com as ações de administração do Cognito, e só responde em `/admin/*`. O IAM do Cognito não distingue grupos nem usuários-alvo, então **quem barra um usuário comum nas rotas administrativas é o código** (checagem do grupo `admin` no token e, em ações destrutivas, no Cognito).
+- **Handlers especializados.** A função `api` só acessa o DynamoDB. A função `admin` acessa o Cognito e exige **MFA TOTP ativo** (`ADMIN_REQUIRE_MFA`, desligável apenas por emergência). A função `scheduler` aplica as mudanças de regras vencidas a cada 5 minutos disparada pelo EventBridge Scheduler.
+- **Hospedagem estática segura.** Painel admin servido via CloudFront com Origin Access Control (OAC) sobre bucket S3 privado e cabeçalhos estritos de CSP, X-Frame-Options e nosniff.
+- **Observabilidade.** Alarmes CloudWatch para erros 5XX no API Gateway, throttling e p95 de duração nas Lambdas, além de alerta de teto de custos no AWS Budgets.
 - Tabela com criptografia, backup contínuo (PITR) e `prevent_destroy`. O user pool também tem `prevent_destroy`; ligue `protect_from_deletion` em produção.
-- Cognito: senha mínima de 10 caracteres, MFA opcional (TOTP), revogação de tokens, tokens de acesso de 15 minutos e respostas que não revelam se um e-mail existe. Sem grupo é tratado como negação.
-- `allow_self_signup` (padrão ligado) controla o cadastro aberto. Desligado, só administradores criam usuários.
-- O Cognito usa o remetente padrão (cerca de 50 e-mails por dia). Em produção informe `ses_identity_arn` e `ses_from_address`.
+- Cognito: senha mínima de 10 caracteres, MFA configurável com TOTP obrigatório para administradores, revogação de tokens e tokens de acesso de 15 minutos.
+- `allow_self_signup` ligado por padrão para cadastro aberto de usuários.
+- Suporte a envio de e-mails em produção com SES (`ses_identity_arn` e `ses_from_address`).
 - API com throttling (50 por segundo, rota de saúde mais restrita), logs de acesso e CORS restrito às origens do painel.
 - Estado em bucket privado, versionado, criptografado, só por TLS, com versões antigas expirando em 90 dias.
 - Nunca coloque chaves de acesso no repositório. Para CI, use OIDC.

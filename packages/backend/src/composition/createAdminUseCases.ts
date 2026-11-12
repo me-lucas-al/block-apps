@@ -25,9 +25,17 @@ export type AdminCollaborators = {
   readonly cooldownSettingsWriter: CooldownSettingsWriter
 }
 
-export function createAdminUseCases(collaborators: AdminCollaborators): AdminUseCases {
+export type AdminUseCasesOptions = {
+  readonly requireMfa?: boolean
+}
+
+export function createAdminUseCases(
+  collaborators: AdminCollaborators,
+  options?: AdminUseCasesOptions,
+): AdminUseCases {
   const { userReader, userCreator, userEditor, userRemover, cooldownSettingsWriter } = collaborators
-  const adminCallerGuard = new AdminCallerGuard(userReader)
+  const requireMfa = options?.requireMfa ?? process.env['ADMIN_REQUIRE_MFA'] !== 'false'
+  const adminCallerGuard = new AdminCallerGuard(userReader, requireMfa)
   const existingUserGuard = new ExistingUserGuard(userReader)
   const lastAdminGuard = new LastAdminGuard(userReader)
   const presenter = new AdminUserPresenter(collaborators.cooldownSettingsStore)

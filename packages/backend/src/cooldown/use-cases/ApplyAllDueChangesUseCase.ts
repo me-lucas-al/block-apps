@@ -15,7 +15,11 @@ export class ApplyAllDueChangesUseCase {
     )
     let appliedCount = 0
     for (const userId of userIds) {
-      appliedCount += await this.applyDueChangesForUser.applyDueChangesForUser(userId)
+      try {
+        appliedCount += await this.applyDueChangesForUser.applyDueChangesForUser(userId)
+      } catch (error: unknown) {
+        console.error(`Failed to apply due changes for user ${userId}:`, error)
+      }
     }
     return appliedCount
   }

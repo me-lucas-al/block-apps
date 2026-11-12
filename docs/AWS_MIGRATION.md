@@ -44,7 +44,7 @@ O índice `due-changes` (`dueBucket`, `effectiveAt`) permite achar mudanças ven
 ## Fases (uma PR por fase)
 
 1. **Infra em Terraform** (esta PR): tabela, Cognito, duas Lambdas (`api` e `admin`) e API Gateway. Valida offline; aplicar exige credenciais e a sua confirmação.
-2. **Backend**: pacote `packages/backend` com Hono, use cases e adaptadores DynamoDB, testado contra DynamoDB local.
+2. **Backend** (feito, ver `docs/BACKEND.md`): pacote `packages/backend` com Hono, use cases e adaptadores DynamoDB, testado contra DynamoDB local.
 3. **Usuários e administradores**: rotas administrativas sobre o Cognito, com as mesmas salvaguardas de hoje (não excluir a si mesmo, manter um administrador, promoção exige nova senha).
 4. **Clientes**: `packages/api` vira cliente HTTP + Cognito; app, extensão e painel trocam os adaptadores do Supabase.
 5. **Remoção do Supabase**: `supabase/`, `packages/database`, `packages/edge-functions-tests`, `packages/e2e-local`, Docker do Supabase.

@@ -6,7 +6,7 @@
   "minimum_chrome_version": "110",
   "action": { "default_popup": "popup.html", "default_title": "Block Apps" },
   "background": { "service_worker": "background.js", "type": "module" },
-  "permissions": ["storage", "alarms", "declarativeNetRequest", "webNavigation"],
+  "permissions": ["identity", "storage", "alarms", "declarativeNetRequest", "webNavigation"],
   "host_permissions": ["<all_urls>"],
   "incognito": "spanning",
   "web_accessible_resources": [

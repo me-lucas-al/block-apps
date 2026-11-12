@@ -1,5 +1,5 @@
 import type { BlockRule, TimeWindow } from '@block-apps/core'
-import type { NewBlockRule } from '../contracts/BlockRuleRepository'
+import type { NewBlockRule } from '../../contracts/BlockRuleRepository'
 
 export type BlockRuleRow = {
   id: string
@@ -21,11 +21,11 @@ export function toBlockRule(row: BlockRuleRow): BlockRule {
   }
 }
 
-export function toInsertRow(rule: NewBlockRule): BlockRuleInsertRow {
+export function toBlockRuleInsertRow(newRule: NewBlockRule): BlockRuleInsertRow {
   return {
-    target_type: rule.targetType,
-    target: rule.target,
-    mode: rule.mode,
-    windows: [...rule.windows],
+    target_type: newRule.targetType,
+    target: newRule.target,
+    mode: newRule.mode,
+    windows: [...newRule.windows],
   }
 }

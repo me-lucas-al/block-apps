@@ -19,9 +19,3 @@ export function toPendingChange(row: PendingChangeRow): PendingRuleChange {
     effectiveAt: row.effective_at,
   }
 }
-
-export function readPendingChange(data: PendingChangeRow | PendingChangeRow[]): PendingRuleChange {
-  const row = Array.isArray(data) ? data[0] : data
-  if (!row) throw new Error('Supabase returned no pending change')
-  return toPendingChange(row)
-}

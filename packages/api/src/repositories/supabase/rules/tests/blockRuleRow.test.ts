@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { type BlockRuleRow, toBlockRule, toInsertRow } from '../blockRuleRow'
+import { type BlockRuleRow, toBlockRule, toBlockRuleInsertRow } from '../blockRuleRow'
 
 const row: BlockRuleRow = {
   id: 'rule-1',
@@ -22,7 +22,7 @@ describe('blockRuleRow mapping', () => {
 
   it('maps a rule into an insert row without id', () => {
     const { id, ...insertRow } = row
-    expect(toInsertRow(toBlockRule(row))).toEqual(insertRow)
+    expect(toBlockRuleInsertRow(toBlockRule(row))).toEqual(insertRow)
     expect(id).toBe('rule-1')
   })
 })

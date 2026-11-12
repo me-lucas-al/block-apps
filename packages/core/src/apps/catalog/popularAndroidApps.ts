@@ -1,4 +1,4 @@
-import type { AppSuggestion } from './types'
+import type { AppSuggestion } from './appSuggestion'
 
 export const POPULAR_ANDROID_APPS: readonly AppSuggestion[] = [
   { packageName: 'com.instagram.android', label: 'Instagram', category: 'social' },

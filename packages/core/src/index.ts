@@ -2,19 +2,20 @@ export type {
   BlockMode,
   BlockRule,
   DayOfWeek,
-  PendingChangeKind,
-  PendingRuleChange,
   TargetType,
   TimeWindow,
-} from './rules/types'
+} from './rules/blockRule'
+export type { PendingChangeKind, PendingRuleChange } from './rules/pendingRuleChange'
 export { describePendingChange } from './cooldown/describePendingChange'
-export { formatRemaining, remainingMinutes } from './cooldown/remainingTime'
-export type { AppCategory, AppSuggestion, KnownApp } from './apps/catalog/types'
+export { formatRemaining } from './cooldown/formatRemaining'
+export { remainingMinutes } from './cooldown/remainingMinutes'
+export type { AppCategory, AppSuggestion, KnownApp } from './apps/catalog/appSuggestion'
 export { POPULAR_ANDROID_APPS } from './apps/catalog/popularAndroidApps'
 export { buildAppLabeler } from './apps/search/buildAppLabeler'
 export { parseAppIdentifier } from './apps/search/parseAppIdentifier'
 export { searchApps } from './apps/search/searchApps'
-export type { AppOption, SearchAppsInput } from './apps/search/searchApps'
+export type { AppOption } from './apps/search/options/appOption'
+export type { SearchAppsInput } from './apps/search/searchApps'
 export { isBlockedNow } from './schedule/evaluation/isBlockedNow'
 export { isWithinWindow } from './schedule/evaluation/isWithinWindow'
 export { parseTimeOfDay } from './schedule/evaluation/parseTimeOfDay'

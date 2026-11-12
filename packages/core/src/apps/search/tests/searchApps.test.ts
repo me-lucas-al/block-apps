@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { AppSuggestion, KnownApp } from '../../catalog/types'
+import type { AppSuggestion, KnownApp } from '../../catalog/appSuggestion'
 import { searchApps } from '../searchApps'
 
 const suggestions: AppSuggestion[] = [

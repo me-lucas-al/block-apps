@@ -1,0 +1,24 @@
+{
+  "name": "@block-apps/backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json",
+    "package": "node scripts/packageLambda.mjs"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "3.1159.0",
+    "@aws-sdk/lib-dynamodb": "3.1159.0",
+    "@block-apps/core": "workspace:*",
+    "@hono/aws-lambda": "^1.0.1",
+    "hono": "4.13.14"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.164",
+    "@types/node": "^24.19.2",
+    "esbuild": "^0.28.2",
+    "fflate": "^0.8.2"
+  }
+}

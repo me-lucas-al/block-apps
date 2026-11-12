@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@block-apps/api": "workspace:*",
-    "@supabase/supabase-js": "^2.45.6",
+    "@block-apps/core": "workspace:*",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
   },

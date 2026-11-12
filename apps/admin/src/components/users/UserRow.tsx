@@ -8,8 +8,12 @@ type UserRowProps = {
   onRemove: (userId: string) => void
 }
 
-function formatLastSignIn(value: string | null): string {
-  return value ? new Date(value).toLocaleString('pt-BR') : 'nunca'
+function formatDate(value: string): string {
+  try {
+    return new Date(value).toLocaleDateString('pt-BR')
+  } catch {
+    return '—'
+  }
 }
 
 export function UserRow({ user, isSelf, onEdit, onRemove }: UserRowProps) {
@@ -21,7 +25,7 @@ export function UserRow({ user, isSelf, onEdit, onRemove }: UserRowProps) {
       <td>{user.displayName ?? '—'}</td>
       <td>{user.role === 'admin' ? 'Administrador' : 'Usuário comum'}</td>
       <td>{user.cooldownHours} h</td>
-      <td>{formatLastSignIn(user.lastSignInAt)}</td>
+      <td>{formatDate(user.createdAt)}</td>
       <td className="actions">
         <button type="button" className="secondary" onClick={() => onEdit(user)}>Editar</button>
         {isSelf ? null : confirming ? (

@@ -28,22 +28,20 @@ export function UserForm({ mode, initial, onSubmit, onCancel }: UserFormProps) {
       <h2>{mode === 'create' ? 'Novo usuário' : 'Editar usuário'}</h2>
       <label>
         E-mail
-        <input type="email" required value={form.email} onChange={(e) => updateFormField('email', e.target.value)} />
+        <input
+          type="email"
+          required
+          disabled={mode === 'edit'}
+          value={form.email}
+          onChange={(e) => updateFormField('email', e.target.value)}
+        />
       </label>
       <label>
         Nome
-        <input value={form.displayName} maxLength={80} onChange={(e) => updateFormField('displayName', e.target.value)} />
-      </label>
-      <label>
-        {mode === 'create' ? 'Senha' : 'Nova senha (deixe em branco para manter)'}
         <input
-          type="password"
-          autoComplete="new-password"
-          required={mode === 'create'}
-          minLength={8}
-          maxLength={72}
-          value={form.password}
-          onChange={(e) => updateFormField('password', e.target.value)}
+          value={form.displayName}
+          maxLength={80}
+          onChange={(e) => updateFormField('displayName', e.target.value)}
         />
       </label>
       <div className="row">
@@ -56,15 +54,28 @@ export function UserForm({ mode, initial, onSubmit, onCancel }: UserFormProps) {
         </label>
         <label>
           Cooldown (horas)
-          <input type="number" min={0} max={168} required value={form.cooldownHours}
-            onChange={(e) => updateFormField('cooldownHours', e.target.value)} />
+          <input
+            type="number"
+            min={0}
+            max={168}
+            required
+            value={form.cooldownHours}
+            onChange={(e) => updateFormField('cooldownHours', e.target.value)}
+          />
         </label>
       </div>
-      <label className="check">
-        <input type="checkbox" checked={form.mustChangePassword}
-          onChange={(e) => updateFormField('mustChangePassword', e.target.checked)} />
-        Exigir troca de senha no próximo acesso
-      </label>
+      {mode === 'create' ? (
+        <p className="hint">O usuário receberá um convite por e-mail com senha temporária.</p>
+      ) : (
+        <label className="check">
+          <input
+            type="checkbox"
+            checked={form.mustChangePassword}
+            onChange={(e) => updateFormField('mustChangePassword', e.target.checked)}
+          />
+          Forçar redefinição de senha no próximo acesso
+        </label>
+      )}
       <div className="row">
         <button type="submit" disabled={submitting}>Salvar</button>
         <button type="button" className="secondary" onClick={onCancel}>Cancelar</button>

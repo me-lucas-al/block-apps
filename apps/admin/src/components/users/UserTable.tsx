@@ -20,7 +20,7 @@ export function UserTable({ users, currentUserId, onEdit, onRemove }: UserTableP
             <th>Nome</th>
             <th>Papel</th>
             <th>Cooldown</th>
-            <th>Último acesso</th>
+            <th>Criado em</th>
             <th>Ações</th>
           </tr>
         </thead>

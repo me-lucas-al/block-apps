@@ -1,59 +1,46 @@
 # Migração para a AWS
 
-Decisão: o backend sai do Supabase e vai para a AWS, com **Lambda + DynamoDB + Cognito + API Gateway**, tudo criado por **Terraform** (nunca por AWS CLI ou console).
+Backend migrado integralmente do Supabase para a AWS utilizando **Lambda + DynamoDB + Cognito + API Gateway**, provisionado exclusivamente via **Terraform**.
 
 ## Arquitetura
 
 ```
-App Android / Extensão / Painel admin
-        │  login (Cognito, SRP ou Google)  → JWT
+App Android / Extensão / Painel Admin
+        │  login (Cognito SRP, Google OAuth + PKCE, MFA TOTP)  → JWT (ID / Access Token)
         ▼
-API Gateway (HTTP API, authorizer JWT do Cognito)
-        ▼
-Lambda "lambdalith" (Node 24, arm64, Hono)
-   ├─ use cases pequenos (regras, mudanças pendentes, dispositivos, usuários)
-   ├─ DynamoDB (tabela única)
-   └─ Cognito (API de administração, só da Lambda)
+API Gateway (HTTP API v2, Authorizer JWT nativo do Cognito)
+        │
+   ┌────┴─────────────────────────────┐
+   ▼                                  ▼
+Lambda API (rotas `/rules`, etc.)   Lambda Admin (rotas `/admin/*`)
+   │                                  ├─ DynamoDB (dados e cooldown)
+   ▼                                  └─ Cognito Identity Provider API
+DynamoDB (tabela única)
 ```
 
 ## O que substitui o quê
 
-| Supabase | AWS |
+| Recurso Legado (Supabase) | Arquitetura Atual (AWS) |
 | --- | --- |
-| Auth (e-mail e senha, Google) | Cognito user pool, login hospedado para o Google |
-| `profiles.role` | grupos do Cognito: `admin` e `user` |
-| Senha temporária (`must_change_password`) | estado nativo `FORCE_CHANGE_PASSWORD` do Cognito |
-| RLS | a API é o único caminho: o token define o `userId`, e cada use case só lê e escreve a partição `USER#<id>` |
-| Funções SQL do cooldown | use cases `RequestRuleRemoval`, `ApplyDueRuleChanges` etc. na Lambda |
-| Trigger do último administrador | checagem condicional no DynamoDB (item guardião) |
-| Edge Function `admin-users` | Lambda `admin` separada (rotas `/admin/*`), a única com a API de administração do Cognito |
-| Realtime | sync periódico e ao abrir (sem WebSocket) |
-| Supabase local (Docker) | DynamoDB local (1 container) para testes de integração |
+| Autenticação (e-mail/senha, Google) | Cognito User Pool, Hosted UI com PKCE para Google |
+| Perfis e papéis (`profiles.role`) | Grupos nativos do Cognito: `admin` e `user` |
+| Senha temporária (`must_change_password`) | Desafio nativo `NEW_PASSWORD_REQUIRED` / `FORCE_CHANGE_PASSWORD` |
+| RLS (Row Level Security) | API Gateway JWT authorizer + use cases particionados por `USER#<sub_id>` |
+| Funções SQL de cooldown | Use cases na Lambda acionados por rotas e EventBridge Scheduler a cada 5 min |
+| Trava de último administrador | `LastAdminGuard` e checagem no Cognito Directory |
+| Edge Function `admin-users` | Lambda `adminHandler` isolada com exigência de MFA TOTP ativo |
+| Supabase Realtime | Polling resiliente via `RulePoller` na abertura, foreground e a cada N min |
+| Hospedagem do Painel Web | CloudFront com OAC + S3 privado + cabeçalhos CSP estritos |
+| Supabase local (Docker) | DynamoDB local + servidor HTTP Hono em desenvolvimento |
 
-## Modelo de dados (tabela única `block-apps-<env>-data`)
+## Fases Concluídas
 
-| Item | `pk` | `sk` |
-| --- | --- | --- |
-| Regra de bloqueio | `USER#<id>` | `RULE#<app ou site>~<alvo>` |
-| Mudança pendente | `USER#<id>` | `CHANGE#<ruleId>` (com `dueBucket` e `effectiveAt`) |
-| Dispositivo | `USER#<id>` | `DEVICE#<deviceId>` |
-| Configuração do usuário (cooldown) | `USER#<id>` | `SETTINGS` |
-
-O índice `due-changes` (`dueBucket`, `effectiveAt`) permite achar mudanças vencidas de todos os usuários sem varrer a tabela.
-
-## Fases (uma PR por fase)
-
-1. **Infra em Terraform** (esta PR): tabela, Cognito, duas Lambdas (`api` e `admin`) e API Gateway. Valida offline; aplicar exige credenciais e a sua confirmação.
-2. **Backend** (feito, ver `docs/BACKEND.md`): pacote `packages/backend` com Hono, use cases e adaptadores DynamoDB, testado contra DynamoDB local.
-3. **Usuários e administradores** (feito, ver `docs/BACKEND.md`): rotas administrativas sobre o Cognito, com as mesmas salvaguardas de hoje (não excluir a si mesmo, manter um administrador, promoção exige nova senha).
-4. **Clientes**: `packages/api` vira cliente HTTP + Cognito; app, extensão e painel trocam os adaptadores do Supabase.
-5. **Remoção do Supabase**: `supabase/`, `packages/database`, `packages/edge-functions-tests`, `packages/e2e-local`, Docker do Supabase.
-6. **CI/CD**: `terraform plan` em PR e `apply` com aprovação, usando OIDC (sem chaves de longa duração).
-
-## Riscos e decisões em aberto
-
-- Sem Realtime: mudanças de regra chegam no próximo sync.
-- Cognito cobra por usuário ativo acima do free tier; para este projeto fica dentro do gratuito por muito tempo.
-- O estado do Terraform guarda segredos (senha temporária, segredo do Google): bucket versionado, criptografado e privado (`infra/bootstrap`).
-- O framework AWS Blocks gera CDK, então não foi usado: a regra do projeto é Terraform.
-- Autocadastro, MFA obrigatório só para administradores (hoje opcional para todos) e Google no app e na extensão são decisões de produto em aberto.
+1. **Infraestrutura em Terraform (`feat/infra-auth-decisions`):** Tabela DynamoDB, User Pool Cognito, Lambdas (api, admin, scheduler, pre-signup), API Gateway, CloudFront S3 site, alarmes CloudWatch e AWS Budgets.
+2. **Deploy em Dev:** Bucket de estado bootstrap, plano e apply do ambiente `dev`, criação do primeiro administrador e verificação de saúde.
+3. **Cliente HTTP + Cognito (`packages/api`):** `HttpApiClient` com auto-refresh em 401, `CognitoAuthenticator` com SRP e PKCE, portas de repositórios HTTP e `RulePoller`.
+4. **Migração dos Clientes:**
+   - **Extensão (`apps/extension`):** MV3, storage local, Google OAuth com PKCE, blocking dinâmico e busca proibida.
+   - **Mobile Android (`apps/mobile`):** `expo-secure-store`, Google AuthSession, native module com WorkManager e Boot Receiver, status de dispositivo com `adminActive`.
+   - **Painel Admin (`apps/admin`):** Gestão de usuários, MFA TOTP obrigatório, Hosted UI Google e CSP no CloudFront/Nginx.
+5. **Remoção do Supabase (`chore/remove-supabase`):** Eliminação completa de `supabase/`, pacotes legados e dependências `@supabase/supabase-js`.
+6. **Pipelines CI/CD (`ci/terraform-and-release`):** Validação estrita no CI (`check:no-any`, `typecheck`, `test`), `terraform validate`, `terraform plan` em PRs e deploy automatizado no push para `main`.

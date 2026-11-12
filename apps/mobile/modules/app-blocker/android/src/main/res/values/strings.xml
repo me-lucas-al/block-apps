@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="app_blocker_service_label">Block Apps</string>
+  <string name="app_blocker_service_description">Detecta o app aberto para bloquear os apps escolhidos nos horários definidos.</string>
+  <string name="app_blocker_admin_explanation">Impede que o Block Apps seja desinstalado sem antes desativar esta proteção.</string>
+  <string name="app_blocker_admin_disable_warning">Desativar remove a proteção contra desinstalação.</string>
+  <string name="app_blocker_blocked_title">App bloqueado</string>
+  <string name="app_blocker_blocked_message">%1$s está bloqueado agora pelas suas regras.</string>
+  <string name="app_blocker_back_home">Voltar para o início</string>
+</resources>

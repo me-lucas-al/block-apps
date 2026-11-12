@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { type TestDatabase, createTestDatabase } from '../harness/createTestDatabase'
+import { type TestDatabase, createTestDatabase } from '../../harness/createTestDatabase'
 
 type ProfileRow = { id: string; role: string; display_name: string | null }
 
-describe('user roles', () => {
+describe('profile visibility and admin role', () => {
   let database: TestDatabase
   let admin: string
   let alice: string

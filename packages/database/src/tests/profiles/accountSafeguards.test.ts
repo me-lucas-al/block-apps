@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { type TestDatabase, createTestDatabase } from '../harness/createTestDatabase'
+import { type TestDatabase, createTestDatabase } from '../../harness/createTestDatabase'
 
 describe('account safeguards', () => {
   let database: TestDatabase

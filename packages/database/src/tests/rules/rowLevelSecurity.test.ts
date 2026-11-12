@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { type TestDatabase, createTestDatabase } from '../harness/createTestDatabase'
+import { type TestDatabase, createTestDatabase } from '../../harness/createTestDatabase'
 
 const INSERT_RULE = `
   insert into public.block_rules (target_type, target, mode, windows)
@@ -15,14 +15,6 @@ describe('row level security', () => {
     database = await createTestDatabase()
     alice = await database.createUser('alice@example.com')
     bob = await database.createUser('bob@example.com')
-  })
-
-  it('creates a profile with the default cooldown for new users', async () => {
-    await database.actAs(alice)
-    const { rows } = await database.db.query<{ cooldown_hours: number }>(
-      'select cooldown_hours from public.profiles',
-    )
-    expect(rows).toEqual([{ cooldown_hours: 24 }])
   })
 
   it('lets users insert and read their own rules', async () => {

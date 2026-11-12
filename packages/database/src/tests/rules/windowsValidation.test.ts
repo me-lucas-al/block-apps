@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { type TestDatabase, createTestDatabase } from '../harness/createTestDatabase'
+import { type TestDatabase, createTestDatabase } from '../../harness/createTestDatabase'
 
 const VALID_WINDOW = { days: [1, 2], start: '18:00', end: '20:00' }
 

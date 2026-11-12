@@ -9,6 +9,7 @@ import type { CognitoConfig } from './CognitoConfig'
 import { CognitoOAuthFlow } from './CognitoOAuthFlow'
 import { CognitoSessionManager } from './CognitoSessionManager'
 import { CognitoSrpAuth } from './CognitoSrpAuth'
+import { CognitoTotpEnrollment } from './CognitoTotpEnrollment'
 
 export class CognitoAuthenticator implements Authenticator {
   private readonly srpAuth: CognitoSrpAuth
@@ -16,6 +17,7 @@ export class CognitoAuthenticator implements Authenticator {
   private readonly accountOps: CognitoAccountOps
   private readonly oauthFlow: CognitoOAuthFlow
   private readonly sessionManager: CognitoSessionManager
+  private readonly totpEnrollment: CognitoTotpEnrollment
 
   constructor(
     config: CognitoConfig,
@@ -27,6 +29,7 @@ export class CognitoAuthenticator implements Authenticator {
     this.accountOps = new CognitoAccountOps(config)
     this.oauthFlow = new CognitoOAuthFlow(config)
     this.sessionManager = new CognitoSessionManager(storage, session, this.accountOps)
+    this.totpEnrollment = new CognitoTotpEnrollment(config)
   }
 
   async authenticate(email: string, password: string): Promise<AuthResult> {
@@ -52,6 +55,14 @@ export class CognitoAuthenticator implements Authenticator {
 
   async respondToMfaSetup(totpCode: string): Promise<void> {
     await this.challengeResolver.verifyMfaSetup(totpCode)
+  }
+
+  async beginTotpEnrollment(): Promise<string> {
+    return this.totpEnrollment.begin(await this.freshTokens())
+  }
+
+  async confirmTotpEnrollment(totpCode: string): Promise<void> {
+    await this.totpEnrollment.confirm(await this.freshTokens(), totpCode)
   }
 
   async signUpWithPassword(email: string, password: string): Promise<void> {
@@ -87,5 +98,11 @@ export class CognitoAuthenticator implements Authenticator {
 
   async refreshSession(): Promise<SessionTokens | null> {
     return this.sessionManager.refreshSession()
+  }
+
+  private async freshTokens(): Promise<SessionTokens> {
+    const tokens = await this.sessionManager.refreshSession()
+    if (!tokens) throw new Error('Sessão expirada. Entre novamente.')
+    return tokens
   }
 }

@@ -57,12 +57,13 @@ describe('row level security', () => {
     await expect(database.db.query(INSERT_RULE, ['example.com'])).rejects.toThrow()
   })
 
-  it('gives anonymous callers no rules and no way to insert', async () => {
+  it('denies anonymous callers any access to rules', async () => {
     await database.actAs(alice)
     await database.db.query(INSERT_RULE, ['example.com'])
     await database.actAsAnonymous()
-    const { rows } = await database.db.query('select id from public.block_rules')
-    expect(rows).toEqual([])
-    await expect(database.db.query(INSERT_RULE, ['other.com'])).rejects.toThrow()
+    await expect(database.db.query('select id from public.block_rules')).rejects.toThrow(
+      /permission denied/,
+    )
+    await expect(database.db.query(INSERT_RULE, ['other.com'])).rejects.toThrow(/permission denied/)
   })
 })

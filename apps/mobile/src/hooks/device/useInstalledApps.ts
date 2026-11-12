@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
-import type { InstalledApp } from '../../modules/app-blocker'
-import { useServices } from '../services/ServicesContext'
+import type { InstalledApp } from '../../../modules/app-blocker'
+import { useServices } from '../../services/ServicesContext'
 
 export function useInstalledApps(): InstalledApp[] {
   const { blocker } = useServices()

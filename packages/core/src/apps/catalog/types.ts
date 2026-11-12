@@ -7,4 +7,5 @@ export type KnownApp = {
 
 export type AppSuggestion = KnownApp & {
   readonly category: AppCategory
+  readonly aliases?: readonly string[]
 }

@@ -7,7 +7,7 @@ export type BlockingEnforcer = {
 }
 
 export type RulesRefresherDependencies = {
-  readonly repository: BlockRuleRepository
+  readonly repository: Pick<BlockRuleRepository, 'list' | 'applyDueChanges'>
   readonly ruleCache: RuleCache
   readonly sessionGate: SessionGate
   readonly enforcer: BlockingEnforcer
@@ -20,6 +20,7 @@ export class RulesRefresher {
     const { repository, ruleCache, sessionGate, enforcer } = this.dependencies
     try {
       if (await sessionGate.hasSession()) {
+        await repository.applyDueChanges()
         await ruleCache.save(await repository.list())
       }
     } finally {

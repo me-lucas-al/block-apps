@@ -20,6 +20,8 @@ export function toPendingChange(row: PendingChangeRow): PendingRuleChange {
   }
 }
 
-export function firstRow<T>(data: T | T[]): T {
-  return Array.isArray(data) ? (data[0] as T) : data
+export function readPendingChange(data: PendingChangeRow | PendingChangeRow[]): PendingRuleChange {
+  const row = Array.isArray(data) ? data[0] : data
+  if (!row) throw new Error('Supabase returned no pending change')
+  return toPendingChange(row)
 }

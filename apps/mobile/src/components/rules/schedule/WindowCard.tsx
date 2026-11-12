@@ -1,8 +1,8 @@
 import type { TimeWindow } from '@block-apps/core'
 import { StyleSheet, Text, View } from 'react-native'
-import { colors } from '../../theme'
-import { Button } from '../ui/Button'
-import { TextField } from '../ui/TextField'
+import { colors } from '../../../theme'
+import { Button } from '../../ui/Button'
+import { TextField } from '../../ui/TextField'
 import { DayChips } from './DayChips'
 
 type WindowCardProps = {

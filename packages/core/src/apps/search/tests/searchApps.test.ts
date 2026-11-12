@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import type { AppSuggestion, KnownApp } from '../../catalog/types'
-import { buildAppLabeler } from '../buildAppLabeler'
 import { searchApps } from '../searchApps'
 
 const suggestions: AppSuggestion[] = [
   { packageName: 'com.instagram.android', label: 'Instagram', category: 'social' },
+  { packageName: 'com.instagram.barcelona', label: 'Threads', category: 'social' },
   { packageName: 'com.whatsapp', label: 'WhatsApp', category: 'messaging' },
   { packageName: 'com.spotify.music', label: 'Spotify', category: 'music' },
+  { packageName: 'com.twitter.android', label: 'X', category: 'social', aliases: ['twitter'] },
+  { packageName: 'com.miHoYo.GenshinImpact', label: 'Genshin Impact', category: 'games' },
 ]
 
 const installed: KnownApp[] = [
@@ -16,23 +18,27 @@ const installed: KnownApp[] = [
 ]
 
 const search = (query: string) => searchApps({ installed, suggestions, query })
+const packagesOf = (query: string) => search(query).map((option) => option.packageName)
 
 describe('searchApps', () => {
   it('lists suggestions first, then the remaining installed apps alphabetically', () => {
-    expect(search('').map((option) => option.packageName)).toEqual([
+    expect(packagesOf('')).toEqual([
       'com.instagram.android',
+      'com.instagram.barcelona',
       'com.whatsapp',
       'com.spotify.music',
+      'com.twitter.android',
+      'com.miHoYo.GenshinImpact',
       'com.example.agenda',
       'com.example.calculator',
     ])
   })
 
   it('marks which options are installed and which are suggested', () => {
-    const [instagram, whatsapp, , agenda] = search('')
-    expect(instagram).toMatchObject({ installed: false, suggested: true })
-    expect(whatsapp).toMatchObject({ installed: true, suggested: true })
-    expect(agenda).toMatchObject({ installed: true, suggested: false })
+    const options = search('')
+    expect(options[0]).toMatchObject({ installed: false, suggested: true })
+    expect(options[2]).toMatchObject({ installed: true, suggested: true })
+    expect(options[6]).toMatchObject({ installed: true, suggested: false })
   })
 
   it('finds apps that are not installed', () => {
@@ -48,45 +54,65 @@ describe('searchApps', () => {
     expect(search('example').map((option) => option.label)).toEqual(['Agenda', 'Calculadora'])
   })
 
-  it('offers an unknown package name typed by the user as a custom option', () => {
-    const [custom] = search('com.roblox.client')
-    expect(custom).toEqual({
-      packageName: 'com.roblox.client',
-      label: 'com.roblox.client',
-      installed: false,
-      suggested: false,
-    })
-  })
-
-  it('offers the package found in a Play Store link', () => {
-    const [custom] = search('https://play.google.com/store/apps/details?id=com.roblox.client')
-    expect(custom?.packageName).toBe('com.roblox.client')
-  })
-
-  it('does not duplicate a package that is already listed', () => {
-    const results = search('com.whatsapp')
-    expect(results).toHaveLength(1)
-    expect(results[0]?.suggested).toBe(true)
+  it('matches aliases such as the old name of an app', () => {
+    expect(search('twitter').map((option) => option.label)).toEqual(['X'])
   })
 
   it('returns nothing for text that matches no app', () => {
     expect(search('zzzz')).toEqual([])
   })
-})
 
-describe('buildAppLabeler', () => {
-  const labelOf = buildAppLabeler(installed, suggestions)
-
-  it('labels suggested apps that are not installed', () => {
-    expect(labelOf('com.spotify.music')).toBe('Spotify')
+  it('treats a lone diacritic character as no filter text instead of listing everything', () => {
+    expect(search('^')).toEqual([])
   })
 
-  it('prefers the label of the installed app', () => {
-    const customLabel = buildAppLabeler([{ packageName: 'com.whatsapp', label: 'Zap' }], suggestions)
-    expect(customLabel('com.whatsapp')).toBe('Zap')
-  })
+  describe('packages typed or pasted by the user', () => {
+    it('offers an unknown package as an unverified option after the matches', () => {
+      expect(search('com.roblox.client')).toEqual([
+        {
+          packageName: 'com.roblox.client',
+          label: 'com.roblox.client',
+          installed: false,
+          suggested: false,
+        },
+      ])
+    })
 
-  it('falls back to the package name', () => {
-    expect(labelOf('com.unknown.app')).toBe('com.unknown.app')
+    it('keeps the unverified option last while the user is still typing', () => {
+      expect(packagesOf('com.insta')).toEqual([
+        'com.instagram.android',
+        'com.instagram.barcelona',
+        'com.insta',
+      ])
+    })
+
+    it('offers the package found in a Play Store link', () => {
+      const [option] = search('https://play.google.com/store/apps/details?id=com.roblox.client')
+      expect(option?.packageName).toBe('com.roblox.client')
+    })
+
+    it('returns the listed app when the link points to an app that is already listed', () => {
+      const [option, ...rest] = search('https://play.google.com/store/apps/details?id=com.spotify.music')
+      expect(option).toMatchObject({ packageName: 'com.spotify.music', label: 'Spotify', suggested: true })
+      expect(rest).toEqual([])
+    })
+
+    it('returns the installed app when the link points to an installed app', () => {
+      const [option] = search('https://play.google.com/store/apps/details?id=com.whatsapp')
+      expect(option).toMatchObject({ packageName: 'com.whatsapp', installed: true })
+    })
+
+    it('does not duplicate a package that is already listed', () => {
+      expect(packagesOf('com.whatsapp')).toEqual(['com.whatsapp'])
+    })
+
+    it('uses the spelling of the known package whatever case the user typed', () => {
+      expect(packagesOf('COM.WHATSAPP')).toEqual(['com.whatsapp'])
+      expect(packagesOf('com.mihoyo.genshinimpact')).toEqual(['com.miHoYo.GenshinImpact'])
+    })
+
+    it('does not turn a web domain into a package option', () => {
+      expect(packagesOf('instagram.com')).toEqual([])
+    })
   })
 })

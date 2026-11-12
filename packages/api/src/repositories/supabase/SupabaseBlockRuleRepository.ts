@@ -8,7 +8,7 @@ import type {
 import { type BlockRuleRow, toBlockRule, toInsertRow } from './blockRuleRow'
 import {
   type PendingChangeRow,
-  firstRow,
+  readPendingChange,
   toPendingChange,
 } from './pendingChangeRow'
 import { assertNoError, unwrap } from './unwrap'
@@ -20,7 +20,6 @@ export class SupabaseBlockRuleRepository implements BlockRuleRepository {
   constructor(private readonly client: SupabaseClient) {}
 
   async list(): Promise<BlockRule[]> {
-    assertNoError(await this.client.rpc('apply_due_rule_changes'))
     const rows = unwrap(
       await this.client.from(RULES_TABLE).select('*').order('created_at'),
     ) as BlockRuleRow[]
@@ -34,18 +33,13 @@ export class SupabaseBlockRuleRepository implements BlockRuleRepository {
     return toBlockRule(row)
   }
 
-  async requestUpdate(rule: BlockRule): Promise<PendingRuleChange> {
-    const result = await this.client.rpc('request_rule_update', {
-      p_rule_id: rule.id,
-      p_mode: rule.mode,
-      p_windows: rule.windows,
-    })
-    return toPendingChange(firstRow(unwrap(result) as PendingChangeRow | PendingChangeRow[]))
+  async applyDueChanges(): Promise<void> {
+    assertNoError(await this.client.rpc('apply_due_rule_changes'))
   }
 
   async requestRemoval(ruleId: string): Promise<PendingRuleChange> {
     const result = await this.client.rpc('request_rule_removal', { p_rule_id: ruleId })
-    return toPendingChange(firstRow(unwrap(result) as PendingChangeRow | PendingChangeRow[]))
+    return readPendingChange(unwrap(result) as PendingChangeRow | PendingChangeRow[])
   }
 
   async listPendingChanges(): Promise<PendingRuleChange[]> {

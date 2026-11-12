@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { AppState } from 'react-native'
-import { useServices } from '../services/ServicesContext'
+import { useServices } from '../../services/ServicesContext'
 
 export function useSessionRefresh(): void {
   const { sessionRefresh } = useServices()

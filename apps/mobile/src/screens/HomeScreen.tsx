@@ -1,11 +1,11 @@
-import { POPULAR_ANDROID_APPS, buildAppLabeler } from '@block-apps/core'
 import { useState } from 'react'
 import { FlatList, StyleSheet, Text, View } from 'react-native'
 import { ProtectionStatus } from '../components/protection/ProtectionStatus'
-import { AppRuleItem } from '../components/rules/AppRuleItem'
+import { AppRuleItem } from '../components/rules/apps/AppRuleItem'
 import { Button } from '../components/ui/Button'
-import { useAppRules } from '../hooks/useAppRules'
-import { useInstalledApps } from '../hooks/useInstalledApps'
+import { useAppCatalog } from '../hooks/rules/useAppCatalog'
+import { useAppRules } from '../hooks/rules/useAppRules'
+import { useInstalledApps } from '../hooks/device/useInstalledApps'
 import { useServices } from '../services/ServicesContext'
 import { colors } from '../theme'
 import { AddRuleScreen } from './AddRuleScreen'
@@ -18,6 +18,7 @@ export function HomeScreen({ email }: HomeScreenProps) {
   const { auth } = useServices()
   const { rules, pendingChanges, error, create, requestRemoval, cancelChange } = useAppRules()
   const apps = useInstalledApps()
+  const { labelFor } = useAppCatalog(apps)
   const [adding, setAdding] = useState(false)
 
   if (adding) {
@@ -25,8 +26,6 @@ export function HomeScreen({ email }: HomeScreenProps) {
       <AddRuleScreen installedApps={apps} onSubmit={create} onCancel={() => setAdding(false)} />
     )
   }
-
-  const labelFor = buildAppLabeler(apps, POPULAR_ANDROID_APPS)
 
   return (
     <View style={styles.container}>

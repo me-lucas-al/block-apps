@@ -1,5 +1,5 @@
 import { StyleSheet, View } from 'react-native'
-import { useProtectionStatus } from '../../hooks/useProtectionStatus'
+import { useProtectionStatus } from '../../hooks/device/useProtectionStatus'
 import { colors } from '../../theme'
 import { ProtectionRow } from './ProtectionRow'
 

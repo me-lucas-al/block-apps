@@ -3,9 +3,10 @@ import type { BlockMode, TimeWindow } from '@block-apps/core'
 import { useState } from 'react'
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import type { InstalledApp } from '../../modules/app-blocker'
-import { AppPicker } from '../components/rules/AppPicker'
-import { ScheduleEditor } from '../components/rules/ScheduleEditor'
+import { AppPicker } from '../components/rules/apps/AppPicker'
+import { ScheduleEditor } from '../components/rules/schedule/ScheduleEditor'
 import { Button } from '../components/ui/Button'
+import { useAppCatalog } from '../hooks/rules/useAppCatalog'
 import { buildAppRule } from '../rules/buildAppRule'
 import { ruleErrorMessage } from '../rules/ruleErrorMessage'
 import { colors } from '../theme'
@@ -17,6 +18,7 @@ type AddRuleScreenProps = {
 }
 
 export function AddRuleScreen({ installedApps, onSubmit, onCancel }: AddRuleScreenProps) {
+  const { suggestions, labelFor } = useAppCatalog(installedApps)
   const [packageName, setPackageName] = useState<string | null>(null)
   const [mode, setMode] = useState<BlockMode>('always')
   const [windows, setWindows] = useState<TimeWindow[]>([])
@@ -36,10 +38,12 @@ export function AddRuleScreen({ installedApps, onSubmit, onCancel }: AddRuleScre
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
       <Text style={styles.title}>Bloquear app</Text>
       <AppPicker
         installedApps={installedApps}
+        suggestions={suggestions}
+        labelFor={labelFor}
         selectedPackage={packageName}
         onSelect={setPackageName}
       />

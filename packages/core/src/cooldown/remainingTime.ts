@@ -3,7 +3,7 @@ const MINUTES_PER_HOUR = 60
 
 export function remainingMinutes(effectiveAt: string, now: Date): number {
   const remainingMilliseconds = new Date(effectiveAt).getTime() - now.getTime()
-  if (remainingMilliseconds <= 0) return 0
+  if (Number.isNaN(remainingMilliseconds) || remainingMilliseconds <= 0) return 0
   return Math.ceil(remainingMilliseconds / MILLISECONDS_PER_MINUTE)
 }
 

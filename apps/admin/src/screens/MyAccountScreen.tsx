@@ -23,7 +23,7 @@ export function MyAccountScreen({ profile, onChanged }: MyAccountScreenProps) {
       setError(null)
       setMessage(null)
       const name = displayName.trim()
-      await gateway.updateDisplayName(name === '' ? null : name)
+      await gateway.updateMyDisplayName(name === '' ? null : name)
       if (email.trim() !== profile.email) await gateway.changeEmail(email.trim())
       if (password !== '') await gateway.changePassword(password)
       setPassword('')

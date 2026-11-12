@@ -9,9 +9,8 @@ export type MyProfile = {
 }
 
 export interface ProfileGateway {
-  load(): Promise<MyProfile | null>
-  updateDisplayName(displayName: string | null): Promise<void>
+  loadMyProfile(): Promise<MyProfile | null>
+  updateMyDisplayName(displayName: string | null): Promise<void>
   changeEmail(email: string): Promise<void>
   changePassword(password: string): Promise<void>
-  acknowledgePasswordChange(): Promise<void>
 }

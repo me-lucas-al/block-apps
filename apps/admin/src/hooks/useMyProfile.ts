@@ -10,20 +10,24 @@ type ProfileState = {
 }
 
 export function useMyProfile(sessionEmail: string) {
-  const { profile: gateway } = useServices()
-  const [state, setState] = useState<ProfileState>({ profile: null, loading: true, error: null })
+  const { profile: profileGateway } = useServices()
+  const [profileState, setProfileState] = useState<ProfileState>({
+    profile: null,
+    loading: true,
+    error: null,
+  })
 
   const reloadMyProfile = useCallback(async () => {
     try {
-      setState({ profile: await gateway.load(), loading: false, error: null })
+      setProfileState({ profile: await profileGateway.loadMyProfile(), loading: false, error: null })
     } catch (failure) {
-      setState({ profile: null, loading: false, error: describeFailure(failure) })
+      setProfileState({ profile: null, loading: false, error: describeFailure(failure) })
     }
-  }, [gateway])
+  }, [profileGateway])
 
   useEffect(() => {
     void reloadMyProfile()
   }, [reloadMyProfile, sessionEmail])
 
-  return { ...state, reloadMyProfile }
+  return { ...profileState, reloadMyProfile }
 }

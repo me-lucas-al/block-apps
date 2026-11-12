@@ -14,7 +14,7 @@ function SignedInArea({ email }: { email: string }) {
 
   if (loading) return <p className="hint center">Carregando…</p>
   if (error || !profile) return <p className="error center">{error ?? 'Perfil não encontrado.'}</p>
-  if (profile.mustChangePassword) return <PasswordChangeScreen onChanged={reloadMyProfile} />
+  if (profile.mustChangePassword) return <PasswordChangeScreen onPasswordChanged={reloadMyProfile} />
   if (profile.role !== 'admin') return <ForbiddenScreen email={profile.email} />
 
   return (

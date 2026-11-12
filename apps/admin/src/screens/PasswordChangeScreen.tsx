@@ -4,23 +4,22 @@ import { useServices } from '../services/ServicesContext'
 import { describeFailure } from '../users/adminErrorMessage'
 
 type PasswordChangeScreenProps = {
-  onChanged: () => Promise<void>
+  onPasswordChanged: () => Promise<void>
 }
 
-export function PasswordChangeScreen({ onChanged }: PasswordChangeScreenProps) {
-  const { profile, auth } = useServices()
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
+export function PasswordChangeScreen({ onPasswordChanged }: PasswordChangeScreenProps) {
+  const { profile: profileGateway, auth } = useServices()
+  const [newPassword, setNewPassword] = useState('')
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const submitNewPassword = async (event: FormEvent) => {
     event.preventDefault()
     try {
-      setError(null)
-      await profile.changePassword(password)
-      await profile.acknowledgePasswordChange()
-      await onChanged()
+      setErrorMessage(null)
+      await profileGateway.changePassword(newPassword)
+      await onPasswordChanged()
     } catch (failure) {
-      setError(describeFailure(failure))
+      setErrorMessage(describeFailure(failure))
     }
   }
 
@@ -32,9 +31,9 @@ export function PasswordChangeScreen({ onChanged }: PasswordChangeScreenProps) {
         <label>
           Nova senha
           <input type="password" required minLength={8} maxLength={72} autoComplete="new-password"
-            value={password} onChange={(e) => setPassword(e.target.value)} />
+            value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
         </label>
-        {error && <p className="error" role="alert">{error}</p>}
+        {errorMessage && <p className="error" role="alert">{errorMessage}</p>}
         <button type="submit">Salvar e continuar</button>
         <button type="button" className="secondary" onClick={() => void auth.signOut()}>Sair</button>
       </form>

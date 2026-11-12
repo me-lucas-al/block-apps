@@ -1,4 +1,5 @@
 import { type SupabaseClient, createClient } from '@supabase/supabase-js'
+import { assertPublicApiKey } from './assertPublicApiKey'
 
 export function createSupabaseClient(): SupabaseClient {
   const url = import.meta.env.VITE_SUPABASE_URL
@@ -6,5 +7,9 @@ export function createSupabaseClient(): SupabaseClient {
   if (!url || !anonKey) {
     throw new Error('Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY')
   }
-  return createClient(url, anonKey, { auth: { persistSession: true, autoRefreshToken: true } })
+  assertPublicApiKey(anonKey)
+
+  return createClient(url, anonKey, {
+    auth: { persistSession: true, autoRefreshToken: true, flowType: 'pkce' },
+  })
 }

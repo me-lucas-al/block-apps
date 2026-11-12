@@ -57,7 +57,7 @@ $env:DYNAMODB_ENDPOINT = 'http://127.0.0.1:8000'
 pnpm --filter @block-apps/backend test
 ```
 
-Sem a variável, só o banco em memória roda. As rotas administrativas rodam contra um Cognito falso (`tests/helpers/cognito/FakeCognito.ts`) que implementa os comandos usados; não existe Cognito local, então o comportamento real só é confirmado depois do primeiro `terraform apply`. O CI sobe o DynamoDB local como serviço.
+Sem a variável, só o banco em memória roda. As rotas administrativas rodam contra um Cognito falso (`src/local/cognito/FakeCognito.ts`) que implementa os comandos usados; não existe Cognito local, então o comportamento real só é confirmado depois do primeiro `terraform apply`. O CI sobe o DynamoDB local como serviço.
 
 ## API local (Docker ou Node)
 
@@ -84,7 +84,12 @@ curl.exe http://127.0.0.1:3000/health
 curl.exe -X POST http://127.0.0.1:3000/rules -H "Authorization: Bearer dev:00000000-0000-4000-8000-0000000000b1:user" -H "content-type: application/json" -d '{\"targetType\":\"site\",\"target\":\"exemplo.com\",\"mode\":\"always\"}'
 ```
 
-As rotas `/admin` usam um Cognito falso em memória (`src/local/cognito`) com esses dois usuários. CORS aceita qualquer origem. O servidor local **nunca vai no zip da Lambda**, recusa subir se detectar ambiente AWS e não valida senha nem assinatura de token: não exponha a porta fora do `127.0.0.1`.
+As rotas `/admin` usam um Cognito falso em memória (`src/local/cognito`) com esses dois usuários. O servidor local **nunca vai no zip da Lambda** (um teste confere o bundle) e não valida senha nem assinatura de token, por isso:
+
+- só aceita requisições com `Host` local (`localhost`, `127.0.0.1`, `[::1]`), o que barra DNS rebinding;
+- CORS só libera `http://localhost:*`, `http://127.0.0.1:*`, extensões do Chrome e as origens de `LOCAL_ALLOWED_ORIGINS` (lista separada por vírgula); outros hosts entram por `LOCAL_ALLOWED_HOSTS`;
+- recusa subir se houver sinais de ambiente AWS (Lambda, ECS, token de identidade), se `DYNAMODB_ENDPOINT` não for um DynamoDB local ou se `HOST` não for loopback (o compose libera isso com `LOCAL_API_ALLOW_REMOTE_HOST=true` e publica só em `127.0.0.1`);
+- no Docker roda sem root, com sistema de arquivos somente leitura e sem capacidades extras. Nunca publique essa porta com `-p 3000:3000` fora do compose.
 
 ## Pacote da Lambda
 

@@ -56,6 +56,7 @@ export async function ensureLocalTable(endpoint: string, tableName: string): Pro
 }
 
 const RETRY_DELAY_MILLISECONDS = 1000
+const TABLE_READY_MAX_ATTEMPTS = 30
 
 function waitBeforeRetry(): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MILLISECONDS))
@@ -64,12 +65,13 @@ function waitBeforeRetry(): Promise<void> {
 export async function ensureLocalTableWhenReady(
   endpoint: string,
   tableName: string,
-  attempts = 30,
 ): Promise<TableContext> {
-  for (let attempt = 1; attempt < attempts; attempt += 1) {
+  for (let attempt = 1; attempt < TABLE_READY_MAX_ATTEMPTS; attempt += 1) {
     try {
       return await ensureLocalTable(endpoint, tableName)
-    } catch {
+    } catch (error: unknown) {
+      const reason = error instanceof Error ? error.message : 'unknown error'
+      console.log(`Waiting for DynamoDB at ${endpoint} (attempt ${attempt}): ${reason}`)
       await waitBeforeRetry()
     }
   }

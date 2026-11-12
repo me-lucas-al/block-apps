@@ -12,8 +12,14 @@ services:
     environment:
       DYNAMODB_ENDPOINT: http://dynamodb:8000
       HOST: 0.0.0.0
+      LOCAL_API_ALLOW_REMOTE_HOST: "true"
       PORT: "3000"
     ports:
       - "127.0.0.1:3000:3000"
     depends_on:
       - dynamodb
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true

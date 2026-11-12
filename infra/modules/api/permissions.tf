@@ -21,12 +21,10 @@ data "aws_iam_policy_document" "admin_function" {
     effect = "Allow"
     actions = [
       "dynamodb:GetItem",
-      "dynamodb:PutItem",
       "dynamodb:UpdateItem",
       "dynamodb:DeleteItem",
       "dynamodb:Query",
       "dynamodb:BatchWriteItem",
-      "dynamodb:ConditionCheckItem",
     ]
     resources = [var.table_arn]
   }

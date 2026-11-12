@@ -2,17 +2,20 @@ import { describe, expect, it } from 'vitest'
 import { callApi } from '../helpers/callApi'
 import { buildAdminBackend } from '../helpers/admin/buildAdminBackend'
 import { callAdminApi } from '../helpers/admin/callAdminApi'
+import { ADMIN_ONE, FEDERATED_ADMIN, USER_ONE } from '../helpers/admin/userIds'
 
 describe('admin users access', () => {
-  it('lists every user with role and cooldown', async () => {
+  it('lists every user across pages with role and cooldown', async () => {
     const backend = buildAdminBackend()
-    backend.settings.cooldownHoursByUser.set('user-1', 48)
+    backend.settings.cooldownHoursByUser.set(USER_ONE, 48)
     const reply = await callAdminApi(backend, 'GET', '/admin/users')
     expect(reply.status).toBe(200)
+    expect(reply.json).toHaveLength(5)
     expect(reply.json).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ id: 'admin-1', role: 'admin', cooldownHours: 24 }),
-        expect.objectContaining({ id: 'user-1', role: 'user', displayName: 'Ana', cooldownHours: 48 }),
+        expect.objectContaining({ id: ADMIN_ONE, role: 'admin', cooldownHours: 24 }),
+        expect.objectContaining({ id: FEDERATED_ADMIN, role: 'admin' }),
+        expect.objectContaining({ id: USER_ONE, role: 'user', displayName: 'Ana', cooldownHours: 48 }),
       ]),
     )
   })
@@ -22,21 +25,26 @@ describe('admin users access', () => {
     const reply = await callApi(backend.app, {
       method: 'GET',
       path: '/admin/users',
-      userId: 'user-1',
+      userId: USER_ONE,
       groups: ['admin'],
     })
     expect(reply.status).toBe(403)
   })
 
+  it('lets a federated admin in, finding the account by its sub', async () => {
+    const reply = await callAdminApi(buildAdminBackend(), 'GET', '/admin/users', undefined, FEDERATED_ADMIN)
+    expect(reply.status).toBe(200)
+  })
+
   it('blocks an admin who still has the temporary password', async () => {
     const backend = buildAdminBackend()
-    backend.cognito.users.get('admin-1')!.status = 'FORCE_CHANGE_PASSWORD'
+    backend.cognito.users.get(ADMIN_ONE)!.status = 'FORCE_CHANGE_PASSWORD'
     expect((await callAdminApi(backend, 'GET', '/admin/users')).status).toBe(403)
   })
 
   it('blocks a disabled admin', async () => {
     const backend = buildAdminBackend()
-    backend.cognito.users.get('admin-1')!.enabled = false
+    backend.cognito.users.get(ADMIN_ONE)!.enabled = false
     expect((await callAdminApi(backend, 'GET', '/admin/users')).status).toBe(403)
   })
 })

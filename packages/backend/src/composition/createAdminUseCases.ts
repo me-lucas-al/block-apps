@@ -1,5 +1,11 @@
 import type { CooldownSettingsStore } from '../cooldown/contracts/CooldownSettingsStore'
 import type { AdminUseCases } from '../http/app/AdminUseCases'
+import type { CooldownSettingsWriter } from '../users/contracts/CooldownSettingsWriter'
+import type { UserCreator } from '../users/contracts/UserCreator'
+import type { UserDataEraser } from '../users/contracts/UserDataEraser'
+import type { UserEditor } from '../users/contracts/UserEditor'
+import type { UserReader } from '../users/contracts/UserReader'
+import type { UserRemover } from '../users/contracts/UserRemover'
 import { AdminCallerGuard } from '../users/guards/AdminCallerGuard'
 import { ExistingUserGuard } from '../users/guards/ExistingUserGuard'
 import { LastAdminGuard } from '../users/guards/LastAdminGuard'
@@ -8,40 +14,44 @@ import { CreateUserUseCase } from '../users/use-cases/CreateUserUseCase'
 import { DeleteUserUseCase } from '../users/use-cases/DeleteUserUseCase'
 import { ListUsersUseCase } from '../users/use-cases/ListUsersUseCase'
 import { UpdateUserUseCase } from '../users/use-cases/UpdateUserUseCase'
-import type { CooldownSettingsWriter } from '../users/contracts/CooldownSettingsWriter'
-import type { UserDataEraser } from '../users/contracts/UserDataEraser'
-import type { UserReader } from '../users/contracts/UserReader'
-import type { UserWriter } from '../users/contracts/UserWriter'
 
 export type AdminCollaborators = {
   readonly userReader: UserReader
-  readonly userWriter: UserWriter
+  readonly userCreator: UserCreator
+  readonly userEditor: UserEditor
+  readonly userRemover: UserRemover
   readonly userDataEraser: UserDataEraser
   readonly cooldownSettingsStore: CooldownSettingsStore
   readonly cooldownSettingsWriter: CooldownSettingsWriter
 }
 
 export function createAdminUseCases(collaborators: AdminCollaborators): AdminUseCases {
-  const { userReader, userWriter, userDataEraser, cooldownSettingsWriter } = collaborators
+  const { userReader, userCreator, userEditor, userRemover, cooldownSettingsWriter } = collaborators
   const adminCallerGuard = new AdminCallerGuard(userReader)
   const existingUserGuard = new ExistingUserGuard(userReader)
   const lastAdminGuard = new LastAdminGuard(userReader)
-  const adminUserPresenter = new AdminUserPresenter(collaborators.cooldownSettingsStore)
+  const presenter = new AdminUserPresenter(collaborators.cooldownSettingsStore)
   return {
-    listUsers: new ListUsersUseCase(userReader, adminCallerGuard, adminUserPresenter),
-    createUser: new CreateUserUseCase(userWriter, cooldownSettingsWriter, adminCallerGuard, adminUserPresenter),
+    listUsers: new ListUsersUseCase(userReader, adminCallerGuard, presenter),
+    createUser: new CreateUserUseCase(
+      userCreator,
+      userRemover,
+      cooldownSettingsWriter,
+      adminCallerGuard,
+      presenter,
+    ),
     updateUser: new UpdateUserUseCase(
       userReader,
-      userWriter,
+      userEditor,
       cooldownSettingsWriter,
       adminCallerGuard,
       existingUserGuard,
       lastAdminGuard,
-      adminUserPresenter,
+      presenter,
     ),
     deleteUser: new DeleteUserUseCase(
-      userWriter,
-      userDataEraser,
+      userRemover,
+      collaborators.userDataEraser,
       adminCallerGuard,
       existingUserGuard,
       lastAdminGuard,

@@ -1,12 +1,10 @@
 import type { Context } from 'hono'
 import { ValidationError } from '../../../domain/errors/ValidationError'
 
-const MAX_USER_ID_LENGTH = 128
+const USER_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 export function readUserIdParam(context: Context): string {
   const userId = context.req.param('userId') ?? ''
-  if (userId.length === 0 || userId.length > MAX_USER_ID_LENGTH) {
-    throw new ValidationError('userId has an invalid length')
-  }
-  return userId
+  if (!USER_ID_PATTERN.test(userId)) throw new ValidationError('userId must be a user id (UUID)')
+  return userId.toLowerCase()
 }

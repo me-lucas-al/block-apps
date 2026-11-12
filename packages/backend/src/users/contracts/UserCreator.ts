@@ -7,10 +7,6 @@ export type NewDirectoryUser = {
   readonly role: UserRole
 }
 
-export interface UserWriter {
+export interface UserCreator {
   create(newUser: NewDirectoryUser): Promise<DirectoryUser>
-  updateDisplayName(userId: string, displayName: string | null): Promise<void>
-  changeRole(userId: string, from: UserRole, to: UserRole): Promise<void>
-  forcePasswordReset(userId: string): Promise<void>
-  remove(userId: string): Promise<void>
 }

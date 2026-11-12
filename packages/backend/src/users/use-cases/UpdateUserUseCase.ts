@@ -1,19 +1,21 @@
 import { ConflictError } from '../../domain/errors/ConflictError'
+import { ValidationError } from '../../domain/errors/ValidationError'
 import type { CooldownSettingsWriter } from '../contracts/CooldownSettingsWriter'
+import type { UserEditor } from '../contracts/UserEditor'
 import type { UserReader } from '../contracts/UserReader'
-import type { UserWriter } from '../contracts/UserWriter'
 import type { AdminCallerGuard } from '../guards/AdminCallerGuard'
 import type { ExistingUserGuard } from '../guards/ExistingUserGuard'
 import type { LastAdminGuard } from '../guards/LastAdminGuard'
 import type { AdminUser, UserRole } from '../model/AdminUser'
 import type { DirectoryUser } from '../model/DirectoryUser'
+import { isUsableAdmin } from '../model/isUsableAdmin'
 import type { UpdateUserInput } from '../model/userInputs'
 import type { AdminUserPresenter } from '../presentation/AdminUserPresenter'
 
 export class UpdateUserUseCase {
   constructor(
     private readonly userReader: UserReader,
-    private readonly userWriter: UserWriter,
+    private readonly userEditor: UserEditor,
     private readonly cooldownSettingsWriter: CooldownSettingsWriter,
     private readonly adminCallerGuard: AdminCallerGuard,
     private readonly existingUserGuard: ExistingUserGuard,
@@ -26,8 +28,9 @@ export class UpdateUserUseCase {
     const target = await this.existingUserGuard.requireExistingUser(userId)
     const newRole = changes.role !== undefined && changes.role !== target.role ? changes.role : null
     await this.requireAllowedRoleChange(caller, target, newRole)
-    await this.applyChanges(target, newRole, changes)
-    const updated = await this.userReader.find(userId)
+    const shouldResetPassword = this.decidePasswordReset(target, newRole, changes)
+    await this.applyChanges(target, newRole, shouldResetPassword, changes)
+    const updated = await this.userReader.find(target.id)
     return this.adminUserPresenter.presentUser(updated ?? target)
   }
 
@@ -38,23 +41,34 @@ export class UpdateUserUseCase {
   ): Promise<void> {
     if (!newRole) return
     if (target.id === caller.id) throw new ConflictError('admins cannot change their own role')
-    if (target.role === 'admin' && target.enabled) await this.lastAdminGuard.requireAnotherAdmin()
+    if (isUsableAdmin(target)) await this.lastAdminGuard.requireAnotherAdmin()
+  }
+
+  private decidePasswordReset(
+    target: DirectoryUser,
+    newRole: UserRole | null,
+    changes: UpdateUserInput,
+  ): boolean {
+    const canReset = !target.mustChangePassword && !target.federated
+    if (changes.resetPassword && !canReset) {
+      throw new ValidationError('the password cannot be reset in the current state of this user')
+    }
+    return canReset && (changes.resetPassword === true || newRole === 'admin')
   }
 
   private async applyChanges(
     target: DirectoryUser,
     newRole: UserRole | null,
+    shouldResetPassword: boolean,
     changes: UpdateUserInput,
   ): Promise<void> {
+    if (shouldResetPassword) await this.userEditor.forcePasswordReset(target.username)
+    if (newRole) await this.userEditor.changeRole(target.username, target.role, newRole)
     if (changes.displayName !== undefined) {
-      await this.userWriter.updateDisplayName(target.id, changes.displayName)
+      await this.userEditor.updateDisplayName(target.username, changes.displayName)
     }
     if (changes.cooldownHours !== undefined) {
       await this.cooldownSettingsWriter.writeCooldownHours(target.id, changes.cooldownHours)
-    }
-    if (newRole) await this.userWriter.changeRole(target.id, target.role, newRole)
-    if (newRole === 'admin' || changes.resetPassword) {
-      await this.userWriter.forcePasswordReset(target.id)
     }
   }
 }

@@ -8,7 +8,7 @@ type AppRuleItemProps = {
   label: string
   pendingChange: PendingRuleChange | undefined
   onRemove: (ruleId: string) => void
-  onCancel: (changeId: string) => void
+  onCancel: (ruleId: string) => void
 }
 
 function describeRule(rule: BlockRule): string {
@@ -28,7 +28,7 @@ export function AppRuleItem({ rule, label, pendingChange, onRemove, onCancel }: 
         )}
       </View>
       {pendingChange ? (
-        <Button label="Cancelar" variant="secondary" onPress={() => onCancel(pendingChange.id)} />
+        <Button label="Cancelar" variant="secondary" onPress={() => onCancel(rule.id)} />
       ) : (
         <Button label="Remover" variant="secondary" onPress={() => onRemove(rule.id)} />
       )}

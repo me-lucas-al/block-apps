@@ -3,14 +3,18 @@ import { AppState } from 'react-native'
 import { useServices } from '../../services/ServicesContext'
 
 export function useSessionRefresh(): void {
-  const { sessionRefresh } = useServices()
+  const { rulesSync, statusReporter } = useServices()
 
   useEffect(() => {
-    sessionRefresh.start()
+    const onActive = () => {
+      void rulesSync.sync().catch(() => {})
+      void statusReporter.report().catch(() => {})
+    }
+
+    onActive()
     const subscription = AppState.addEventListener('change', (state) => {
-      if (state === 'active') sessionRefresh.start()
-      else sessionRefresh.stop()
+      if (state === 'active') onActive()
     })
     return () => subscription.remove()
-  }, [sessionRefresh])
+  }, [rulesSync, statusReporter])
 }

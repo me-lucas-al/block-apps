@@ -1,15 +1,13 @@
-import {
-  type Authenticator,
-  type BlockRuleRepository,
-  type PendingRuleChangeRepository,
-  type UserSession,
-  SupabaseAuthenticator,
-  SupabaseBlockRuleRepository,
-  SupabasePendingRuleChangeRepository,
-  SupabaseUserSession,
+import type {
+  Authenticator,
+  BlockRuleRepository,
+  PendingRuleChangeRepository,
+  UserSession,
 } from '@block-apps/api'
 import { AppBlocker } from '../../modules/app-blocker'
-import { createSupabaseClient } from '../adapters/createSupabaseClient'
+import { createMobileServices } from '../adapters/createMobileServices'
+import { MobileDeviceIdStore } from '../device/MobileDeviceIdStore'
+import { MobileStatusReporter } from '../device/MobileStatusReporter'
 import type { AppBlockerPort } from '../ports/AppBlockerPort'
 import { AppRulesSync } from '../sync/AppRulesSync'
 
@@ -20,25 +18,32 @@ export type Services = {
   readonly pendingRuleChanges: PendingRuleChangeRepository
   readonly blocker: AppBlockerPort
   readonly rulesSync: AppRulesSync
-  readonly sessionRefresh: { start(): void; stop(): void }
+  readonly statusReporter: MobileStatusReporter
 }
 
 export function createServices(): Services {
-  const client = createSupabaseClient()
-  const userSession = new SupabaseUserSession(client)
-  const ruleRepository = new SupabaseBlockRuleRepository(client)
-  const pendingRuleChanges = new SupabasePendingRuleChangeRepository(client)
+  const mobile = createMobileServices()
+  const blocker = AppBlocker
+  const rulesSync = new AppRulesSync({
+    ruleRepository: mobile.ruleRepository,
+    pendingRuleChanges: mobile.pendingRuleChanges,
+    userSession: mobile.session,
+    blocker,
+  })
+  const statusReporter = new MobileStatusReporter({
+    deviceRepository: mobile.deviceRepository,
+    blocker,
+    deviceIdStore: new MobileDeviceIdStore(),
+    session: mobile.session,
+  })
 
   return {
-    userSession,
-    authenticator: new SupabaseAuthenticator(client),
-    ruleRepository,
-    pendingRuleChanges,
-    blocker: AppBlocker,
-    rulesSync: new AppRulesSync({ ruleRepository, pendingRuleChanges, userSession, blocker: AppBlocker }),
-    sessionRefresh: {
-      start: () => void client.auth.startAutoRefresh(),
-      stop: () => void client.auth.stopAutoRefresh(),
-    },
+    userSession: mobile.session,
+    authenticator: mobile.authenticator,
+    ruleRepository: mobile.ruleRepository,
+    pendingRuleChanges: mobile.pendingRuleChanges,
+    blocker,
+    rulesSync,
+    statusReporter,
   }
 }

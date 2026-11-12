@@ -13,6 +13,7 @@ type MyAccountScreenProps = {
 export function MyAccountScreen({ profile, onChanged }: MyAccountScreenProps) {
   const { profile: gateway } = useServices()
   const [displayName, setDisplayName] = useState(profile.displayName ?? '')
+  const [currentPassword, setCurrentPassword] = useState('')
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -24,7 +25,8 @@ export function MyAccountScreen({ profile, onChanged }: MyAccountScreenProps) {
       setMessage(null)
       const name = displayName.trim()
       await gateway.updateMyDisplayName(name === '' ? null : name)
-      if (password !== '') await gateway.changePassword(password)
+      if (password !== '') await gateway.changePassword(currentPassword, password)
+      setCurrentPassword('')
       setPassword('')
       await onChanged()
       setMessage('Dados salvos.')
@@ -44,6 +46,11 @@ export function MyAccountScreen({ profile, onChanged }: MyAccountScreenProps) {
         <label>
           E-mail
           <input type="email" value={profile.email} readOnly />
+        </label>
+        <label>
+          Senha atual (obrigatória para trocar a senha)
+          <input type="password" autoComplete="current-password" maxLength={72} required={password !== ''}
+            value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
         </label>
         <label>
           Nova senha (deixe em branco para manter)

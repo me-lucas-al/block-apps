@@ -21,6 +21,12 @@ export class SupabaseAuthService implements AuthService {
     assertNoError(await this.client.auth.signInWithPassword({ email, password }))
   }
 
+  async signInWithGoogle(redirectTo: string): Promise<void> {
+    assertNoError(
+      await this.client.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } }),
+    )
+  }
+
   async signUp(email: string, password: string): Promise<void> {
     assertNoError(await this.client.auth.signUp({ email, password }))
   }

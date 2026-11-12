@@ -17,6 +17,13 @@ jobs:
     name: Typecheck, test and build
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    services:
+      dynamodb:
+        image: amazon/dynamodb-local:3.1.0
+        ports:
+          - 8000:8000
+    env:
+      DYNAMODB_ENDPOINT: http://127.0.0.1:8000
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -28,6 +35,8 @@ jobs:
       - run: pnpm check:no-any
       - run: pnpm typecheck
       - run: pnpm test
+      - name: Package backend Lambda
+        run: pnpm --filter @block-apps/backend package
       - name: Build extension
         run: pnpm --filter @block-apps/extension build
         env:

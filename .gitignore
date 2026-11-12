@@ -26,3 +26,4 @@ backend.hcl
 override.tf
 override.tf.json
 *_override.tf
+.claude/worktrees/

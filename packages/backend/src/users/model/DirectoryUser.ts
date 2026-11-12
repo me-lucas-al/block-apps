@@ -9,5 +9,6 @@ export type DirectoryUser = {
   readonly enabled: boolean
   readonly federated: boolean
   readonly mustChangePassword: boolean
+  readonly mfaActive: boolean
   readonly createdAt: string
 }

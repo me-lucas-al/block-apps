@@ -9,6 +9,8 @@ export type CognitoUserRecord = {
   readonly Enabled?: boolean
   readonly UserStatus?: string
   readonly UserCreateDate?: Date
+  readonly UserMFASettingList?: readonly string[]
+  readonly PreferredMfaSetting?: string
 }
 
 const PASSWORD_CHANGE_STATUSES = new Set(['FORCE_CHANGE_PASSWORD', 'RESET_REQUIRED'])
@@ -20,6 +22,8 @@ export function readCognitoAttribute(record: CognitoUserRecord, attributeName: s
 
 export function mapDirectoryUser(record: CognitoUserRecord, role: UserRole): DirectoryUser {
   const username = record.Username ?? ''
+  const mfaSettings = record.UserMFASettingList ?? []
+  const mfaActive = mfaSettings.includes('SOFTWARE_TOKEN_MFA') || record.PreferredMfaSetting === 'SOFTWARE_TOKEN_MFA'
   return {
     id: readCognitoAttribute(record, 'sub') ?? username,
     username,
@@ -29,6 +33,7 @@ export function mapDirectoryUser(record: CognitoUserRecord, role: UserRole): Dir
     enabled: record.Enabled ?? false,
     federated: record.UserStatus === 'EXTERNAL_PROVIDER',
     mustChangePassword: PASSWORD_CHANGE_STATUSES.has(record.UserStatus ?? ''),
+    mfaActive,
     createdAt: (record.UserCreateDate ?? new Date(0)).toISOString(),
   }
 }

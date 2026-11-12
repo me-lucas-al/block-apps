@@ -13,7 +13,7 @@ import {
   ListUsersInGroupCommand,
   type CognitoIdentityProviderClient,
 } from '@aws-sdk/client-cognito-identity-provider'
-import type { CognitoContext } from '../../../src/storage/cognito/CognitoContext'
+import type { CognitoContext } from '../../storage/cognito/CognitoContext'
 import {
   buildCognitoError,
   listUsersResponse,

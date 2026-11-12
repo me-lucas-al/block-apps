@@ -6,7 +6,7 @@ import { CognitoUserCreator } from '../../../src/storage/cognito/CognitoUserCrea
 import { CognitoUserEditor } from '../../../src/storage/cognito/CognitoUserEditor'
 import { CognitoUserReader } from '../../../src/storage/cognito/CognitoUserReader'
 import { CognitoUserRemover } from '../../../src/storage/cognito/CognitoUserRemover'
-import { FakeCognito } from '../cognito/FakeCognito'
+import { FakeCognito } from '../../../src/local/cognito/FakeCognito'
 import { InMemoryUserSettings } from './InMemoryUserSettings'
 import { ADMIN_ONE, ADMIN_TWO, FEDERATED_ADMIN, PENDING_USER, USER_ONE } from './userIds'
 

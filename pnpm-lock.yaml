@@ -308,6 +308,9 @@ importers:
         specifier: 4.13.14
         version: 4.13.14
     devDependencies:
+      '@hono/node-server':
+        specifier: 2.1.5
+        version: 2.1.5(hono@4.13.14)
       '@types/aws-lambda':
         specifier: ^8.10.164
         version: 8.10.164
@@ -1310,6 +1313,12 @@ packages:
     engines: {node: '>=16.9.0'}
     peerDependencies:
       hono: '>=4.13.9 || ^5.0.0-0'
+
+  '@hono/node-server@2.1.5':
+    resolution: {integrity: sha512-MgP/I06GdvsilDspMk/qmRzpk8LOUStP6jFAbSRi40W09DhoyUn+Mj7eyKICPqeYKybOjVFLVIAQzvu1bfIa7Q==}
+    engines: {node: '>=20'}
+    peerDependencies:
+      hono: ^4 || ^5.0.0-0
 
   '@isaacs/ttlcache@1.4.1':
     resolution: {integrity: sha512-RQgQ4uQ+pLbqXfOmieB91ejmLwvSgv9nLx6sT6sD83s7umBypgg+OIBOBbEUiJXrfpnp9j0mRhYYdzp9uqq3lA==}
@@ -4709,6 +4718,10 @@ snapshots:
       js-yaml: 4.3.2
 
   '@hono/aws-lambda@1.0.1(hono@4.13.14)':
+    dependencies:
+      hono: 4.13.14
+
+  '@hono/node-server@2.1.5(hono@4.13.14)':
     dependencies:
       hono: 4.13.14
 

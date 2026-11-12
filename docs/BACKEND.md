@@ -59,6 +59,33 @@ pnpm --filter @block-apps/backend test
 
 Sem a variável, só o banco em memória roda. As rotas administrativas rodam contra um Cognito falso (`tests/helpers/cognito/FakeCognito.ts`) que implementa os comandos usados; não existe Cognito local, então o comportamento real só é confirmado depois do primeiro `terraform apply`. O CI sobe o DynamoDB local como serviço.
 
+## API local (Docker ou Node)
+
+Serve a mesma API Hono (rotas `api` e `/admin`) fora da Lambda, sobre o DynamoDB local, para os clientes testarem sem AWS:
+
+```powershell
+docker compose -f docker-compose.local.yml up -d --build
+```
+
+Sobe DynamoDB local e a API em `http://127.0.0.1:3000` (só no seu computador). A tabela é criada sozinha e os dados somem ao derrubar (`down`). Sem Docker para a API (usando o DynamoDB de `docker-compose.backend.yml`):
+
+```powershell
+$env:DYNAMODB_ENDPOINT = 'http://127.0.0.1:8000'
+pnpm --filter @block-apps/backend local
+```
+
+**Login de desenvolvimento:** não existe Cognito local, então o servidor aceita um token falso no formato `Authorization: Bearer dev:<userId>:<grupos>`. Dois usuários já existem, e o servidor imprime os tokens ao subir:
+
+- administrador: `Bearer dev:00000000-0000-4000-8000-0000000000a1:admin`
+- usuário comum: `Bearer dev:00000000-0000-4000-8000-0000000000b1:user`
+
+```powershell
+curl.exe http://127.0.0.1:3000/health
+curl.exe -X POST http://127.0.0.1:3000/rules -H "Authorization: Bearer dev:00000000-0000-4000-8000-0000000000b1:user" -H "content-type: application/json" -d '{\"targetType\":\"site\",\"target\":\"exemplo.com\",\"mode\":\"always\"}'
+```
+
+As rotas `/admin` usam um Cognito falso em memória (`src/local/cognito`) com esses dois usuários. CORS aceita qualquer origem. O servidor local **nunca vai no zip da Lambda**, recusa subir se detectar ambiente AWS e não valida senha nem assinatura de token: não exponha a porta fora do `127.0.0.1`.
+
 ## Pacote da Lambda
 
 `pnpm --filter @block-apps/backend package` gera `dist/lambda.zip` (esbuild, ESM, SDK da AWS fica de fora porque o runtime já traz). É o arquivo que o Terraform usa (`lambda_zip_path`).

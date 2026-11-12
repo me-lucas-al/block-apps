@@ -11,6 +11,10 @@
   },
   "dependencies": {
     "@block-apps/core": "workspace:*",
-    "@supabase/supabase-js": "^2.45.6"
+    "@supabase/supabase-js": "^2.45.6",
+    "amazon-cognito-identity-js": "^6.3.22"
+  },
+  "devDependencies": {
+    "@block-apps/backend": "workspace:*"
   }
 }

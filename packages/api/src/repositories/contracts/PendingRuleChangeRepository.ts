@@ -4,5 +4,5 @@ export interface PendingRuleChangeRepository {
   applyDueChanges(): Promise<void>
   requestRemoval(ruleId: string): Promise<PendingRuleChange>
   listPendingChanges(): Promise<PendingRuleChange[]>
-  cancelPendingChange(changeId: string): Promise<void>
+  cancelPendingChange(ruleId: string): Promise<void>
 }

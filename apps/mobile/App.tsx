@@ -3,7 +3,7 @@ import { StatusBar } from 'expo-status-bar'
 import { useMemo } from 'react'
 import { ActivityIndicator, SafeAreaView, StyleSheet } from 'react-native'
 import { useSessionEmail } from './src/hooks/session/useSessionEmail'
-import { useSessionRefresh } from './src/hooks/session/useSessionRefresh'
+import { useSyncWhenAppIsActive } from './src/hooks/session/useSyncWhenAppIsActive'
 import { HomeScreen } from './src/screens/HomeScreen'
 import { LoginScreen } from './src/screens/LoginScreen'
 import { ServicesProvider } from './src/services/ServicesContext'
@@ -11,8 +11,8 @@ import { createServices } from './src/services/createServices'
 import { colors } from './src/theme'
 
 function Root() {
-  useSessionRefresh()
   const { email, loading } = useSessionEmail()
+  useSyncWhenAppIsActive(email)
 
   if (loading) return <ActivityIndicator style={styles.loading} />
   if (!email) return <LoginScreen />

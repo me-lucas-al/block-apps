@@ -9,8 +9,13 @@ function parseWebUrl(candidateUrl: string): URL | null {
   }
 }
 
+function removeTrailingDot(hostname: string): string {
+  return hostname.endsWith('.') ? hostname.slice(0, -1) : hostname
+}
+
 function isSearchPageOf(engine: SearchEngine, url: URL): boolean {
-  return engine.hostPattern.test(url.hostname) && engine.pathPattern.test(url.pathname)
+  const hostname = removeTrailingDot(url.hostname)
+  return engine.hostPattern.test(hostname) && engine.pathPattern.test(url.pathname)
 }
 
 function readAllQueryTexts(url: URL, names: readonly string[]): string | null {

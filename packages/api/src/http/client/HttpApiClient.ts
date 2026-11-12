@@ -8,6 +8,7 @@ export type HttpApiConfig = {
 
 export class HttpApiClient {
   private readonly baseUrl: string
+  private refreshInProgress: Promise<string | null> | null = null
 
   constructor(private readonly config: HttpApiConfig) {
     this.baseUrl = config.baseUrl.replace(/\/+$/, '')
@@ -39,12 +40,19 @@ export class HttpApiClient {
     if (initialResponse.status !== 401 || !this.config.onUnauthorized) {
       return this.handleResponse<T>(initialResponse)
     }
-    const refreshedToken = await this.config.onUnauthorized()
+    const refreshedToken = await this.refreshTokenOnce(this.config.onUnauthorized)
     if (!refreshedToken) {
       return this.handleResponse<T>(initialResponse)
     }
     const retryResponse = await this.send(method, path, body, refreshedToken)
     return this.handleResponse<T>(retryResponse)
+  }
+
+  private refreshTokenOnce(refreshToken: () => Promise<string | null>): Promise<string | null> {
+    this.refreshInProgress ??= refreshToken().finally(() => {
+      this.refreshInProgress = null
+    })
+    return this.refreshInProgress
   }
 
   private async send(

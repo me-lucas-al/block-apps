@@ -14,6 +14,7 @@ export function useSessionEmail(): SessionState {
     void userSession
       .currentUserEmail()
       .then((email) => setState({ email, loading: false }))
+      .catch(() => setState({ email: null, loading: false }))
     return userSession.watchUserEmail((email) => setState({ email, loading: false }))
   }, [userSession])
 

@@ -5,10 +5,9 @@ const STORAGE_KEY = 'block_apps_tokens'
 
 export class SecureSessionStorage implements SessionStorage {
   async load(): Promise<SessionTokens | null> {
-    const raw = await getItemAsync(STORAGE_KEY)
-    if (!raw) return null
     try {
-      return JSON.parse(raw) as SessionTokens
+      const raw = await getItemAsync(STORAGE_KEY)
+      return raw ? (JSON.parse(raw) as SessionTokens) : null
     } catch {
       return null
     }

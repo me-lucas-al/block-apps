@@ -1,5 +1,9 @@
 import { beforeAll, describe, expect, it } from 'vitest'
-import { callAdminUsersFunction } from '../harness/callAdminUsersFunction.ts'
+import {
+  callAdminUsersFunction,
+  requireUserInReply,
+  requireUsersInReply,
+} from '../harness/callAdminUsersFunction.ts'
 import {
   type SignedInAccount,
   createClientWithoutSession,
@@ -35,20 +39,22 @@ describe.skipIf(!settings)('admin-users function on the local stack', () => {
       user: { email: commonUserEmail, password: 'common-password-1', displayName: 'Common' },
     })
     expect(created.status).toBe(200)
-    const commonUserId = created.body.user.id as string
-    expect(created.body.user).toMatchObject({ role: 'user', mustChangePassword: true })
+    const createdUser = requireUserInReply(created)
+    expect(createdUser).toMatchObject({ role: 'user', mustChangePassword: true })
 
-    const listed = await sendAsAdmin({ action: 'list' })
-    expect(listed.body.users.map((user: { email: string }) => user.email)).toContain(commonUserEmail)
+    const listedEmails = requireUsersInReply(await sendAsAdmin({ action: 'list' })).map(
+      (user) => user.email,
+    )
+    expect(listedEmails).toContain(commonUserEmail)
 
     const updated = await sendAsAdmin({
       action: 'update',
-      id: commonUserId,
+      id: createdUser.id,
       user: { displayName: 'Renamed', cooldownHours: 48, mustChangePassword: false },
     })
-    expect(updated.body.user).toMatchObject({ displayName: 'Renamed', cooldownHours: 48 })
+    expect(requireUserInReply(updated)).toMatchObject({ displayName: 'Renamed', cooldownHours: 48 })
 
-    const removed = await sendAsAdmin({ action: 'delete', id: commonUserId })
+    const removed = await sendAsAdmin({ action: 'delete', id: createdUser.id })
     expect(removed.body).toEqual({ ok: true })
     await expect(signIn(settings!, commonUserEmail, 'common-password-1')).rejects.toThrow()
   })
@@ -80,7 +86,7 @@ describe.skipIf(!settings)('admin-users function on the local stack', () => {
     const profilesSeenByCommonUser = await commonUser.client.from('profiles').select('id')
     expect(profilesSeenByCommonUser.data).toHaveLength(1)
     const profilesSeenByAdmin = await admin.client.from('profiles').select('id')
-    expect(profilesSeenByAdmin.data!.length).toBeGreaterThan(1)
+    expect(profilesSeenByAdmin.data?.length).toBeGreaterThan(1)
 
     const anonymousRead = await createClientWithoutSession(settings!).from('profiles').select('id')
     expect(anonymousRead.error?.code).toBe('42501')

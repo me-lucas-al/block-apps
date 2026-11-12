@@ -49,3 +49,20 @@ data "aws_iam_policy_document" "admin_function" {
     resources = [var.user_pool_arn]
   }
 }
+
+data "aws_iam_policy_document" "scheduler_function" {
+  statement {
+    sid    = "DynamoDbSchedulerAccess"
+    effect = "Allow"
+    actions = [
+      "dynamodb:GetItem",
+      "dynamodb:PutItem",
+      "dynamodb:UpdateItem",
+      "dynamodb:DeleteItem",
+      "dynamodb:Query",
+      "dynamodb:BatchWriteItem",
+      "dynamodb:ConditionCheckItem",
+    ]
+    resources = [var.table_arn, var.due_changes_index_arn]
+  }
+}

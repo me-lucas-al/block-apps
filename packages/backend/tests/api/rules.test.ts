@@ -51,6 +51,8 @@ describe.each(backendFactories)('rules ($name)', (factory) => {
   it.each([
     ['site target that is not a domain', { ...SITE_RULE_BODY, target: 'not a domain' }],
     ['app target with a slash', { targetType: 'app', target: 'com/bad', mode: 'always' }],
+    ['app target that is a website', { targetType: 'app', target: 'google.com', mode: 'always' }],
+    ['keyword with one character', { targetType: 'keyword', target: 'a', mode: 'always' }],
     ['too many windows', { ...SITE_RULE_BODY, mode: 'schedule', windows: Array(51).fill(WORKDAY_WINDOW) }],
     ['unknown target type', { ...SITE_RULE_BODY, targetType: 'keyboard' }],
     ['schedule without windows', { ...SITE_RULE_BODY, mode: 'schedule', windows: [] }],

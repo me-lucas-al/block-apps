@@ -20,4 +20,9 @@ describe('normalizeKeywordTarget', () => {
     expect(normalizeKeywordTarget('a'.repeat(101))).toBeNull()
     expect(normalizeKeywordTarget('a'.repeat(100))).not.toBeNull()
   })
+
+  it('rejects keywords with a single character', () => {
+    expect(normalizeKeywordTarget('a')).toBeNull()
+    expect(normalizeKeywordTarget('ab')).toBe('ab')
+  })
 })

@@ -75,9 +75,9 @@ export class CognitoAuthenticator implements Authenticator {
     if (typeof window !== 'undefined') window.location.href = url
   }
 
-  async exchangeOAuthCode(code: string, verifier: string, redirectUri: string): Promise<void> {
+  async exchangeOAuthCode(code: string, verifier?: string, redirectUri?: string): Promise<void> {
     await this.sessionManager.persistTokens(
-      await this.oauthFlow.exchangeCode(code, redirectUri, verifier),
+      await this.oauthFlow.exchangeCode(code, redirectUri ?? '', verifier),
     )
   }
 

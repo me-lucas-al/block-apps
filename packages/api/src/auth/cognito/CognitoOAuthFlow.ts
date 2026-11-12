@@ -24,7 +24,7 @@ export class CognitoOAuthFlow {
     redirectUri: string,
     explicitVerifier?: string,
   ): Promise<SessionTokens> {
-    const verifier = explicitVerifier ?? this.readSavedVerifier()
+    const verifier = explicitVerifier || this.readSavedVerifier()
     if (!verifier) {
       throw new Error('PKCE code verifier is missing')
     }

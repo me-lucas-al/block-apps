@@ -9,5 +9,5 @@ export interface Authenticator {
   confirmSignUp?(email: string, code: string): Promise<void>
   requestPasswordReset?(email: string): Promise<void>
   confirmPasswordReset?(email: string, code: string, nextPass: string): Promise<void>
-  exchangeOAuthCode?(code: string, verifier: string, redirectUri: string): Promise<void>
+  exchangeOAuthCode?(code: string, verifier?: string, redirectUri?: string): Promise<void>
 }

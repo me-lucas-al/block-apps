@@ -15,4 +15,3 @@
 **/backend.hcl
 apps/mobile/android
 apps/mobile/ios
-supabase/.temp

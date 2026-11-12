@@ -2,7 +2,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
 
 const PROJECT_ROOT = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')
-const SCANNED_ROOTS = ['apps', 'packages', 'supabase']
+const SCANNED_ROOTS = ['apps', 'packages', 'infra']
 const IGNORED_DIRECTORIES = new Set(['node_modules', 'dist', 'build', '.expo', 'android', 'ios', '.temp'])
 const EXPLICIT_ANY_PATTERNS = [
   /:\s*any\b/,

@@ -39,9 +39,8 @@ jobs:
         run: pnpm --filter @block-apps/backend package
       - name: Build extension
         run: pnpm --filter @block-apps/extension build
-        env:
-          VITE_SUPABASE_URL: https://placeholder.supabase.co
-          VITE_SUPABASE_ANON_KEY: placeholder
+      - name: Build admin site
+        run: pnpm --filter @block-apps/admin build
 
   android:
     name: Android native module

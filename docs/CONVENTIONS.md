@@ -14,19 +14,21 @@ Regras valem para TypeScript, Kotlin e Swift. As referências vêm da documenta�
 
 ```
 packages/
-  core/src/        rules/, schedule/{evaluation,editing}/, cooldown/, apps/{catalog,search}/, sites/, keywords/{matching,search-engines}/
-  api/src/         auth/, repositories/{contracts,supabase}/
-  database/src/    harness/ (Postgres em memória), tests/ (RLS e cooldown)
-supabase/
-  migrations/      schema, RLS e funções (única fonte de verdade do banco)
+  core/src/        rules/, schedule/{evaluation,editing}/, cooldown/, apps/{catalog,search}/, sites/, keywords/{matching,search-engines}/, users/
+  api/src/         auth/{cognito,session,storage}/, repositories/{contracts,http}/, http/client/, polling/
+  backend/src/     http/{app,routes,auth,errors}/, storage/{dynamodb,cognito}/, cooldown/, users/, devices/
+infra/
+  modules/         auth/, api/, data/, admin_site/, lambda_function/
+  environments/dev/ main.tf, variables.tf, outputs.tf
 apps/
-  extension/src/   ports/{browser,data}/, adapters/{chrome,supabase}/, blocking/{,keywords/}, device/, popup/, background/
+  extension/src/   ports/{browser,data}/, adapters/{chrome}/, blocking/{,keywords/}, device/, popup/, background/
+  admin/src/       ports/, adapters/, components/, screens/, services/, users/
   mobile/
-    src/           ports/, sync/, hooks/, screens/, components/
+    src/           ports/, adapters/, sync/, hooks/, screens/, components/, device/
     modules/app-blocker/
       src/                   ponte TypeScript
       android/.../appblocker/  Kotlin: admin/, service/, system/, ui/, rules/{model,evaluation,storage}/
-      ios/                   Swift (fase iOS)
+      ios/                   Swift (fase iOS pausada)
 ```
 
 Código nativo de cada plataforma fica dentro do módulo (`android/`, `ios/`). A UI é uma só, em React Native.

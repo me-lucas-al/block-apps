@@ -36,6 +36,8 @@ output "admin_site_distribution_id" {
 output "admin_site_bucket_name" {
   description = "Bucket S3 que guarda os arquivos do painel."
   value       = module.admin_site.bucket_name
+}
+
 output "data_reader_role_arn" {
   description = "Role somente leitura da tabela; assuma com MFA para ver os dados no Console."
   value       = module.data.reader_role_arn

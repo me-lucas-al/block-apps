@@ -8,7 +8,7 @@ type PasswordChangeScreenProps = {
 }
 
 export function PasswordChangeScreen({ onPasswordChanged }: PasswordChangeScreenProps) {
-  const { profile: profileGateway, auth } = useServices()
+  const { profile: profileGateway, authenticator } = useServices()
   const [newPassword, setNewPassword] = useState('')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
@@ -35,7 +35,7 @@ export function PasswordChangeScreen({ onPasswordChanged }: PasswordChangeScreen
         </label>
         {errorMessage && <p className="error" role="alert">{errorMessage}</p>}
         <button type="submit">Salvar e continuar</button>
-        <button type="button" className="secondary" onClick={() => void auth.signOut()}>Sair</button>
+        <button type="button" className="secondary" onClick={() => void authenticator.signOut()}>Sair</button>
       </form>
     </main>
   )

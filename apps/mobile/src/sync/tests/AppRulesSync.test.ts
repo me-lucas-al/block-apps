@@ -23,8 +23,9 @@ function createSync(email: string | null) {
     return [appRule]
   })
   const sync = new AppRulesSync({
-    repository: { list, applyDueChanges },
-    auth: { currentUserEmail: async () => email },
+    ruleRepository: { list },
+    pendingRuleChanges: { applyDueChanges },
+    userSession: { currentUserEmail: async () => email },
     blocker: { setRules },
   })
   return { sync, setRules, list, applyDueChanges, calls }

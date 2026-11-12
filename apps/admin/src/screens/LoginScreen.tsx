@@ -3,7 +3,7 @@ import type { FormEvent } from 'react'
 import { useServices } from '../services/ServicesContext'
 
 export function LoginScreen() {
-  const { auth } = useServices()
+  const { authenticator } = useServices()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -12,7 +12,7 @@ export function LoginScreen() {
     event.preventDefault()
     try {
       setError(null)
-      await auth.signIn(email.trim(), password)
+      await authenticator.signInWithPassword(email.trim(), password)
     } catch {
       setError('E-mail ou senha incorretos.')
     }
@@ -21,7 +21,7 @@ export function LoginScreen() {
   const startGoogleSignIn = async () => {
     try {
       setError(null)
-      await auth.signInWithGoogle(window.location.origin)
+      await authenticator.signInWithGoogle(window.location.origin)
     } catch {
       setError('O login com Google não está configurado neste ambiente.')
     }

@@ -1,6 +1,7 @@
 import {
   SupabaseBlockRuleRepository,
   SupabaseDeviceRepository,
+  SupabasePendingRuleChangeRepository,
 } from '@block-apps/api'
 import { ChromeDeviceIdStore } from '../adapters/chrome/storage/ChromeDeviceIdStore'
 import { ChromeDynamicRulesPort } from '../adapters/chrome/browser/ChromeDynamicRulesPort'
@@ -24,7 +25,8 @@ export function composeBackground() {
   })
 
   const refresher = new RulesRefresher({
-    repository: new SupabaseBlockRuleRepository(client),
+    ruleRepository: new SupabaseBlockRuleRepository(client),
+    pendingRuleChanges: new SupabasePendingRuleChangeRepository(client),
     ruleCache,
     sessionGate,
     enforcer: synchronizer,

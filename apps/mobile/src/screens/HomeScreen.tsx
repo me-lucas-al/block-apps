@@ -15,7 +15,7 @@ type HomeScreenProps = {
 }
 
 export function HomeScreen({ email }: HomeScreenProps) {
-  const { auth } = useServices()
+  const { authenticator } = useServices()
   const { rules, pendingChanges, error, create, requestRemoval, cancelChange } = useAppRules()
   const apps = useInstalledApps()
   const { labelFor } = useAppCatalog(apps)
@@ -31,7 +31,7 @@ export function HomeScreen({ email }: HomeScreenProps) {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.email}>{email}</Text>
-        <Button label="Sair" variant="secondary" onPress={() => void auth.signOut()} />
+        <Button label="Sair" variant="secondary" onPress={() => void authenticator.signOut()} />
       </View>
       <ProtectionStatus />
       {error && <Text style={styles.error}>{error}</Text>}

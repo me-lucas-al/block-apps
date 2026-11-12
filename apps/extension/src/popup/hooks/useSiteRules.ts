@@ -12,16 +12,16 @@ function messageOf(failure: unknown): string {
 }
 
 export function useSiteRules() {
-  const { ruleRepository, background } = useServices()
+  const { ruleRepository, pendingRuleChanges, background } = useServices()
   const [rules, setRules] = useState<BlockRule[]>([])
   const [pendingChanges, setPendingChanges] = useState<PendingRuleChange[]>([])
   const [error, setError] = useState<string | null>(null)
 
   const reload = useCallback(async () => {
-    await ruleRepository.applyDueChanges()
+    await pendingRuleChanges.applyDueChanges()
     setRules(onlySites(await ruleRepository.list()))
-    setPendingChanges(await ruleRepository.listPendingChanges())
-  }, [ruleRepository])
+    setPendingChanges(await pendingRuleChanges.listPendingChanges())
+  }, [ruleRepository, pendingRuleChanges])
 
   const run = useCallback(
     async (action: () => Promise<unknown>) => {
@@ -46,7 +46,7 @@ export function useSiteRules() {
     pendingChanges,
     error,
     create: (rule: NewBlockRule) => run(() => ruleRepository.create(rule)),
-    requestRemoval: (ruleId: string) => run(() => ruleRepository.requestRemoval(ruleId)),
-    cancelChange: (changeId: string) => run(() => ruleRepository.cancelPendingChange(changeId)),
+    requestRemoval: (ruleId: string) => run(() => pendingRuleChanges.requestRemoval(ruleId)),
+    cancelChange: (changeId: string) => run(() => pendingRuleChanges.cancelPendingChange(changeId)),
   }
 }

@@ -1,8 +1,12 @@
 import {
-  type AuthService,
+  type Authenticator,
   type BlockRuleRepository,
-  SupabaseAuthService,
+  type PendingRuleChangeRepository,
+  type UserSession,
+  SupabaseAuthenticator,
   SupabaseBlockRuleRepository,
+  SupabasePendingRuleChangeRepository,
+  SupabaseUserSession,
 } from '@block-apps/api'
 import { ChromeBackgroundNotifier } from '../../adapters/chrome/browser/ChromeBackgroundNotifier'
 import { ChromeIncognitoPort } from '../../adapters/chrome/browser/ChromeIncognitoPort'
@@ -11,8 +15,10 @@ import type { BackgroundNotifier } from '../../ports/browser/BackgroundNotifier'
 import type { IncognitoPort } from '../../ports/browser/IncognitoPort'
 
 export type Services = {
-  readonly auth: AuthService
+  readonly userSession: UserSession
+  readonly authenticator: Authenticator
   readonly ruleRepository: BlockRuleRepository
+  readonly pendingRuleChanges: PendingRuleChangeRepository
   readonly incognito: IncognitoPort
   readonly background: BackgroundNotifier
 }
@@ -20,8 +26,10 @@ export type Services = {
 export function createServices(): Services {
   const client = createSupabaseClient()
   return {
-    auth: new SupabaseAuthService(client),
+    userSession: new SupabaseUserSession(client),
+    authenticator: new SupabaseAuthenticator(client),
     ruleRepository: new SupabaseBlockRuleRepository(client),
+    pendingRuleChanges: new SupabasePendingRuleChangeRepository(client),
     incognito: new ChromeIncognitoPort(),
     background: new ChromeBackgroundNotifier(),
   }

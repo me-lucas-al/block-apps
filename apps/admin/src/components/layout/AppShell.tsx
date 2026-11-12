@@ -11,7 +11,7 @@ type AppShellProps = {
 }
 
 export function AppShell({ email, page, onNavigate, children }: AppShellProps) {
-  const { auth } = useServices()
+  const { authenticator } = useServices()
 
   return (
     <div className="shell">
@@ -27,7 +27,7 @@ export function AppShell({ email, page, onNavigate, children }: AppShellProps) {
         </div>
         <div className="row">
           <span className="hint">{email}</span>
-          <button type="button" className="secondary" onClick={() => void auth.signOut()}>Sair</button>
+          <button type="button" className="secondary" onClick={() => void authenticator.signOut()}>Sair</button>
         </div>
       </nav>
       <main>{children}</main>

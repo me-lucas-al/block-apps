@@ -5,7 +5,7 @@ type ForbiddenScreenProps = {
 }
 
 export function ForbiddenScreen({ email }: ForbiddenScreenProps) {
-  const { auth } = useServices()
+  const { authenticator } = useServices()
 
   return (
     <main className="center">
@@ -15,7 +15,7 @@ export function ForbiddenScreen({ email }: ForbiddenScreenProps) {
           A conta <strong>{email}</strong> não é de administrador. Use o aplicativo ou a extensão
           do Block Apps para gerenciar seus bloqueios.
         </p>
-        <button type="button" onClick={() => void auth.signOut()}>Sair</button>
+        <button type="button" onClick={() => void authenticator.signOut()}>Sair</button>
       </div>
     </main>
   )

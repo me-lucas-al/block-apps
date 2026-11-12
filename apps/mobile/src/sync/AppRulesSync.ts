@@ -1,11 +1,16 @@
-import type { AuthService, BlockRuleRepository } from '@block-apps/api'
+import type {
+  BlockRuleRepository,
+  PendingRuleChangeRepository,
+  UserSession,
+} from '@block-apps/api'
 import type { BlockRule } from '@block-apps/core'
 import type { AppBlockerPort } from '../ports/AppBlockerPort'
 import { toNativeRulesJson } from './toNativeRulesJson'
 
 export type AppRulesSyncDependencies = {
-  readonly repository: Pick<BlockRuleRepository, 'list' | 'applyDueChanges'>
-  readonly auth: Pick<AuthService, 'currentUserEmail'>
+  readonly ruleRepository: Pick<BlockRuleRepository, 'list'>
+  readonly pendingRuleChanges: Pick<PendingRuleChangeRepository, 'applyDueChanges'>
+  readonly userSession: Pick<UserSession, 'currentUserEmail'>
   readonly blocker: Pick<AppBlockerPort, 'setRules'>
 }
 
@@ -17,10 +22,10 @@ export class AppRulesSync {
   }
 
   async sync(): Promise<void> {
-    const { repository, auth } = this.dependencies
-    if (!(await auth.currentUserEmail())) return
+    const { ruleRepository, pendingRuleChanges, userSession } = this.dependencies
+    if (!(await userSession.currentUserEmail())) return
 
-    await repository.applyDueChanges()
-    this.push(await repository.list())
+    await pendingRuleChanges.applyDueChanges()
+    this.push(await ruleRepository.list())
   }
 }

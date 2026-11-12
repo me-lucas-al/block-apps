@@ -1,20 +1,20 @@
 import { describe, expect, it } from 'vitest'
 import { createAdminScenario } from '../harness/createAdminScenario.ts'
+import { UNKNOWN_USER_ID } from '../harness/InMemoryUserDirectory.ts'
 
 describe('UpdateUserUseCase', () => {
-  it('updates another user, including role and cooldown', async () => {
+  it('updates another user, including cooldown', async () => {
     const { useCases, admin, commonUser } = createAdminScenario()
     const updated = await useCases.updateUserUseCase.updateUser(admin.id, commonUser.id, {
-      role: 'admin',
       cooldownHours: 48,
     })
-    expect(updated).toMatchObject({ role: 'admin', cooldownHours: 48 })
+    expect(updated).toMatchObject({ cooldownHours: 48 })
   })
 
   it('fails when the user does not exist', async () => {
     const { useCases, admin } = createAdminScenario()
     await expect(
-      useCases.updateUserUseCase.updateUser(admin.id, 'ghost', { displayName: 'x' }),
+      useCases.updateUserUseCase.updateUser(admin.id, UNKNOWN_USER_ID, { displayName: 'x' }),
     ).rejects.toMatchObject({ code: 'not_found' })
   })
 
@@ -40,6 +40,45 @@ describe('UpdateUserUseCase', () => {
     })
     expect(updated.displayName).toBe('Boss')
   })
+
+  it('forces a password change after the admin resets a password', async () => {
+    const { useCases, admin, commonUser } = createAdminScenario()
+    const updated = await useCases.updateUserUseCase.updateUser(admin.id, commonUser.id, {
+      password: 'another-long-password',
+    })
+    expect(updated.mustChangePassword).toBe(true)
+  })
+
+  it('respects an explicit choice about the forced password change', async () => {
+    const { useCases, admin, commonUser } = createAdminScenario()
+    const updated = await useCases.updateUserUseCase.updateUser(admin.id, commonUser.id, {
+      password: 'another-long-password',
+      mustChangePassword: false,
+    })
+    expect(updated.mustChangePassword).toBe(false)
+  })
+
+  it('requires a new password when promoting a user to admin', async () => {
+    const { useCases, admin, commonUser } = createAdminScenario()
+    await expect(
+      useCases.updateUserUseCase.updateUser(admin.id, commonUser.id, { role: 'admin' }),
+    ).rejects.toMatchObject({ code: 'invalid_input' })
+
+    const promoted = await useCases.updateUserUseCase.updateUser(admin.id, commonUser.id, {
+      role: 'admin',
+      password: 'brand-new-password',
+    })
+    expect(promoted).toMatchObject({ role: 'admin', mustChangePassword: true })
+  })
+
+  it('refuses to demote the last admin', async () => {
+    const { useCases, admin, userDirectory } = createAdminScenario()
+    const otherAdmin = userDirectory.seed({ email: 'other@example.com', role: 'admin' })
+    userDirectory.countAdmins = async () => 1
+    await expect(
+      useCases.updateUserUseCase.updateUser(admin.id, otherAdmin.id, { role: 'user' }),
+    ).rejects.toMatchObject({ code: 'last_admin' })
+  })
 })
 
 describe('DeleteUserUseCase', () => {
@@ -51,9 +90,9 @@ describe('DeleteUserUseCase', () => {
 
   it('fails when the user does not exist', async () => {
     const { useCases, admin } = createAdminScenario()
-    await expect(useCases.deleteUserUseCase.deleteUser(admin.id, 'ghost')).rejects.toMatchObject({
-      code: 'not_found',
-    })
+    await expect(
+      useCases.deleteUserUseCase.deleteUser(admin.id, UNKNOWN_USER_ID),
+    ).rejects.toMatchObject({ code: 'not_found' })
   })
 
   it('does not let an admin delete their own account', async () => {
@@ -70,5 +109,14 @@ describe('DeleteUserUseCase', () => {
       useCases.deleteUserUseCase.deleteUser(commonUser.id, admin.id),
     ).rejects.toMatchObject({ code: 'forbidden' })
     expect(await userDirectory.find(admin.id)).not.toBeNull()
+  })
+
+  it('refuses to delete the last admin', async () => {
+    const { useCases, admin, userDirectory } = createAdminScenario()
+    const otherAdmin = userDirectory.seed({ email: 'other@example.com', role: 'admin' })
+    userDirectory.countAdmins = async () => 1
+    await expect(useCases.deleteUserUseCase.deleteUser(admin.id, otherAdmin.id)).rejects.toMatchObject({
+      code: 'last_admin',
+    })
   })
 })

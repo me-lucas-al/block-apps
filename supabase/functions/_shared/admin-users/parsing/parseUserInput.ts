@@ -4,7 +4,7 @@ import {
   parseCooldownHours,
   parseDisplayName,
   parseEmail,
-  parseFlag,
+  parseBooleanField,
   parsePassword,
   parseRole,
 } from './fieldParsers.ts'
@@ -26,7 +26,7 @@ export function parseCreateUser(rawUser: unknown): CreateUserInput {
     displayName: parseDisplayName(requestedUser.displayName ?? null),
     role: parseRole(requestedUser.role ?? 'user'),
     cooldownHours: parseCooldownHours(requestedUser.cooldownHours ?? DEFAULT_COOLDOWN_HOURS),
-    mustChangePassword: parseFlag('mustChangePassword', requestedUser.mustChangePassword ?? true),
+    mustChangePassword: parseBooleanField('mustChangePassword', requestedUser.mustChangePassword ?? true),
   }
 }
 
@@ -45,7 +45,7 @@ export function parseUpdateUser(rawChanges: unknown): UpdateUserInput {
     changes.cooldownHours = parseCooldownHours(requestedChanges.cooldownHours)
   }
   if (requestedChanges.mustChangePassword !== undefined) {
-    changes.mustChangePassword = parseFlag('mustChangePassword', requestedChanges.mustChangePassword)
+    changes.mustChangePassword = parseBooleanField('mustChangePassword', requestedChanges.mustChangePassword)
   }
   if (Object.keys(changes).length === 0) {
     throw new AdminError('invalid_input', 'at least one field must be provided')

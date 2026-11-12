@@ -13,7 +13,11 @@ export class DeleteUserUseCase {
     if (userId === caller.id) {
       throw new AdminError('self_action', 'admins cannot delete their own account')
     }
-    await this.adminGuard.requireExistingUser(userId)
+
+    const target = await this.adminGuard.requireExistingUser(userId)
+    const isLastAdmin = target.role === 'admin' && (await this.userDirectory.countAdmins()) <= 1
+    if (isLastAdmin) throw new AdminError('last_admin', 'at least one admin must remain')
+
     await this.userDirectory.remove(userId)
   }
 }

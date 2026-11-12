@@ -2,14 +2,15 @@ import { AdminError } from '../AdminError.ts'
 import type { UserRole } from '../types.ts'
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const MAX_EMAIL_LENGTH = 254
 const MIN_PASSWORD_LENGTH = 8
 const MAX_PASSWORD_LENGTH = 72
 const MAX_DISPLAY_NAME_LENGTH = 80
 const MAX_COOLDOWN_HOURS = 168
 
-function invalidFieldError(field: string, rule: string): AdminError {
-  return new AdminError('invalid_input', `${field} ${rule}`)
+function invalidFieldError(field: string, requirement: string): AdminError {
+  return new AdminError('invalid_input', `${field} ${requirement}`)
 }
 
 export function parseEmail(rawEmail: unknown): string {
@@ -60,14 +61,14 @@ export function parseCooldownHours(rawCooldownHours: unknown): number {
   return rawCooldownHours as number
 }
 
-export function parseFlag(field: string, rawFlag: unknown): boolean {
+export function parseBooleanField(field: string, rawFlag: unknown): boolean {
   if (typeof rawFlag !== 'boolean') throw invalidFieldError(field, 'must be true or false')
   return rawFlag
 }
 
 export function parseUserId(rawUserId: unknown): string {
-  if (typeof rawUserId !== 'string' || rawUserId.length === 0) {
-    throw invalidFieldError('id', 'is required')
+  if (typeof rawUserId !== 'string' || !UUID_PATTERN.test(rawUserId)) {
+    throw invalidFieldError('id', 'must be a valid user id')
   }
   return rawUserId
 }

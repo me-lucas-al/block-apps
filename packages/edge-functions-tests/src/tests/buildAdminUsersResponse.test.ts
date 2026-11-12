@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { buildAdminUsersResponse } from '../../../../supabase/functions/_shared/admin-users/buildAdminUsersResponse.ts'
 import type { AdminUser } from '../../../../supabase/functions/_shared/admin-users/types.ts'
 import { createAdminScenario } from '../harness/createAdminScenario.ts'
+import { UNKNOWN_USER_ID } from '../harness/InMemoryUserDirectory.ts'
 
 describe('buildAdminUsersResponse', () => {
   let scenario: ReturnType<typeof createAdminScenario>
@@ -44,12 +45,13 @@ describe('buildAdminUsersResponse', () => {
     expect((await sendAdminRequest({ action: 'explode' })).status).toBe(400)
     expect((await sendAdminRequest('nonsense')).status).toBe(400)
     expect((await sendAdminRequest({ action: 'delete' })).status).toBe(400)
+    expect((await sendAdminRequest({ action: 'delete', id: 'not-a-uuid' })).status).toBe(400)
   })
 
   it('answers 401, 403 and 404 for authorization and lookup failures', async () => {
     expect((await sendAdminRequest({ action: 'list' }, null)).status).toBe(401)
     expect((await sendAdminRequest({ action: 'list' }, scenario.commonUser.id)).status).toBe(403)
-    expect((await sendAdminRequest({ action: 'delete', id: 'ghost' })).status).toBe(404)
+    expect((await sendAdminRequest({ action: 'delete', id: UNKNOWN_USER_ID })).status).toBe(404)
   })
 
   it('answers 409 for a duplicated email and for self deletion', async () => {
@@ -59,6 +61,20 @@ describe('buildAdminUsersResponse', () => {
     })
     expect(duplicate.status).toBe(409)
     expect((await sendAdminRequest({ action: 'delete', id: scenario.admin.id })).status).toBe(409)
+  })
+
+  it('logs unexpected failures on the server side only', async () => {
+    const loggedFailures: unknown[] = []
+    scenario.userDirectory.list = async () => {
+      throw new Error('database password is hunter2')
+    }
+    const response = await buildAdminUsersResponse(
+      { method: 'POST', callerId: scenario.admin.id, body: { action: 'list' } },
+      scenario.useCases,
+      (failure) => loggedFailures.push(failure),
+    )
+    expect(loggedFailures).toHaveLength(1)
+    expect(JSON.stringify(response.body)).not.toContain('hunter2')
   })
 
   it('hides unexpected errors behind a generic 500', async () => {

@@ -56,6 +56,7 @@ async function invokeRequestedUseCase(
 export async function buildAdminUsersResponse(
   request: AdminUsersRequest,
   useCases: AdminUsersUseCases,
+  logUnexpectedFailure: (failure: unknown) => void = () => undefined,
 ): Promise<AdminUsersResponse> {
   if (request.method !== 'POST') {
     return { status: 405, body: { error: { code: 'method_not_allowed', message: 'use POST' } } }
@@ -66,6 +67,7 @@ export async function buildAdminUsersResponse(
     if (failure instanceof AdminError) {
       return { status: failure.status, body: { error: { code: failure.code, message: failure.message } } }
     }
+    logUnexpectedFailure(failure)
     return { status: 500, body: { error: { code: 'internal', message: 'unexpected error' } } }
   }
 }

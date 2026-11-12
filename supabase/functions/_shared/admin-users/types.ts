@@ -25,7 +25,8 @@ export type UpdateUserInput = Partial<CreateUserInput>
 export interface UserDirectory {
   find(userId: string): Promise<AdminUser | null>
   list(): Promise<AdminUser[]>
-  create(input: CreateUserInput): Promise<AdminUser>
-  update(userId: string, input: UpdateUserInput): Promise<AdminUser>
+  countAdmins(): Promise<number>
+  create(newUser: CreateUserInput): Promise<AdminUser>
+  update(userId: string, changes: UpdateUserInput): Promise<AdminUser>
   remove(userId: string): Promise<void>
 }

@@ -1,49 +1,33 @@
-import { createClient } from 'npm:@supabase/supabase-js@2'
 import { buildAdminUsersResponse } from '../_shared/admin-users/buildAdminUsersResponse.ts'
 import { composeAdminUsersUseCases } from '../_shared/admin-users/composeAdminUsersUseCases.ts'
-import { SupabaseUserDirectory } from './SupabaseUserDirectory.ts'
+import { buildCorsHeaders } from './http/buildCorsHeaders.ts'
+import { readCallerId } from './http/readCallerId.ts'
+import { readJsonBody } from './http/readJsonBody.ts'
+import { SupabaseUserDirectory } from './supabase/SupabaseUserDirectory.ts'
+import { createServiceRoleClient } from './supabase/createServiceRoleClient.ts'
 
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
-
-const serviceRoleClient = createClient(
-  Deno.env.get('SUPABASE_URL') ?? '',
-  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-  { auth: { persistSession: false, autoRefreshToken: false } },
-)
+const corsHeaders = buildCorsHeaders(Deno.env.get('ADMIN_ALLOWED_ORIGIN') ?? '*')
+const serviceRoleClient = createServiceRoleClient()
 const adminUsersUseCases = composeAdminUsersUseCases(new SupabaseUserDirectory(serviceRoleClient))
 
-async function readCallerIdFromAuthorizationHeader(request: Request): Promise<string | null> {
-  const accessToken = request.headers.get('Authorization')?.replace(/^Bearer\s+/i, '')
-  if (!accessToken) return null
-  const { data } = await serviceRoleClient.auth.getUser(accessToken)
-  return data.user?.id ?? null
-}
-
-async function readJsonBodyOrUndefined(request: Request): Promise<unknown> {
-  try {
-    return await request.json()
-  } catch {
-    return undefined
-  }
+function logServerSide(message: string): void {
+  console.error(`[admin-users] ${message}`)
 }
 
 Deno.serve(async (request) => {
-  if (request.method === 'OPTIONS') return new Response('ok', { headers: CORS_HEADERS })
+  if (request.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   const adminUsersResponse = await buildAdminUsersResponse(
     {
       method: request.method,
-      callerId: await readCallerIdFromAuthorizationHeader(request),
-      body: await readJsonBodyOrUndefined(request),
+      callerId: await readCallerId(request, serviceRoleClient, logServerSide),
+      body: await readJsonBody(request),
     },
     adminUsersUseCases,
+    (failure) => logServerSide(failure instanceof Error ? failure.message : String(failure)),
   )
   return Response.json(adminUsersResponse.body, {
     status: adminUsersResponse.status,
-    headers: CORS_HEADERS,
+    headers: corsHeaders,
   })
 })

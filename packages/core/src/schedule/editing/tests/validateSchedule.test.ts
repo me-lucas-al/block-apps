@@ -26,4 +26,9 @@ describe('validateSchedule', () => {
       'invalid-time',
     )
   })
+
+  it('rejects a window that starts and ends at the same time', () => {
+    const emptyWindow = { ...validWindow, start: '08:00', end: '08:00' }
+    expect(validateSchedule('schedule', [emptyWindow])).toBe('empty-window')
+  })
 })

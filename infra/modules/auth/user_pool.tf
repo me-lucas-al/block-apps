@@ -47,6 +47,14 @@ resource "aws_cognito_user_pool" "users" {
     }
   }
 
+  dynamic "lambda_config" {
+    for_each = var.lambda_zip_path != "" ? [module.pre_signup_function[0].function_arn] : []
+
+    content {
+      pre_sign_up = lambda_config.value
+    }
+  }
+
   tags = var.tags
 
   lifecycle {

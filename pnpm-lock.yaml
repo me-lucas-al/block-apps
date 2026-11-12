@@ -272,6 +272,12 @@ importers:
         specifier: ~19.3.0
         version: 19.3.0
 
+  packages/admin-seed:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.9.0
+        version: 22.20.5
+
   packages/api:
     dependencies:
       '@block-apps/core':
@@ -288,6 +294,25 @@ importers:
       '@electric-sql/pglite':
         specifier: ^0.3.0
         version: 0.3.16
+      '@types/node':
+        specifier: ^22.9.0
+        version: 22.20.5
+
+  packages/e2e-local:
+    dependencies:
+      '@block-apps/admin-seed':
+        specifier: workspace:*
+        version: link:../admin-seed
+      '@block-apps/api':
+        specifier: workspace:*
+        version: link:../api
+      '@block-apps/core':
+        specifier: workspace:*
+        version: link:../core
+      '@supabase/supabase-js':
+        specifier: ^2.45.6
+        version: 2.119.0
+    devDependencies:
       '@types/node':
         specifier: ^22.9.0
         version: 22.20.5

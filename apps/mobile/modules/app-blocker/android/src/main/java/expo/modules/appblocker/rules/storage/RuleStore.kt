@@ -12,8 +12,10 @@ class RuleStore(context: Context) {
     preferences.edit().putString(RULES_KEY, rulesJson).commit()
   }
 
+  fun readRulesJson(): String? = preferences.getString(RULES_KEY, null)
+
   fun load(): List<NativeRule> {
-    val rulesJson = preferences.getString(RULES_KEY, null) ?: return emptyList()
+    val rulesJson = readRulesJson() ?: return emptyList()
     return ParsedRulesCache.parse(rulesJson)
   }
 

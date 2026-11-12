@@ -52,7 +52,7 @@ export function useAppRules() {
     create: (rule: NewBlockRule) => run(() => ruleRepository.create(rule)),
     requestRemoval: (ruleId: string) =>
       run(() => pendingRuleChanges.requestRemoval(ruleId)).catch(() => undefined),
-    cancelChange: (changeId: string) =>
-      run(() => pendingRuleChanges.cancelPendingChange(changeId)).catch(() => undefined),
+    cancelChange: (ruleId: string) =>
+      run(() => pendingRuleChanges.cancelPendingChange(ruleId)).catch(() => undefined),
   }
 }

@@ -13,6 +13,10 @@ describe('remainingMinutes', () => {
     expect(remainingMinutes(effectiveAt, NOW)).toBe(2)
   })
 
+  it('is zero for an invalid date instead of NaN', () => {
+    expect(remainingMinutes('not a date', NOW)).toBe(0)
+  })
+
   it('is zero once the change is due', () => {
     expect(remainingMinutes(inMinutes(0), NOW)).toBe(0)
     expect(remainingMinutes(inMinutes(-30), NOW)).toBe(0)

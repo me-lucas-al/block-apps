@@ -7,6 +7,7 @@ export type {
   TargetType,
   TimeWindow,
 } from './rules/types'
+export { describePendingChange } from './cooldown/describePendingChange'
 export { formatRemaining, remainingMinutes } from './cooldown/remainingTime'
 export type { AppCategory, AppSuggestion, KnownApp } from './apps/catalog/types'
 export { POPULAR_ANDROID_APPS } from './apps/catalog/popularAndroidApps'

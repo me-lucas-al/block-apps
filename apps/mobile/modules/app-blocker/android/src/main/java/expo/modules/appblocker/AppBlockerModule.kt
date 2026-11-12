@@ -2,7 +2,7 @@ package expo.modules.appblocker
 
 import android.content.Context
 import expo.modules.appblocker.admin.DeviceAdminGateway
-import expo.modules.appblocker.rules.RuleStore
+import expo.modules.appblocker.rules.storage.RuleStore
 import expo.modules.appblocker.system.AccessibilityStatus
 import expo.modules.appblocker.system.InstalledApps
 import expo.modules.kotlin.exception.Exceptions

@@ -11,3 +11,5 @@ android/build
 ios/Pods
 apps/mobile/android
 apps/mobile/ios
+.gradle/
+.serena/

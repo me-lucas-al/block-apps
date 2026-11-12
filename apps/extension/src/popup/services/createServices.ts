@@ -1,11 +1,14 @@
-import { type BlockRuleRepository, SupabaseBlockRuleRepository } from '@block-apps/api'
-import { ChromeBackgroundNotifier } from '../../adapters/chrome/ChromeBackgroundNotifier'
-import { ChromeIncognitoPort } from '../../adapters/chrome/ChromeIncognitoPort'
-import { SupabaseAuthService } from '../../adapters/supabase/SupabaseAuthService'
+import {
+  type AuthService,
+  type BlockRuleRepository,
+  SupabaseAuthService,
+  SupabaseBlockRuleRepository,
+} from '@block-apps/api'
+import { ChromeBackgroundNotifier } from '../../adapters/chrome/browser/ChromeBackgroundNotifier'
+import { ChromeIncognitoPort } from '../../adapters/chrome/browser/ChromeIncognitoPort'
 import { createSupabaseClient } from '../../adapters/supabase/createSupabaseClient'
-import type { AuthService } from '../../ports/AuthService'
-import type { BackgroundNotifier } from '../../ports/BackgroundNotifier'
-import type { IncognitoPort } from '../../ports/IncognitoPort'
+import type { BackgroundNotifier } from '../../ports/browser/BackgroundNotifier'
+import type { IncognitoPort } from '../../ports/browser/IncognitoPort'
 
 export type Services = {
   readonly auth: AuthService

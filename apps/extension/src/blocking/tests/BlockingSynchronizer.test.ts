@@ -1,7 +1,7 @@
 import type { BlockRule } from '@block-apps/core'
 import { describe, expect, it } from 'vitest'
-import type { DynamicRulesPort, RedirectRule } from '../../ports/DynamicRulesPort'
-import type { RuleCache } from '../../ports/RuleCache'
+import type { DynamicRulesPort, RedirectRule } from '../../ports/browser/DynamicRulesPort'
+import type { RuleCache } from '../../ports/data/RuleCache'
 import { BlockingSynchronizer } from '../BlockingSynchronizer'
 
 const alwaysBlocked: BlockRule = {

@@ -1,5 +1,5 @@
 import { type SupabaseClient, createClient } from '@supabase/supabase-js'
-import { chromeStorageAuthAdapter } from '../chrome/chromeStorageAuthAdapter'
+import { chromeStorageAuthAdapter } from '../chrome/storage/chromeStorageAuthAdapter'
 
 export function createSupabaseClient(): SupabaseClient {
   const url = import.meta.env.VITE_SUPABASE_URL

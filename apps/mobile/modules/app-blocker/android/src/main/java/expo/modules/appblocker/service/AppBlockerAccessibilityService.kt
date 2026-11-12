@@ -2,8 +2,8 @@ package expo.modules.appblocker.service
 
 import android.accessibilityservice.AccessibilityService
 import android.view.accessibility.AccessibilityEvent
-import expo.modules.appblocker.rules.BlockDecider
-import expo.modules.appblocker.rules.RuleStore
+import expo.modules.appblocker.rules.evaluation.BlockDecider
+import expo.modules.appblocker.rules.storage.RuleStore
 import expo.modules.appblocker.ui.BlockActivity
 
 class AppBlockerAccessibilityService : AccessibilityService() {

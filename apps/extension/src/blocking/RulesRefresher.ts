@@ -1,6 +1,6 @@
 import type { BlockRuleRepository } from '@block-apps/api'
-import type { RuleCache } from '../ports/RuleCache'
-import type { SessionGate } from '../ports/SessionGate'
+import type { RuleCache } from '../ports/data/RuleCache'
+import type { SessionGate } from '../ports/data/SessionGate'
 
 export type BlockingEnforcer = {
   sync(): Promise<void>

@@ -17,3 +17,8 @@ output "due_changes_index_arn" {
   description = "ARN do índice das mudanças pendentes."
   value       = "${aws_dynamodb_table.single_table.arn}/index/${local.due_changes_index_name}"
 }
+
+output "reader_role_arn" {
+  description = "ARN da role somente leitura para consultar a tabela no Console ou no NoSQL Workbench."
+  value       = aws_iam_role.data_reader.arn
+}

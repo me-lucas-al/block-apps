@@ -13,9 +13,9 @@ aws sts get-caller-identity
 ```
 
 **Resultado:**
-- Conta: `090082365159`
+- Conta: `<account-id>`
 - Região: `sa-east-1`
-- ARN: `arn:aws:iam::090082365159:user/lucas` (ou equivalente via SSO)
+- ARN: `arn:aws:iam::<account-id>:user/<iam-user>` (ou equivalente via SSO)
 
 ---
 
@@ -26,11 +26,11 @@ Criou o bucket S3 seguro para persistência do `terraform.tfstate`:
 ```powershell
 cd infra/bootstrap
 terraform init
-terraform apply -var state_bucket_name=block-apps-terraform-state-090082365159 -auto-approve
+terraform apply -var state_bucket_name=block-apps-terraform-state-<account-id> -auto-approve
 ```
 
 **Recursos criados:**
-- Bucket S3: `block-apps-terraform-state-090082365159` (criptografado, privado, versionado)
+- Bucket S3: `block-apps-terraform-state-<account-id>` (criptografado, privado, versionado)
 - Regras de bloqueio de acesso público e política de expiração de versões antigas.
 
 ---
@@ -66,10 +66,10 @@ terraform apply plan.tfplan
   - `user_pool_id = "sa-east-1_Xs9lFCHn5"`
   - `admin_web_client_id = "6r3dn6koip7gfpf4iu06ai3d47"`
   - `device_client_id = "4neoq0m9ihqped2jgv5lbnu4kn"`
-  - `hosted_login_domain = "block-apps-auth-090082365159.auth.sa-east-1.amazoncognito.com"`
+  - `hosted_login_domain = "block-apps-auth-<account-id>.auth.sa-east-1.amazoncognito.com"`
   - `admin_site_url = "https://d3jj9d8zn6l37c.cloudfront.net"`
   - `admin_site_distribution_id = "E1114GSJE0ROG1"`
-  - `admin_site_bucket_name = "block-apps-dev-admin-site-090082365159"`
+  - `admin_site_bucket_name = "block-apps-dev-admin-site-<account-id>"`
 
 ---
 
@@ -99,7 +99,7 @@ aws cognito-idp list-users `
   --region sa-east-1 `
   --query "Users[*].[Username,UserStatus,Enabled]"
 ```
-**Retorno:** Usuário inicial `me.lucasalmeida@gmail.com` com status `FORCE_CHANGE_PASSWORD`, habilitado (`true`).
+**Retorno:** Usuário inicial `<admin-email>` com status `FORCE_CHANGE_PASSWORD`, habilitado (`true`).
 
 ### Configuração da Função Lambda
 ```powershell

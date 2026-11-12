@@ -13,15 +13,15 @@ export const SEARCH_ENGINES: readonly SearchEngine[] = [
   {
     name: 'Google',
     hostFragment: 'google.',
-    hostPattern: /^(www\.)?google\.[a-z]{2,3}(\.[a-z]{2})?$/,
+    hostPattern: /^([a-z0-9-]+\.)?google\.[a-z]{2,3}(\.[a-z]{2})?$/,
     pathPattern: /^\/search\/?$/,
     queryParameters: ['q'],
   },
   {
     name: 'Bing',
     hostFragment: 'bing.com',
-    hostPattern: /^(www\.)?bing\.com$/,
-    pathPattern: /^\/search\/?$/,
+    hostPattern: /^([a-z0-9-]+\.)?bing\.com$/,
+    pathPattern: /^(\/(images|videos|news|maps))?\/search\/?$/,
     queryParameters: ['q'],
   },
   {
@@ -35,7 +35,7 @@ export const SEARCH_ENGINES: readonly SearchEngine[] = [
     name: 'Yahoo',
     hostFragment: 'search.yahoo.com',
     hostPattern: /^([a-z-]+\.)?search\.yahoo\.com$/,
-    pathPattern: /^\/search/,
+    pathPattern: /^\/search(\/|$)/,
     queryParameters: ['p', 'q'],
   },
   {
@@ -63,7 +63,7 @@ export const SEARCH_ENGINES: readonly SearchEngine[] = [
     name: 'Yandex',
     hostFragment: 'yandex.',
     hostPattern: /^(www\.)?yandex\.[a-z]{2,3}(\.[a-z]{2})?$/,
-    pathPattern: /^\/(search|images|video)/,
+    pathPattern: /^\/(search|images|video)(\/|$)/,
     queryParameters: ['text'],
   },
   {

@@ -13,12 +13,12 @@ function isSearchPageOf(engine: SearchEngine, url: URL): boolean {
   return engine.hostPattern.test(url.hostname) && engine.pathPattern.test(url.pathname)
 }
 
-function readFirstFilledParameter(url: URL, names: readonly string[]): string | null {
-  for (const name of names) {
-    const queryText = url.searchParams.get(name)?.trim()
-    if (queryText) return queryText
-  }
-  return null
+function readAllQueryTexts(url: URL, names: readonly string[]): string | null {
+  const queryTexts = names
+    .flatMap((name) => url.searchParams.getAll(name))
+    .map((queryText) => queryText.trim())
+    .filter((queryText) => queryText !== '')
+  return queryTexts.length > 0 ? queryTexts.join(' ') : null
 }
 
 export function extractSearchQuery(candidateUrl: string): string | null {
@@ -28,5 +28,5 @@ export function extractSearchQuery(candidateUrl: string): string | null {
   const engine = SEARCH_ENGINES.find((searchEngine) => isSearchPageOf(searchEngine, url))
   if (!engine) return null
 
-  return readFirstFilledParameter(url, engine.queryParameters)
+  return readAllQueryTexts(url, engine.queryParameters)
 }

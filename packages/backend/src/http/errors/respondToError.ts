@@ -1,4 +1,5 @@
 import type { Context } from 'hono'
+import { HTTPException } from 'hono/http-exception'
 import type { ContentfulStatusCode } from 'hono/utils/http-status'
 import { ConflictError } from '../../domain/errors/ConflictError'
 import { NotFoundError } from '../../domain/errors/NotFoundError'
@@ -12,6 +13,7 @@ function pickStatus(error: Error): ContentfulStatusCode {
 }
 
 export function respondToError(error: Error, context: Context) {
+  if (error instanceof HTTPException) return error.getResponse()
   const status = pickStatus(error)
   if (status === 500) {
     console.error(JSON.stringify({ message: 'unhandled error', name: error.name, detail: error.message }))

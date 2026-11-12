@@ -48,3 +48,6 @@ Sem a variável, só o banco em memória roda. O CI sobe o DynamoDB local como s
 - O índice `due-changes` usa um balde único (`DUE`). Serve para este volume; com muitos usuários, divida em baldes.
 - Ninguém dispara `applyAllDueChanges` ainda (falta o EventBridge Scheduler); hoje as mudanças vencidas são aplicadas quando o próprio usuário chama a API.
 - `adminHandler` só confere o grupo `admin` e responde `GET /admin/me`. As rotas de usuários vêm na próxima fase.
+- O cooldown do usuário vive no item `SETTINGS` e ainda não tem rota de escrita: fica em 24h até a fase de administração. Valor inválido (fora de 0 a 168 horas, ou não inteiro) volta para 24h.
+- Sem limite de quantidade de regras e dispositivos por usuário.
+- Alvos de site são reduzidos ao domínio (`https://www.Exemplo.com/x` vira `exemplo.com`); identificadores de app mantêm a caixa original.

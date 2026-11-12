@@ -19,8 +19,15 @@ await build({
   format: 'esm',
   external: ['@aws-sdk/*'],
   legalComments: 'none',
+  sourcemap: 'linked',
 })
 
-const zipBytes = zipSync({ 'index.mjs': readFileSync(bundlePath) }, { mtime: new Date(2000, 0, 1) })
+const zipBytes = zipSync(
+  {
+    'index.mjs': readFileSync(bundlePath),
+    'index.mjs.map': readFileSync(`${bundlePath}.map`),
+  },
+  { mtime: new Date(2000, 0, 1) },
+)
 writeFileSync(`${distDirectory}/lambda.zip`, zipBytes)
 console.log(`lambda.zip: ${zipBytes.length} bytes`)

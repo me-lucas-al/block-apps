@@ -5,6 +5,16 @@ import { SETTINGS_SORT_KEY } from '../keys/sortKeys'
 import type { TableContext } from '../TableContext'
 
 const DEFAULT_COOLDOWN_HOURS = 24
+const MAX_COOLDOWN_HOURS = 168
+
+function isValidCooldownHours(cooldownHours: unknown): cooldownHours is number {
+  return (
+    typeof cooldownHours === 'number' &&
+    Number.isInteger(cooldownHours) &&
+    cooldownHours >= 0 &&
+    cooldownHours <= MAX_COOLDOWN_HOURS
+  )
+}
 
 export class DynamoCooldownSettingsStore implements CooldownSettingsStore {
   constructor(private readonly context: TableContext) {}
@@ -17,6 +27,6 @@ export class DynamoCooldownSettingsStore implements CooldownSettingsStore {
       }),
     )
     const cooldownHours = Item?.['cooldownHours']
-    return typeof cooldownHours === 'number' ? cooldownHours : DEFAULT_COOLDOWN_HOURS
+    return isValidCooldownHours(cooldownHours) ? cooldownHours : DEFAULT_COOLDOWN_HOURS
   }
 }

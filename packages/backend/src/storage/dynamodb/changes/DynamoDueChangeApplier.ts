@@ -1,7 +1,7 @@
 import { TransactWriteCommand } from '@aws-sdk/lib-dynamodb'
 import type { PendingRuleChange } from '@block-apps/core'
 import type { DueChangeApplier } from '../../../cooldown/contracts/DueChangeApplier'
-import { isConditionFailure } from '../isConditionFailure'
+import { readFailedConditionIndexes } from '../conditions/readFailedConditionIndexes'
 import { userPartitionKey } from '../keys/partitionKeys'
 import { changeSortKey, ruleSortKey } from '../keys/sortKeys'
 import type { TableContext } from '../TableContext'
@@ -45,7 +45,7 @@ export class DynamoDueChangeApplier implements DueChangeApplier {
       )
       return true
     } catch (error: unknown) {
-      if (isConditionFailure(error)) return false
+      if (readFailedConditionIndexes(error)) return false
       throw error
     }
   }

@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { requireAuthenticatedUser } from '../auth/requireAuthenticatedUser'
 import { respondToError } from '../errors/respondToError'
+import { respondToNotFound } from '../errors/respondToNotFound'
 import { createDevicesRoutes } from '../routes/createDevicesRoutes'
 import { createPendingChangesRoutes } from '../routes/createPendingChangesRoutes'
 import { createRulesRoutes } from '../routes/createRulesRoutes'
@@ -10,6 +11,7 @@ import type { ApiUseCases } from './ApiUseCases'
 export function createApiApp(useCases: ApiUseCases) {
   const app = new Hono<ApiEnv>()
   app.onError(respondToError)
+  app.notFound(respondToNotFound)
 
   app.get('/health', (context) => context.json({ status: 'ok' }))
 

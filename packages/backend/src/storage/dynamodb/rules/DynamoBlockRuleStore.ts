@@ -2,7 +2,7 @@ import { GetCommand, PutCommand } from '@aws-sdk/lib-dynamodb'
 import type { BlockRule } from '@block-apps/core'
 import { ConflictError } from '../../../domain/errors/ConflictError'
 import type { BlockRuleStore } from '../../../rules/contracts/BlockRuleStore'
-import { isConditionFailure } from '../isConditionFailure'
+import { isConditionalCheckFailure } from '../conditions/isConditionalCheckFailure'
 import { userPartitionKey } from '../keys/partitionKeys'
 import { RULE_SORT_PREFIX, ruleSortKey } from '../keys/sortKeys'
 import { queryAllPages } from '../queryAllPages'
@@ -40,7 +40,7 @@ export class DynamoBlockRuleStore implements BlockRuleStore {
         }),
       )
     } catch (error: unknown) {
-      if (isConditionFailure(error)) throw new ConflictError('rule already exists')
+      if (isConditionalCheckFailure(error)) throw new ConflictError('rule already exists')
       throw error
     }
   }

@@ -34,7 +34,7 @@ Lambda "lambdalith" (Node 24, arm64, Hono)
 
 | Item | `pk` | `sk` |
 | --- | --- | --- |
-| Regra de bloqueio | `USER#<id>` | `RULE#<app ou site>#<alvo>` |
+| Regra de bloqueio | `USER#<id>` | `RULE#<app ou site>~<alvo>` |
 | Mudança pendente | `USER#<id>` | `CHANGE#<ruleId>` (com `dueBucket` e `effectiveAt`) |
 | Dispositivo | `USER#<id>` | `DEVICE#<deviceId>` |
 | Configuração do usuário (cooldown) | `USER#<id>` | `SETTINGS` |

@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { readRuleIdParam } from '../parsing/fields/readRuleIdParam'
 import type { ApiEnv } from '../app/ApiEnv'
 import type { ApiUseCases } from '../app/ApiUseCases'
 
@@ -20,7 +21,7 @@ export function createPendingChangesRoutes(useCases: ApiUseCases) {
   routes.delete('/:ruleId', async (context) => {
     await useCases.cancelPendingChange.cancelPendingChange(
       context.var.user.userId,
-      context.req.param('ruleId'),
+      readRuleIdParam(context),
     )
     return context.body(null, 204)
   })

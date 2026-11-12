@@ -49,7 +49,9 @@ describe.each(backendFactories)('rules ($name)', (factory) => {
   })
 
   it.each([
-    ['target with a slash', { ...SITE_RULE_BODY, target: 'example.com/path' }],
+    ['site target that is not a domain', { ...SITE_RULE_BODY, target: 'not a domain' }],
+    ['app target with a slash', { targetType: 'app', target: 'com/bad', mode: 'always' }],
+    ['too many windows', { ...SITE_RULE_BODY, mode: 'schedule', windows: Array(51).fill(WORKDAY_WINDOW) }],
     ['unknown target type', { ...SITE_RULE_BODY, targetType: 'keyboard' }],
     ['schedule without windows', { ...SITE_RULE_BODY, mode: 'schedule', windows: [] }],
     ['window with an invalid time', { ...SITE_RULE_BODY, mode: 'schedule', windows: [{ ...WORKDAY_WINDOW, start: '25:00' }] }],
@@ -74,5 +76,24 @@ describe.each(backendFactories)('rules ($name)', (factory) => {
     const health = await callApi(backend().app, { method: 'GET', path: '/health', userId: null })
     expect(withoutUser.status).toBe(401)
     expect(health.status).toBe(200)
+  })
+})
+
+describe.each(backendFactories)('rule targets ($name)', (factory) => {
+  const backend = useTestBackend(factory)
+
+  it('reduces a site address to its domain', async () => {
+    const reply = await postRule(backend(), { ...SITE_RULE_BODY, target: 'https://www.Example.com/path' })
+    expect(reply.json).toMatchObject({ id: SITE_RULE_ID, target: 'example.com' })
+  })
+
+  it('treats www and bare domain as the same site', async () => {
+    await postRule(backend(), { ...SITE_RULE_BODY, target: 'www.example.com' })
+    expect((await postRule(backend())).status).toBe(409)
+  })
+
+  it('keeps the case of an app identifier', async () => {
+    const body = { targetType: 'app', target: 'com.Example.App', mode: 'always' }
+    expect((await postRule(backend(), body)).json).toMatchObject({ id: 'app~com.Example.App' })
   })
 })

@@ -55,8 +55,8 @@ const inMemoryFactory: BackendFactory = {
       cooldownSettingsStore: database,
       deviceStore: database,
     }
-    const setCooldownHours = async (_userId: string, cooldownHours: number) => {
-      database.cooldownHours = cooldownHours
+    const setCooldownHours = async (userId: string, cooldownHours: number) => {
+      database.setCooldownHours(userId, cooldownHours)
     }
     return assembleBackend(stores, new FakeClock(), setCooldownHours, async () => {})
   },

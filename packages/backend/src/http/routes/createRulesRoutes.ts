@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { readRuleIdParam } from '../parsing/fields/readRuleIdParam'
 import type { ApiEnv } from '../app/ApiEnv'
 import type { ApiUseCases } from '../app/ApiUseCases'
 import { parseNewRuleBody } from '../parsing/bodies/parseNewRuleBody'
@@ -23,7 +24,7 @@ export function createRulesRoutes(useCases: ApiUseCases) {
     const content = parseRuleContent(await readJsonBody(context))
     const change = await useCases.requestRuleUpdate.requestRuleUpdate(
       context.var.user.userId,
-      context.req.param('ruleId'),
+      readRuleIdParam(context),
       content,
     )
     return context.json(change)
@@ -32,7 +33,7 @@ export function createRulesRoutes(useCases: ApiUseCases) {
   routes.post('/:ruleId/removal-requests', async (context) => {
     const change = await useCases.requestRuleRemoval.requestRuleRemoval(
       context.var.user.userId,
-      context.req.param('ruleId'),
+      readRuleIdParam(context),
     )
     return context.json(change)
   })

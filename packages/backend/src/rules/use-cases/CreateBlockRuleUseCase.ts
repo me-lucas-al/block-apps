@@ -13,7 +13,7 @@ export class CreateBlockRuleUseCase {
   constructor(private readonly blockRuleStore: BlockRuleStore) {}
 
   async createBlockRule(userId: string, input: NewBlockRuleInput): Promise<BlockRule> {
-    const target = normalizeRuleTarget(input.target)
+    const target = normalizeRuleTarget(input.targetType, input.target)
     const { mode, windows } = ensureValidRuleContent(input)
     const rule: BlockRule = {
       id: buildRuleId(input.targetType, target),

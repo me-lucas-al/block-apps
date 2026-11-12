@@ -4,6 +4,7 @@ import type { DueChangeApplier } from '../../src/cooldown/contracts/DueChangeApp
 import type { PendingChangeStore } from '../../src/cooldown/contracts/PendingChangeStore'
 import type { DeviceStatus, DeviceStore } from '../../src/devices/contracts/DeviceStore'
 import { ConflictError } from '../../src/domain/errors/ConflictError'
+import { NotFoundError } from '../../src/domain/errors/NotFoundError'
 import type { BlockRuleStore } from '../../src/rules/contracts/BlockRuleStore'
 
 type StoredEntry<Content> = { readonly userId: string; readonly content: Content }
@@ -14,7 +15,11 @@ export class InMemoryRuleDatabase
   private readonly rules = new Map<string, StoredEntry<BlockRule>>()
   private readonly changes = new Map<string, StoredEntry<PendingRuleChange>>()
   readonly devices = new Map<string, DeviceStatus & { lastSeen: string }>()
-  cooldownHours = 24
+  private readonly cooldownHoursByUser = new Map<string, number>()
+
+  setCooldownHours(userId: string, cooldownHours: number): void {
+    this.cooldownHoursByUser.set(userId, cooldownHours)
+  }
 
   private keyOf(userId: string, id: string): string {
     return `${userId}|${id}`
@@ -43,6 +48,7 @@ export class InMemoryRuleDatabase
   }
 
   async save(userId: string, change: PendingRuleChange): Promise<void> {
+    if (!this.rules.has(this.keyOf(userId, change.ruleId))) throw new NotFoundError('rule not found')
     this.changes.set(this.keyOf(userId, change.ruleId), { userId, content: change })
   }
 
@@ -74,8 +80,8 @@ export class InMemoryRuleDatabase
     return true
   }
 
-  async readCooldownHours(): Promise<number> {
-    return this.cooldownHours
+  async readCooldownHours(userId: string): Promise<number> {
+    return this.cooldownHoursByUser.get(userId) ?? 24
   }
 
   async saveStatus(userId: string, status: DeviceStatus, reportedAt: string): Promise<void> {

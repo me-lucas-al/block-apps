@@ -1,13 +1,15 @@
-import { DeleteCommand, GetCommand, PutCommand } from '@aws-sdk/lib-dynamodb'
+import { DeleteCommand, GetCommand, TransactWriteCommand } from '@aws-sdk/lib-dynamodb'
 import type { PendingRuleChange } from '@block-apps/core'
 import type { PendingChangeStore } from '../../../cooldown/contracts/PendingChangeStore'
+import { NotFoundError } from '../../../domain/errors/NotFoundError'
+import { readFailedConditionIndexes } from '../conditions/readFailedConditionIndexes'
 import {
   DUE_CHANGES_BUCKET,
   DUE_CHANGES_INDEX_NAME,
   readUserIdFromPartitionKey,
   userPartitionKey,
 } from '../keys/partitionKeys'
-import { CHANGE_SORT_PREFIX, changeSortKey } from '../keys/sortKeys'
+import { CHANGE_SORT_PREFIX, changeSortKey, ruleSortKey } from '../keys/sortKeys'
 import { queryAllPages } from '../queryAllPages'
 import type { TableContext } from '../TableContext'
 import { toChangeItem, toPendingChange } from './changeItem'
@@ -37,9 +39,24 @@ export class DynamoPendingChangeStore implements PendingChangeStore {
   }
 
   async save(userId: string, change: PendingRuleChange): Promise<void> {
-    await this.context.client.send(
-      new PutCommand({ TableName: this.context.tableName, Item: toChangeItem(userId, change) }),
-    )
+    const ruleMustExist = {
+      ConditionCheck: {
+        TableName: this.context.tableName,
+        Key: { pk: userPartitionKey(userId), sk: ruleSortKey(change.ruleId) },
+        ConditionExpression: 'attribute_exists(pk)',
+      },
+    }
+    const storeChange = {
+      Put: { TableName: this.context.tableName, Item: toChangeItem(userId, change) },
+    }
+    try {
+      await this.context.client.send(
+        new TransactWriteCommand({ TransactItems: [ruleMustExist, storeChange] }),
+      )
+    } catch (error: unknown) {
+      if (readFailedConditionIndexes(error)) throw new NotFoundError('rule not found')
+      throw error
+    }
   }
 
   async cancel(userId: string, ruleId: string): Promise<void> {

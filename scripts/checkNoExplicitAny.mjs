@@ -1,7 +1,8 @@
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-const PROJECT_ROOT = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')
+const PROJECT_ROOT = fileURLToPath(new URL('..', import.meta.url))
 const SCANNED_ROOTS = ['apps', 'packages']
 const IGNORED_DIRECTORIES = new Set(['node_modules', 'dist', 'build', '.expo', 'android', 'ios'])
 const EXPLICIT_ANY_PATTERNS = [

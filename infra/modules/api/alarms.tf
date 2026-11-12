@@ -2,7 +2,7 @@ resource "aws_cloudwatch_metric_alarm" "api_5xx_errors" {
   alarm_name          = "${var.name_prefix}-api-5xx-errors"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 1
-  metric_name         = "5XXError"
+  metric_name         = "5xx"
   namespace           = "AWS/ApiGateway"
   period              = 300
   statistic           = "Sum"

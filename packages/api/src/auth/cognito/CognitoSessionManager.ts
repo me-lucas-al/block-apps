@@ -2,6 +2,7 @@ import type { SessionStorage } from '../contracts/SessionStorage'
 import type { SessionTokens } from '../contracts/SessionTokens'
 import type { LocalUserSession } from '../session/LocalUserSession'
 import type { CognitoAccountOps } from './CognitoAccountOps'
+import { isRejectedRefreshToken } from './isRejectedRefreshToken'
 
 export class CognitoSessionManager {
   constructor(
@@ -18,8 +19,7 @@ export class CognitoSessionManager {
   async signOut(): Promise<void> {
     const tokens = await this.storage.load()
     if (tokens?.email) await this.accountOps.globalSignOut(tokens.email)
-    await this.storage.clear()
-    await this.session.notifySessionUpdated(null)
+    await this.forgetSession()
   }
 
   async refreshSession(): Promise<SessionTokens | null> {
@@ -29,10 +29,14 @@ export class CognitoSessionManager {
       const refreshed = await this.accountOps.refreshSession(tokens.email, tokens.refreshToken)
       await this.persistTokens(refreshed)
       return refreshed
-    } catch {
-      await this.storage.clear()
-      await this.session.notifySessionUpdated(null)
+    } catch (refreshError) {
+      if (isRejectedRefreshToken(refreshError)) await this.forgetSession()
       return null
     }
+  }
+
+  private async forgetSession(): Promise<void> {
+    await this.storage.clear()
+    await this.session.notifySessionUpdated(null)
   }
 }

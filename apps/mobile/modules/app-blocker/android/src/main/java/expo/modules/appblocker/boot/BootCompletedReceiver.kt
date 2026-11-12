@@ -17,7 +17,7 @@ class BootCompletedReceiver : BroadcastReceiver() {
     val request = PeriodicWorkRequestBuilder<RulesSyncWorker>(15, TimeUnit.MINUTES).build()
     WorkManager.getInstance(context).enqueueUniquePeriodicWork(
       RulesSyncWorker.WORK_NAME,
-      ExistingPeriodicWorkPolicy.KEEP,
+      ExistingPeriodicWorkPolicy.UPDATE,
       request,
     )
   }

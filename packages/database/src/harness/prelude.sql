@@ -6,7 +6,8 @@ create schema auth;
 
 create table auth.users (
   id uuid primary key default gen_random_uuid(),
-  email text unique
+  email text unique,
+  encrypted_password text
 );
 
 create function auth.uid() returns uuid

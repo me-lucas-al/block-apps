@@ -6,7 +6,9 @@
   "scripts": {
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json",
-    "package": "node scripts/packageLambda.mjs"
+    "package": "node scripts/packageLambda.mjs",
+    "build:local": "node scripts/buildLocal.mjs",
+    "local": "pnpm build:local && node dist/local.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-cognito-identity-provider": "3.1159.0",
@@ -17,6 +19,7 @@
     "hono": "4.13.14"
   },
   "devDependencies": {
+    "@hono/node-server": "2.1.5",
     "@types/aws-lambda": "^8.10.164",
     "@types/node": "^24.19.2",
     "esbuild": "^0.28.2",

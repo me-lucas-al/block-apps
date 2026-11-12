@@ -1,12 +1,9 @@
 import type { Hono } from 'hono'
+import { assembleCognitoAdminCollaborators } from '../../../src/composition/assembleCognitoAdminCollaborators'
 import { createAdminUseCases } from '../../../src/composition/createAdminUseCases'
 import type { ApiEnv } from '../../../src/http/app/ApiEnv'
 import { createAdminApp } from '../../../src/http/app/createAdminApp'
-import { CognitoUserCreator } from '../../../src/storage/cognito/CognitoUserCreator'
-import { CognitoUserEditor } from '../../../src/storage/cognito/CognitoUserEditor'
-import { CognitoUserReader } from '../../../src/storage/cognito/CognitoUserReader'
-import { CognitoUserRemover } from '../../../src/storage/cognito/CognitoUserRemover'
-import { FakeCognito } from '../cognito/FakeCognito'
+import { FakeCognito } from '../../../src/local/cognito/FakeCognito'
 import { InMemoryUserSettings } from './InMemoryUserSettings'
 import { ADMIN_ONE, ADMIN_TWO, FEDERATED_ADMIN, PENDING_USER, USER_ONE } from './userIds'
 
@@ -39,15 +36,11 @@ export function buildAdminBackend(): AdminBackend {
   const cognito = new FakeCognito()
   seedUsers(cognito)
   const settings = new InMemoryUserSettings()
-  const context = cognito.asContext()
-  const useCases = createAdminUseCases({
-    userReader: new CognitoUserReader(context),
-    userCreator: new CognitoUserCreator(context),
-    userEditor: new CognitoUserEditor(context),
-    userRemover: new CognitoUserRemover(context),
+  const collaborators = assembleCognitoAdminCollaborators(cognito.asContext(), {
     userDataEraser: settings,
     cooldownSettingsStore: settings,
     cooldownSettingsWriter: settings,
   })
-  return { app: createAdminApp('admin', useCases), cognito, settings }
+  const app = createAdminApp('admin', createAdminUseCases(collaborators))
+  return { app, cognito, settings }
 }

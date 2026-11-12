@@ -58,14 +58,20 @@ export class CognitoOAuthHelper {
   }
 
   private extractEmailFromIdToken(idToken: string): string {
+    const email = this.readEmailClaim(idToken)
+    if (!email) throw new Error('OAuth id token has no email')
+    return email
+  }
+
+  private readEmailClaim(idToken: string): string | null {
     const payloadBase64 = idToken.split('.')[1]
-    if (!payloadBase64) return ''
+    if (!payloadBase64) return null
     try {
       const decoded = atob(payloadBase64.replace(/-/g, '+').replace(/_/g, '/'))
       const parsed = JSON.parse(decoded) as { email?: string }
-      return parsed.email ?? ''
+      return parsed.email ?? null
     } catch {
-      return ''
+      return null
     }
   }
 }

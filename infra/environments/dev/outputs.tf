@@ -32,3 +32,8 @@ output "admin_site_distribution_id" {
   description = "ID da distribuição CloudFront do painel para invalidações de cache."
   value       = module.admin_site.distribution_id
 }
+
+output "data_reader_role_arn" {
+  description = "Role somente leitura da tabela; assuma com MFA para ver os dados no Console."
+  value       = module.data.reader_role_arn
+}

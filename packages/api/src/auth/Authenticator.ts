@@ -4,6 +4,7 @@ export interface Authenticator {
   signUpWithPassword(email: string, password: string): Promise<void>
   signOut(): Promise<void>
   respondToNewPassword?(newPassword: string): Promise<void>
+  changePassword?(currentPassword: string, newPassword: string): Promise<void>
   respondToMfaCode?(totpCode: string): Promise<void>
   respondToMfaSetup?(totpCode: string): Promise<void>
   beginTotpEnrollment?(): Promise<string>

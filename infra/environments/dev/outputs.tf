@@ -22,3 +22,13 @@ output "hosted_login_domain" {
   description = "Domínio do login hospedado (Google)."
   value       = module.auth.hosted_login_domain
 }
+
+output "admin_site_url" {
+  description = "URL HTTPS pública do painel via CloudFront."
+  value       = module.admin_site.site_url
+}
+
+output "admin_site_distribution_id" {
+  description = "ID da distribuição CloudFront do painel para invalidações de cache."
+  value       = module.admin_site.distribution_id
+}

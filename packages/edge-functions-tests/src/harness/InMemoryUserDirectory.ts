@@ -1,10 +1,7 @@
 import { AdminError } from '../../../../supabase/functions/_shared/admin-users/AdminError.ts'
-import type {
-  AdminUser,
-  CreateUserInput,
-  UpdateUserInput,
-  UserDirectory,
-} from '../../../../supabase/functions/_shared/admin-users/types.ts'
+import type { AdminUser } from '../../../../supabase/functions/_shared/admin-users/model/adminUser.ts'
+import type { CreateUserInput, UpdateUserInput } from '../../../../supabase/functions/_shared/admin-users/model/userInputs.ts'
+import type { UserDirectory } from '../../../../supabase/functions/_shared/admin-users/model/UserDirectory.ts'
 
 export const UNKNOWN_USER_ID = '00000000-0000-4000-8000-000000000999'
 

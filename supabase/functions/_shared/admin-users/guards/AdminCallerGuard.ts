@@ -1,7 +1,8 @@
-import { AdminError } from './AdminError.ts'
-import type { AdminUser, UserDirectory } from './types.ts'
+import { AdminError } from '../AdminError.ts'
+import type { AdminUser } from '../model/adminUser.ts'
+import type { UserDirectory } from '../model/UserDirectory.ts'
 
-export class AdminGuard {
+export class AdminCallerGuard {
   constructor(private readonly userDirectory: UserDirectory) {}
 
   async requireAdminCaller(callerId: string | null): Promise<AdminUser> {
@@ -12,11 +13,5 @@ export class AdminGuard {
       throw new AdminError('password_change_required', 'change the temporary password first')
     }
     return caller
-  }
-
-  async requireExistingUser(userId: string): Promise<AdminUser> {
-    const user = await this.userDirectory.find(userId)
-    if (!user) throw new AdminError('not_found', 'user not found')
-    return user
   }
 }

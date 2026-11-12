@@ -1,11 +1,15 @@
 import { AdminError } from '../AdminError.ts'
-import type { AdminGuard } from '../AdminGuard.ts'
-import type { AdminUser, UpdateUserInput, UserDirectory } from '../types.ts'
+import type { AdminCallerGuard } from '../guards/AdminCallerGuard.ts'
+import type { ExistingUserGuard } from '../guards/ExistingUserGuard.ts'
+import type { AdminUser } from '../model/adminUser.ts'
+import type { UserDirectory } from '../model/UserDirectory.ts'
+import type { UpdateUserInput } from '../model/userInputs.ts'
 
 export class UpdateUserUseCase {
   constructor(
     private readonly userDirectory: UserDirectory,
-    private readonly adminGuard: AdminGuard,
+    private readonly adminCallerGuard: AdminCallerGuard,
+    private readonly existingUserGuard: ExistingUserGuard,
   ) {}
 
   async updateUser(
@@ -13,8 +17,8 @@ export class UpdateUserUseCase {
     userId: string,
     changes: UpdateUserInput,
   ): Promise<AdminUser> {
-    const caller = await this.adminGuard.requireAdminCaller(callerId)
-    const target = await this.adminGuard.requireExistingUser(userId)
+    const caller = await this.adminCallerGuard.requireAdminCaller(callerId)
+    const target = await this.existingUserGuard.requireExistingUser(userId)
 
     const isChangingRole = changes.role !== undefined && changes.role !== target.role
     if (isChangingRole && userId === caller.id) {

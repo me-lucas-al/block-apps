@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { parseCreateUser, parseUpdateUser } from '../../../../supabase/functions/_shared/admin-users/parsing/parseUserInput.ts'
+import { parseCreateUser } from '../../../../../supabase/functions/_shared/admin-users/parsing/body/parseCreateUser.ts'
+import { parseUpdateUser } from '../../../../../supabase/functions/_shared/admin-users/parsing/body/parseUpdateUser.ts'
 
 const VALID = { email: ' Ana@Example.com ', password: 'a-long-password' }
 

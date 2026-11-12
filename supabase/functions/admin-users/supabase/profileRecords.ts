@@ -1,4 +1,4 @@
-import type { UserRole } from '../../_shared/admin-users/types.ts'
+import type { UserRole } from '../../_shared/admin-users/model/adminUser.ts'
 
 export type AuthUserRecord = {
   id: string

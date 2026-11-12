@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import type { AdminAccountGateway, NewAdminAccount } from '../AdminAccountGateway.ts'
+import type { AdminAccountGateway, NewAdminAccount } from '../gateway/AdminAccountGateway.ts'
 import { createInitialAdmin } from '../createInitialAdmin.ts'
-import type { AdminSeedSettings } from '../readAdminSeedSettings.ts'
+import type { AdminSeedSettings } from '../settings/readAdminSeedSettings.ts'
 
 const SETTINGS: AdminSeedSettings = {
   supabaseUrl: 'http://127.0.0.1:54321',

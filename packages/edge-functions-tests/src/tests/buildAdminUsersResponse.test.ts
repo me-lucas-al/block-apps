@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { buildAdminUsersResponse } from '../../../../supabase/functions/_shared/admin-users/buildAdminUsersResponse.ts'
-import type { AdminUser } from '../../../../supabase/functions/_shared/admin-users/types.ts'
+import type { AdminUser } from '../../../../supabase/functions/_shared/admin-users/model/adminUser.ts'
 import { createAdminScenario } from '../harness/createAdminScenario.ts'
 import { UNKNOWN_USER_ID } from '../harness/InMemoryUserDirectory.ts'
 

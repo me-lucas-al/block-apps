@@ -1,6 +1,7 @@
-import { AdminGuard } from '../../../../supabase/functions/_shared/admin-users/AdminGuard.ts'
+import { AdminCallerGuard } from '../../../../supabase/functions/_shared/admin-users/guards/AdminCallerGuard.ts'
+import { ExistingUserGuard } from '../../../../supabase/functions/_shared/admin-users/guards/ExistingUserGuard.ts'
 import { composeAdminUsersUseCases } from '../../../../supabase/functions/_shared/admin-users/composeAdminUsersUseCases.ts'
-import type { AdminUser } from '../../../../supabase/functions/_shared/admin-users/types.ts'
+import type { AdminUser } from '../../../../supabase/functions/_shared/admin-users/model/adminUser.ts'
 import { InMemoryUserDirectory } from './InMemoryUserDirectory.ts'
 
 export function createAdminScenario() {
@@ -12,7 +13,8 @@ export function createAdminScenario() {
     userDirectory,
     admin,
     commonUser,
-    adminGuard: new AdminGuard(userDirectory),
+    adminCallerGuard: new AdminCallerGuard(userDirectory),
+    existingUserGuard: new ExistingUserGuard(userDirectory),
     useCases: composeAdminUsersUseCases(userDirectory),
   }
 }

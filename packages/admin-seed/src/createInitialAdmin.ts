@@ -1,6 +1,6 @@
-import type { AdminAccountGateway } from './AdminAccountGateway.ts'
-import { generateTemporaryPassword } from './generateTemporaryPassword.ts'
-import type { AdminSeedSettings } from './readAdminSeedSettings.ts'
+import type { AdminAccountGateway } from './gateway/AdminAccountGateway.ts'
+import { generateTemporaryPassword } from './settings/generateTemporaryPassword.ts'
+import type { AdminSeedSettings } from './settings/readAdminSeedSettings.ts'
 
 export type CreatedAdmin = {
   readonly userId: string

@@ -1,6 +1,6 @@
-import { SupabaseAdminAccountGateway } from './SupabaseAdminAccountGateway.ts'
+import { SupabaseAdminAccountGateway } from './gateway/SupabaseAdminAccountGateway.ts'
 import { createInitialAdmin } from './createInitialAdmin.ts'
-import { readAdminSeedSettings } from './readAdminSeedSettings.ts'
+import { readAdminSeedSettings } from './settings/readAdminSeedSettings.ts'
 
 async function printCreatedAdminOnce(): Promise<void> {
   const settings = readAdminSeedSettings(process.env)

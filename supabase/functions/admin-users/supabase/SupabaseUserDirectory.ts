@@ -1,11 +1,8 @@
 import type { SupabaseClient } from 'npm:@supabase/supabase-js@2'
 import { AdminError } from '../../_shared/admin-users/AdminError.ts'
-import type {
-  AdminUser,
-  CreateUserInput,
-  UpdateUserInput,
-  UserDirectory,
-} from '../../_shared/admin-users/types.ts'
+import type { AdminUser } from '../../_shared/admin-users/model/adminUser.ts'
+import type { CreateUserInput, UpdateUserInput } from '../../_shared/admin-users/model/userInputs.ts'
+import type { UserDirectory } from '../../_shared/admin-users/model/UserDirectory.ts'
 import { SupabaseProfileStore } from './SupabaseProfileStore.ts'
 import { listAllAuthUsers } from './listAllAuthUsers.ts'
 import { throwSupabaseFailure } from './throwSupabaseFailure.ts'

@@ -1,5 +1,5 @@
 import type { SupabaseClient } from 'npm:@supabase/supabase-js@2'
-import type { UpdateUserInput } from '../../_shared/admin-users/types.ts'
+import type { UpdateUserInput } from '../../_shared/admin-users/model/userInputs.ts'
 import { PROFILES_PAGE_SIZE, PROFILE_COLUMNS, type ProfileRecord } from './profileRecords.ts'
 import { throwSupabaseFailure } from './throwSupabaseFailure.ts'
 import { toProfileColumns } from './toProfileColumns.ts'

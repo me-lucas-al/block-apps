@@ -29,12 +29,19 @@ export async function preSignUpHandler(
 ): Promise<PreSignUpTriggerEvent> {
   const email = event.request.userAttributes['email']
   const emailVerified = event.request.userAttributes['email_verified'] === 'true'
-  await getUseCase().link({
+  const outcome = await getUseCase().link({
     triggerSource: event.triggerSource,
     userPoolId: event.userPoolId,
     userName: event.userName,
     email,
     emailVerified,
   })
+  if (outcome.linked) {
+    throw new Error('GOOGLE_ACCOUNT_LINKED_PLEASE_SIGN_IN')
+  }
+  if (outcome.autoConfirm) {
+    event.response.autoConfirmUser = true
+    event.response.autoVerifyEmail = true
+  }
   return event
 }

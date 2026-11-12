@@ -7,15 +7,23 @@ export type SchedulerResult = {
   readonly applied: number
 }
 
+let cachedUseCase: ApplyAllDueChangesUseCase | undefined
+
+function getUseCase(): ApplyAllDueChangesUseCase {
+  if (!cachedUseCase) {
+    const stores = createDynamoStores(createTableContext())
+    const clock = () => new Date()
+    const applyDue = new ApplyDueChangesForUserUseCase(
+      stores.pendingChangeStore,
+      stores.dueChangeApplier,
+      clock,
+    )
+    cachedUseCase = new ApplyAllDueChangesUseCase(stores.pendingChangeStore, applyDue, clock)
+  }
+  return cachedUseCase
+}
+
 export async function schedulerHandler(): Promise<SchedulerResult> {
-  const stores = createDynamoStores(createTableContext())
-  const clock = () => new Date()
-  const applyDue = new ApplyDueChangesForUserUseCase(
-    stores.pendingChangeStore,
-    stores.dueChangeApplier,
-    clock,
-  )
-  const applyAll = new ApplyAllDueChangesUseCase(stores.pendingChangeStore, applyDue, clock)
-  const applied = await applyAll.applyAllDueChanges()
+  const applied = await getUseCase().applyAllDueChanges()
   return { applied }
 }

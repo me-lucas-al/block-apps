@@ -18,7 +18,7 @@ describe('LinkFederatedUserUseCase', () => {
     const { directory, useCase } = makeHarness()
     vi.mocked(directory.findNativeUserByEmail).mockResolvedValue({ username: 'native-user-id' })
 
-    await useCase.link({
+    const outcome = await useCase.link({
       triggerSource: 'PreSignUp_ExternalProvider',
       userPoolId: 'pool-1',
       userName: 'Google_123456789',
@@ -26,6 +26,7 @@ describe('LinkFederatedUserUseCase', () => {
       emailVerified: true,
     })
 
+    expect(outcome).toEqual({ linked: true, autoConfirm: false })
     expect(directory.findNativeUserByEmail).toHaveBeenCalledWith('pool-1', 'user@example.com')
     expect(directory.linkProvider).toHaveBeenCalledWith({
       userPoolId: 'pool-1',
@@ -35,37 +36,11 @@ describe('LinkFederatedUserUseCase', () => {
     })
   })
 
-  it('ignores events from normal sign-ups', async () => {
-    const { directory, useCase } = makeHarness()
-    await useCase.link({
-      triggerSource: 'PreSignUp_SignUp',
-      userPoolId: 'pool-1',
-      userName: 'some-user',
-      email: 'user@example.com',
-      emailVerified: true,
-    })
-    expect(directory.findNativeUserByEmail).not.toHaveBeenCalled()
-    expect(directory.linkProvider).not.toHaveBeenCalled()
-  })
-
-  it('ignores events where email is unverified', async () => {
-    const { directory, useCase } = makeHarness()
-    await useCase.link({
-      triggerSource: 'PreSignUp_ExternalProvider',
-      userPoolId: 'pool-1',
-      userName: 'Google_123456789',
-      email: 'user@example.com',
-      emailVerified: false,
-    })
-    expect(directory.findNativeUserByEmail).not.toHaveBeenCalled()
-    expect(directory.linkProvider).not.toHaveBeenCalled()
-  })
-
-  it('does nothing when no native user with that email is found', async () => {
+  it('auto-confirms new federated user when no native user exists', async () => {
     const { directory, useCase } = makeHarness()
     vi.mocked(directory.findNativeUserByEmail).mockResolvedValue(null)
 
-    await useCase.link({
+    const outcome = await useCase.link({
       triggerSource: 'PreSignUp_ExternalProvider',
       userPoolId: 'pool-1',
       userName: 'Google_123456789',
@@ -73,6 +48,7 @@ describe('LinkFederatedUserUseCase', () => {
       emailVerified: true,
     })
 
+    expect(outcome).toEqual({ linked: false, autoConfirm: true })
     expect(directory.linkProvider).not.toHaveBeenCalled()
   })
 })

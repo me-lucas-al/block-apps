@@ -65,3 +65,27 @@ jobs:
       - name: Run Kotlin unit tests
         run: ./gradlew :app-blocker:testDebugUnitTest --no-daemon
         working-directory: apps/mobile/android
+
+  terraform:
+    name: Terraform format and validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.11.0
+      - run: pnpm install --frozen-lockfile
+      - name: Check formatting
+        run: terraform fmt -check -recursive infra/
+      - name: Package Lambda for validation
+        run: pnpm --filter @block-apps/backend package
+      - name: Validate bootstrap
+        run: terraform -chdir=infra/bootstrap init -backend=false && terraform -chdir=infra/bootstrap validate
+      - name: Validate dev environment
+        run: terraform -chdir=infra/environments/dev init -backend=false && terraform -chdir=infra/environments/dev validate

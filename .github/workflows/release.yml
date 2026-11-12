@@ -1,0 +1,98 @@
+name: Release and Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  build-and-package:
+    name: Build and package release artifacts
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Package backend Lambda
+        run: pnpm --filter @block-apps/backend package
+      - name: Build extension
+        run: pnpm --filter @block-apps/extension build
+      - name: Create extension zip
+        run: cd apps/extension/dist && zip -r ../../../block-apps-extension.zip .
+      - name: Upload extension artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: block-apps-extension
+          path: block-apps-extension.zip
+      - name: Upload backend lambda artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lambda-backend
+          path: packages/backend/dist/lambda.zip
+      - name: Build admin site
+        run: pnpm --filter @block-apps/admin build
+      - name: Upload admin site artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-site-dist
+          path: apps/admin/dist
+
+  deploy-infra:
+    name: Deploy AWS Infrastructure
+    needs: [build-and-package]
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 20
+    if: github.repository == 'me-lucas-al/block-apps'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: lambda-backend
+          path: packages/backend/dist
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: sa-east-1
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.11.0
+      - name: Terraform apply
+        run: |
+          terraform -chdir=infra/environments/dev init -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}" -backend-config="region=sa-east-1" -backend-config="key=block-apps/dev/terraform.tfstate" -backend-config="use_lockfile=true"
+          terraform -chdir=infra/environments/dev apply -auto-approve
+
+  deploy-admin-site:
+    name: Deploy Admin Panel to S3/CloudFront
+    needs: [deploy-infra]
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 10
+    if: github.repository == 'me-lucas-al/block-apps'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: admin-site-dist
+          path: apps/admin/dist
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: sa-east-1
+      - name: Sync to S3 and invalidate CloudFront
+        run: |
+          aws s3 sync apps/admin/dist s3://${{ secrets.ADMIN_SITE_BUCKET_NAME }} --delete
+          aws cloudfront create-invalidation --distribution-id ${{ secrets.ADMIN_SITE_DISTRIBUTION_ID }} --paths "/*"

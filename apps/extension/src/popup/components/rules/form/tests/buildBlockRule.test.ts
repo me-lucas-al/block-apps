@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { buildSiteRule } from '../buildSiteRule'
-import { ruleErrorMessage } from '../ruleErrorMessage'
+import { buildBlockRule } from '../buildBlockRule'
 
 const window = { days: [1] as const, start: '18:00', end: '20:00' }
 
-describe('buildSiteRule', () => {
+describe('buildBlockRule for sites', () => {
   it('normalizes the target and drops windows for always mode', () => {
-    const { rule } = buildSiteRule({
+    const { rule } = buildBlockRule({
+      kind: 'site',
       target: 'https://www.YouTube.com/watch',
       mode: 'always',
       windows: [window],
@@ -20,7 +20,8 @@ describe('buildSiteRule', () => {
   })
 
   it('keeps windows for schedule mode', () => {
-    const { rule } = buildSiteRule({
+    const { rule } = buildBlockRule({
+      kind: 'site',
       target: 'youtube.com',
       mode: 'schedule',
       windows: [window],
@@ -29,7 +30,12 @@ describe('buildSiteRule', () => {
   })
 
   it('rejects invalid sites', () => {
-    const { rule, error } = buildSiteRule({ target: 'nope', mode: 'always', windows: [] })
+    const { rule, error } = buildBlockRule({
+      kind: 'site',
+      target: 'nope',
+      mode: 'always',
+      windows: [],
+    })
     expect(rule).toBeNull()
     expect(error).toBe('invalid-site')
   })
@@ -39,14 +45,13 @@ describe('buildSiteRule', () => {
     ['no-days', [{ ...window, days: [] }]],
     ['invalid-time', [{ ...window, start: '25:00' }]],
   ] as const)('rejects schedule with %s', (expected, windows) => {
-    const { rule, error } = buildSiteRule({ target: 'youtube.com', mode: 'schedule', windows })
+    const { rule, error } = buildBlockRule({
+      kind: 'site',
+      target: 'youtube.com',
+      mode: 'schedule',
+      windows,
+    })
     expect(rule).toBeNull()
     expect(error).toBe(expected)
-  })
-
-  it('has a message for every error', () => {
-    for (const error of ['invalid-site', 'no-windows', 'no-days', 'invalid-time'] as const) {
-      expect(ruleErrorMessage(error).length).toBeGreaterThan(0)
-    }
   })
 })

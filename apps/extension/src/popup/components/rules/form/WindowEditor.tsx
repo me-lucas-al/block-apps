@@ -21,7 +21,7 @@ export function WindowEditor({ windows, onChange }: WindowEditorProps) {
 
   return (
     <div className="stack">
-      <p className="hint">Horários em que o site é permitido:</p>
+      <p className="hint">Horários em que o acesso é permitido:</p>
       {windows.map((window, index) => (
         <WindowRow
           key={index}

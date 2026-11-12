@@ -21,6 +21,7 @@ export class SearchNavigationGuard {
 
   async blockForbiddenSearch(attempt: NavigationAttempt): Promise<void> {
     if (attempt.frameId !== MAIN_FRAME_ID) return
+    if (attempt.tabId < 0) return
 
     const { ruleCache, tabRedirect, now } = this.dependencies
     const blockingKeyword = findBlockingKeyword(attempt.url, await ruleCache.load(), now())

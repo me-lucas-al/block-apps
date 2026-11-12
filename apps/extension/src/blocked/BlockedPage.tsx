@@ -9,6 +9,7 @@ function BlockedKeywordMessage({ blockedKeyword }: { blockedKeyword: string }) {
       <p>
         Pesquisar por <strong>{blockedKeyword}</strong> está bloqueado agora pelas suas regras.
       </p>
+      <p className="hint">Tente outra pesquisa ou volte mais tarde.</p>
     </>
   )
 }
@@ -20,6 +21,7 @@ function BlockedSiteMessage({ blockedSite }: { blockedSite: string }) {
       <p>
         <strong>{blockedSite}</strong> está bloqueado agora pelas suas regras.
       </p>
+      <p className="hint">Volte quando estiver dentro do horário permitido.</p>
     </>
   )
 }
@@ -34,7 +36,6 @@ export function BlockedPage() {
       ) : (
         <BlockedSiteMessage blockedSite={readQueryParameter('site') ?? 'este site'} />
       )}
-      <p className="hint">Volte quando estiver dentro do horário permitido.</p>
     </main>
   )
 }

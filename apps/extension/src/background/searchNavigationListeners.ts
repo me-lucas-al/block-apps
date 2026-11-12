@@ -13,12 +13,13 @@ const SEARCH_ENGINE_FILTER: chrome.webNavigation.WebNavigationEventFilter = {
 }
 
 export function registerSearchNavigationListeners({ searchGuard }: BackgroundServices): void {
-  const blockForbiddenSearch = ({ tabId, frameId, url }: NavigationAttempt) =>
+  const blockForbiddenSearchOnNavigation = ({ tabId, frameId, url }: NavigationAttempt) =>
     void searchGuard
       .blockForbiddenSearch({ tabId, frameId, url })
       .catch(logFailure('search guard'))
 
-  chrome.webNavigation.onBeforeNavigate.addListener(blockForbiddenSearch, SEARCH_ENGINE_FILTER)
-  chrome.webNavigation.onCommitted.addListener(blockForbiddenSearch, SEARCH_ENGINE_FILTER)
-  chrome.webNavigation.onHistoryStateUpdated.addListener(blockForbiddenSearch, SEARCH_ENGINE_FILTER)
+  const { onBeforeNavigate, onCommitted, onHistoryStateUpdated } = chrome.webNavigation
+  onBeforeNavigate.addListener(blockForbiddenSearchOnNavigation, SEARCH_ENGINE_FILTER)
+  onCommitted.addListener(blockForbiddenSearchOnNavigation, SEARCH_ENGINE_FILTER)
+  onHistoryStateUpdated.addListener(blockForbiddenSearchOnNavigation, SEARCH_ENGINE_FILTER)
 }

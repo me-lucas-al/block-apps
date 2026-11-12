@@ -1,4 +1,6 @@
-export type RuleKind = 'site' | 'keyword'
+import type { TargetType } from '@block-apps/core'
+
+export type RuleKind = Extract<TargetType, 'site' | 'keyword'>
 
 export const RULE_KINDS: readonly RuleKind[] = ['site', 'keyword']
 

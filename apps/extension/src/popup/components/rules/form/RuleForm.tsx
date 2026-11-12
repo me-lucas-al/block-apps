@@ -21,11 +21,11 @@ export function RuleForm({ kind, onSubmit }: RuleFormProps) {
 
   const submitRuleForm = async (event: FormEvent) => {
     event.preventDefault()
-    const built = buildBlockRule({ kind, target, mode, windows })
-    if (!built.rule) return setError(ruleErrorMessage(built.error))
+    const blockRuleOutcome = buildBlockRule({ kind, target, mode, windows })
+    if (!blockRuleOutcome.rule) return setError(ruleErrorMessage(blockRuleOutcome.error))
 
     setError(null)
-    await onSubmit(built.rule)
+    await onSubmit(blockRuleOutcome.rule)
     setTarget('')
     setWindows([])
   }

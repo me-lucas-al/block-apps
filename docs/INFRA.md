@@ -79,6 +79,17 @@ Crie as credenciais OAuth no Google Cloud e informe o ID em `google_client_id` n
 
 Contas do Google e contas com senha são vinculadas pelo gatilho **PreSignUp** quando o e-mail do Google já está verificado (`AdminLinkProviderForUser`), evitando contas duplicadas e tomada de conta. O login Google está habilitado no painel, app e extensão (via OAuth code + PKCE).
 
+## Deploy de produção pelo GitHub
+
+O `release.yml` só roda por disparo manual e os jobs de deploy usam o ambiente `production`. Configure em Settings > Environments > `production`:
+
+- **Required reviewers:** quem aprova cada deploy.
+- **Deployment branches:** só `main`.
+- **Variables:** `HOSTED_DOMAIN_PREFIX`, `GOOGLE_CLIENT_ID`, `INITIAL_ADMIN_EMAIL`.
+- **Secrets:** `AWS_ROLE_ARN`, `TF_STATE_BUCKET`, `GOOGLE_CLIENT_SECRET`.
+
+O workflow passa esses valores ao Terraform por `TF_VAR_*`, gera `release.tfplan` com `plan -out` e aplica exatamente esse arquivo. O `Terraform Plan` das PRs não usa o ambiente (para não pedir aprovação a cada PR), então crie as mesmas variáveis e segredos também no nível do repositório.
+
 ## O que a infraestrutura garante (e o que não)
 
 - **Handlers especializados.** A função `api` só acessa o DynamoDB. A função `admin` acessa o Cognito e exige **MFA TOTP ativo** (`ADMIN_REQUIRE_MFA`, desligável apenas por emergência). A função `scheduler` aplica as mudanças de regras vencidas a cada 5 minutos disparada pelo EventBridge Scheduler.

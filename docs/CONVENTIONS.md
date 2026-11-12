@@ -21,7 +21,7 @@ infra/
   modules/         auth/, api/, data/, admin_site/, lambda_function/
   environments/dev/ main.tf, variables.tf, outputs.tf
 apps/
-  extension/src/   ports/{browser,data}/, adapters/{chrome}/, blocking/{,keywords/}, device/, popup/, background/
+  extension/src/   ports/{browser,data}/, adapters/chrome/, blocking/{,keywords/}, device/, popup/, background/
   admin/src/       ports/, adapters/, components/, screens/, services/, users/
   mobile/
     src/           ports/, adapters/, sync/, hooks/, screens/, components/, device/

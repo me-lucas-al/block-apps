@@ -6,6 +6,7 @@ import { ForbiddenScreen } from './screens/ForbiddenScreen'
 import { LoginScreen } from './screens/LoginScreen'
 import { MyAccountScreen } from './screens/MyAccountScreen'
 import { PasswordChangeScreen } from './screens/PasswordChangeScreen'
+import { ProfileErrorScreen } from './screens/ProfileErrorScreen'
 import { UsersScreen } from './screens/UsersScreen'
 
 function SignedInArea({ email }: { email: string }) {
@@ -13,7 +14,7 @@ function SignedInArea({ email }: { email: string }) {
   const [page, setPage] = useState<Page>('users')
 
   if (loading) return <p className="hint center">Carregando…</p>
-  if (error || !profile) return <p className="error center">{error ?? 'Perfil não encontrado.'}</p>
+  if (error || !profile) return <ProfileErrorScreen message={error ?? 'Perfil não encontrado.'} />
   if (profile.mustChangePassword) return <PasswordChangeScreen onPasswordChanged={reloadMyProfile} />
   if (profile.role !== 'admin') return <ForbiddenScreen email={profile.email} />
 

@@ -1,11 +1,11 @@
 import type { DeviceRepository, UserSession } from '@block-apps/api'
 import type { AppBlockerPort } from '../ports/AppBlockerPort'
-import type { MobileDeviceIdStore } from './MobileDeviceIdStore'
+import type { DeviceIdStore } from '../ports/DeviceIdStore'
 
 export type MobileStatusReporterDeps = {
   readonly deviceRepository: DeviceRepository
   readonly blocker: Pick<AppBlockerPort, 'isDeviceAdminActive'>
-  readonly deviceIdStore: MobileDeviceIdStore
+  readonly deviceIdStore: DeviceIdStore
   readonly session: Pick<UserSession, 'currentIdToken'>
 }
 

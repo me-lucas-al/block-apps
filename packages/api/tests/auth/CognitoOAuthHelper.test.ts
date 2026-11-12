@@ -43,4 +43,20 @@ describe('CognitoOAuthHelper', () => {
     expect(tokens.accessToken).toBe('acc-1')
     expect(tokens.refreshToken).toBe('ref-1')
   })
+
+  it('rejects an id token that carries no email', async () => {
+    const tokenWithoutEmail = `header.${btoa(JSON.stringify({ sub: 'user-1' }))}.signature`
+    const tokenReply = { access_token: 'acc-1', id_token: tokenWithoutEmail, refresh_token: 'ref-1' }
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(tokenReply))))
+
+    const helper = new CognitoOAuthHelper({
+      userPoolId: 'pool-1',
+      clientId: 'client-1',
+      hostedDomain: 'auth.example.com',
+    })
+
+    await expect(
+      helper.exchangeAuthorizationCode('code-123', 'verifier-123', 'https://app.test'),
+    ).rejects.toThrow('OAuth id token has no email')
+  })
 })

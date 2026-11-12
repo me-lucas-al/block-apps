@@ -51,7 +51,7 @@ export function LoginScreen() {
   }
 
   if (step === 'confirm_signup') {
-    return <ConfirmSignUpStep email={email} onConfirmed={() => setStep('login')} onCancel={() => setStep('login')} />
+    return <ConfirmSignUpStep email={email.trim()} onConfirmed={() => setStep('login')} onCancel={() => setStep('login')} />
   }
   if (step === 'new_password') return <NewPasswordStep onCompleted={() => setStep('login')} />
   if (step === 'totp') return <TotpStep onCompleted={() => setStep('login')} />

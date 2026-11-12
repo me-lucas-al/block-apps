@@ -51,10 +51,6 @@ export class HttpProfileGateway implements ProfileGateway {
     await this.adminUsers.updateUser(profile.id, { displayName })
   }
 
-  async changeEmail(_email: string): Promise<void> {
-    throw new Error('Alteração de e-mail não suportada diretamente.')
-  }
-
   async changePassword(password: string): Promise<void> {
     if (this.authenticator.respondToNewPassword) {
       await this.authenticator.respondToNewPassword(password)

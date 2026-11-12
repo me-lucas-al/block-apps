@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { ApiError } from '@block-apps/api'
-import { describeFailure } from '../adminErrorMessage'
+import { describeFailure, isMfaRequiredFailure } from '../adminErrorMessage'
 
 describe('describeFailure', () => {
   it('translates 401 unauthenticated error', () => {
@@ -42,5 +42,17 @@ describe('describeFailure', () => {
   it('falls back to standard Error message or unexpected string', () => {
     expect(describeFailure(new Error('network down'))).toBe('network down')
     expect(describeFailure('boom')).toBe('Erro inesperado')
+  })
+})
+
+describe('isMfaRequiredFailure', () => {
+  it('detects the missing admin MFA response', () => {
+    expect(isMfaRequiredFailure(new ApiError(403, 'admin TOTP MFA required'))).toBe(true)
+  })
+
+  it('ignores other failures', () => {
+    expect(isMfaRequiredFailure(new ApiError(403, 'forbidden'))).toBe(false)
+    expect(isMfaRequiredFailure(new ApiError(401, 'MFA'))).toBe(false)
+    expect(isMfaRequiredFailure(new Error('MFA'))).toBe(false)
   })
 })

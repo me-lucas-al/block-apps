@@ -22,7 +22,7 @@ pnpm test
 
 Os dois arquivos de compose sobem o `dynamodb-admin`, uma interface web para ver e editar tabelas e itens do DynamoDB local. Abra `http://127.0.0.1:8001`.
 
-Em produção não há painel hospedado. Use o Console AWS (DynamoDB → Explore items) ou o NoSQL Workbench com suas credenciais.
+Em produção não há painel hospedado. Use o Console AWS (DynamoDB → Explore items) ou o NoSQL Workbench com suas credenciais. Para não usar credencial de administrador, assuma com MFA a role somente leitura do output `data_reader_role_arn` do Terraform.
 
 ## 2. Servidor de API Local
 

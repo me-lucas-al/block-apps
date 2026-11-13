@@ -19,7 +19,7 @@ export class CognitoOAuthFlow {
     return { url, verifier, state }
   }
 
-  exchangeCode(code: string, redirectUri: string, verifier: string): Promise<SessionTokens> {
+  async exchangeCode(code: string, redirectUri: string, verifier: string): Promise<SessionTokens> {
     if (!verifier) throw new Error('PKCE code verifier is missing')
     return this.helper.exchangeAuthorizationCode(code, verifier, redirectUri)
   }

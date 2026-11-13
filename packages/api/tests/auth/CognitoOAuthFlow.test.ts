@@ -48,10 +48,10 @@ describe('CognitoOAuthFlow', () => {
     expect(String(fetchMock.mock.calls[0]![1].body)).toContain('code_verifier=explicit-verifier')
   })
 
-  it('refuses to exchange the code without a verifier', () => {
+  it('refuses to exchange the code without a verifier', async () => {
     const flow = new CognitoOAuthFlow(hostedConfig)
 
-    expect(() => flow.exchangeCode('code-123', 'https://app.test/callback', '')).toThrow(
+    await expect(flow.exchangeCode('code-123', 'https://app.test/callback', '')).rejects.toThrow(
       'PKCE code verifier is missing',
     )
   })

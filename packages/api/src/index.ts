@@ -10,6 +10,7 @@ export {
   SignOutUseCase,
   type SignOutOutcome,
 } from './auth/SignOutUseCase'
+export { loginStepFor, type LoginStep } from './auth/loginStepFor'
 export { buildTotpUri } from './auth/buildTotpUri'
 export { LocalUserSession } from './auth/session/LocalUserSession'
 export { MemorySessionStorage } from './auth/storage/MemorySessionStorage'

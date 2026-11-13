@@ -44,15 +44,10 @@ export class CognitoAuthenticator implements Authenticator {
     this.passwordChange = new CognitoPasswordChange(config)
   }
 
-  async authenticate(email: string, password: string): Promise<AuthResult> {
+  async signInWithPassword(email: string, password: string): Promise<AuthResult> {
     const { result, tokens } = await this.srpAuth.authenticate(email, password)
     if (tokens) await this.sessionManager.persistTokens(tokens)
     return result
-  }
-
-  async signInWithPassword(email: string, password: string): Promise<void> {
-    const result = await this.authenticate(email, password)
-    if (!result.success) throw new Error(`Challenge required: ${result.challenge.kind}`)
   }
 
   async respondToNewPassword(newPassword: string): Promise<void> {

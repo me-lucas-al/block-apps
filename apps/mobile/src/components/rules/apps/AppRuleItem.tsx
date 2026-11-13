@@ -2,6 +2,7 @@ import { type BlockRule, type PendingRuleChange, describePendingChange } from '@
 import { StyleSheet, Text, View } from 'react-native'
 import { colors } from '../../../theme'
 import { Button } from '../../ui/Button'
+import { describeRule } from '../describeRule'
 
 type AppRuleItemProps = {
   rule: BlockRule
@@ -9,12 +10,6 @@ type AppRuleItemProps = {
   pendingChange: PendingRuleChange | undefined
   onRemove: (ruleId: string) => void
   onCancel: (ruleId: string) => void
-}
-
-function describeRule(rule: BlockRule): string {
-  if (rule.mode === 'always') return 'Sempre bloqueado'
-  const count = rule.windows.length
-  return `Permitido em ${count} ${count === 1 ? 'horário' : 'horários'}`
 }
 
 export function AppRuleItem({ rule, label, pendingChange, onRemove, onCancel }: AppRuleItemProps) {

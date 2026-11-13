@@ -1,9 +1,10 @@
 import type { NewBlockRule } from '@block-apps/api'
 import type { BlockMode, TimeWindow } from '@block-apps/core'
 import { useState } from 'react'
-import { ScrollView, StyleSheet, Text, View } from 'react-native'
+import { ScrollView, StyleSheet, Text } from 'react-native'
 import type { InstalledApp } from '../../modules/app-blocker'
 import { AppPicker } from '../components/rules/apps/AppPicker'
+import { RuleModeSelector } from '../components/rules/schedule/RuleModeSelector'
 import { ScheduleEditor } from '../components/rules/schedule/ScheduleEditor'
 import { Button } from '../components/ui/Button'
 import { useAppCatalog } from '../hooks/rules/useAppCatalog'
@@ -47,12 +48,7 @@ export function AddRuleScreen({ installedApps, onSubmit, onCancel }: AddRuleScre
         selectedPackage={packageName}
         onSelect={setPackageName}
       />
-      <View style={styles.modes}>
-        <Button label="Sempre" variant={mode === 'always' ? 'primary' : 'secondary'}
-          onPress={() => setMode('always')} />
-        <Button label="Só em horários" variant={mode === 'schedule' ? 'primary' : 'secondary'}
-          onPress={() => setMode('schedule')} />
-      </View>
+      <RuleModeSelector mode={mode} onSelect={setMode} />
       {mode === 'schedule' && <ScheduleEditor windows={windows} onChange={setWindows} />}
       {error && <Text style={styles.error}>{error}</Text>}
       <Button label="Bloquear" onPress={() => void submit()} />
@@ -64,6 +60,5 @@ export function AddRuleScreen({ installedApps, onSubmit, onCancel }: AddRuleScre
 const styles = StyleSheet.create({
   container: { gap: 14, padding: 20 },
   title: { fontSize: 22, fontWeight: '700', color: colors.text },
-  modes: { flexDirection: 'row', gap: 8 },
   error: { color: colors.danger },
 })

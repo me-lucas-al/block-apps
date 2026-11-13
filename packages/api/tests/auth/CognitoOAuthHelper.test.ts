@@ -9,11 +9,12 @@ describe('CognitoOAuthHelper', () => {
       hostedDomain: 'auth.example.com',
     })
 
-    const url = helper.buildAuthorizeUrl('https://app.test/callback', 'challenge-xyz')
+    const url = helper.buildAuthorizeUrl('https://app.test/callback', 'challenge-xyz', 'state-abc')
     expect(url).toContain('https://auth.example.com/oauth2/authorize?')
     expect(url).toContain('client_id=client-1')
     expect(url).toContain('code_challenge=challenge-xyz')
     expect(url).toContain('identity_provider=Google')
+    expect(url).toContain('state=state-abc')
   })
 
   it('exchanges code for tokens', async () => {

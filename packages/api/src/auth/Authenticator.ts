@@ -1,6 +1,9 @@
+import type { GoogleAuthorization } from './contracts/GoogleAuthorization'
+
 export interface Authenticator {
   signInWithPassword(email: string, password: string): Promise<void>
-  signInWithGoogle(redirectTo: string): Promise<void>
+  beginGoogleSignIn(redirectUri: string): Promise<GoogleAuthorization>
+  exchangeOAuthCode(code: string, verifier: string, redirectUri: string): Promise<void>
   signUpWithPassword(email: string, password: string): Promise<void>
   signOut(): Promise<void>
   respondToNewPassword?(newPassword: string): Promise<void>
@@ -12,5 +15,4 @@ export interface Authenticator {
   confirmSignUp?(email: string, code: string): Promise<void>
   requestPasswordReset?(email: string): Promise<void>
   confirmPasswordReset?(email: string, code: string, nextPass: string): Promise<void>
-  exchangeOAuthCode?(code: string, verifier?: string, redirectUri?: string): Promise<void>
 }

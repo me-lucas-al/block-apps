@@ -4,7 +4,7 @@ import type { SessionTokens } from '../contracts/SessionTokens'
 export class CognitoOAuthHelper {
   constructor(private readonly config: CognitoConfig) {}
 
-  buildAuthorizeUrl(redirectUri: string, codeChallenge: string): string {
+  buildAuthorizeUrl(redirectUri: string, codeChallenge: string, state: string): string {
     if (!this.config.hostedDomain) {
       throw new Error('hostedDomain is required for OAuth')
     }
@@ -16,6 +16,7 @@ export class CognitoOAuthHelper {
       identity_provider: 'Google',
       code_challenge: codeChallenge,
       code_challenge_method: 'S256',
+      state,
     })
     return `https://${this.config.hostedDomain}/oauth2/authorize?${params.toString()}`
   }

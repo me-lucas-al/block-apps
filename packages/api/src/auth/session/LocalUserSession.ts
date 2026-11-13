@@ -27,6 +27,10 @@ export class LocalUserSession implements UserSession {
     return tokens?.accessToken ?? null
   }
 
+  async reloadFromStorage(): Promise<void> {
+    await this.notifySessionUpdated(await this.storage.load())
+  }
+
   async notifySessionUpdated(tokens: SessionTokens | null): Promise<void> {
     const nextEmail = tokens?.email ?? null
     if (this.lastKnownEmail === nextEmail) return

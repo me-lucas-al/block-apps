@@ -3,10 +3,12 @@ import { RulesPanel } from './components/rules/list/RulesPanel'
 import { IncognitoWarning } from './components/status/IncognitoWarning'
 import { useRefreshRulesWhenSignedIn } from './hooks/useRefreshRulesWhenSignedIn'
 import { useSessionEmail } from './hooks/useSessionEmail'
+import { useSessionSync } from './hooks/useSessionSync'
 import { useServices } from './services/ServicesContext'
 
 export function App() {
   const { authenticator } = useServices()
+  useSessionSync()
   const { email, loading } = useSessionEmail()
   useRefreshRulesWhenSignedIn(email)
 

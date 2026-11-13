@@ -85,7 +85,7 @@ O `release.yml` só roda por disparo manual e os jobs de deploy usam o ambiente 
 
 - **Required reviewers:** quem aprova cada deploy.
 - **Deployment branches:** só `main`.
-- **Variables:** `HOSTED_DOMAIN_PREFIX`, `GOOGLE_CLIENT_ID`, `INITIAL_ADMIN_EMAIL`.
+- **Variables:** `HOSTED_DOMAIN_PREFIX`, `GOOGLE_CLIENT_ID`, `INITIAL_ADMIN_EMAIL`, `ALARM_EMAIL` (e-mail que recebe os alarmes).
 - **Secrets:** `AWS_ROLE_ARN`, `TF_STATE_BUCKET`, `GOOGLE_CLIENT_SECRET`.
 
 O workflow passa esses valores ao Terraform por `TF_VAR_*`, gera `release.tfplan` com `plan -out` e aplica exatamente esse arquivo. O `Terraform Plan` das PRs não usa o ambiente (para não pedir aprovação a cada PR), então crie as mesmas variáveis e segredos também no nível do repositório.
@@ -94,7 +94,7 @@ O workflow passa esses valores ao Terraform por `TF_VAR_*`, gera `release.tfplan
 
 - **Handlers especializados.** A função `api` só acessa o DynamoDB. A função `admin` acessa o Cognito e exige **MFA TOTP ativo** (`ADMIN_REQUIRE_MFA`, desligável apenas por emergência). A função `scheduler` aplica as mudanças de regras vencidas a cada 5 minutos disparada pelo EventBridge Scheduler.
 - **Hospedagem estática segura.** Painel admin servido via CloudFront com Origin Access Control (OAC) sobre bucket S3 privado e cabeçalhos estritos de CSP, X-Frame-Options e nosniff.
-- **Observabilidade.** Alarmes CloudWatch para erros 5XX no API Gateway, throttling e p95 de duração nas Lambdas, além de alerta de teto de custos no AWS Budgets.
+- **Observabilidade.** Alarmes CloudWatch para erros 5XX no API Gateway, throttling e p95 de duração na Lambda da API e erros na Lambda `scheduler`, além de alerta de teto de custos no AWS Budgets. Todos os alarmes publicam no tópico SNS `<prefixo>-alarms`; informe `alarm_email` para receber o aviso por e-mail (a AWS envia um link de confirmação na primeira vez).
 - Tabela com criptografia, backup contínuo (PITR) e `prevent_destroy`. O user pool também tem `prevent_destroy`; ligue `protect_from_deletion` em produção.
 - Cognito: senha mínima de 10 caracteres, MFA configurável com TOTP obrigatório para administradores, revogação de tokens e tokens de acesso de 15 minutos.
 - `allow_self_signup` ligado por padrão para cadastro aberto de usuários.

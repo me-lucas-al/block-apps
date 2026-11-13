@@ -62,6 +62,7 @@ jobs:
       TF_VAR_google_client_id: ${{ vars.GOOGLE_CLIENT_ID }}
       TF_VAR_google_client_secret: ${{ secrets.GOOGLE_CLIENT_SECRET }}
       TF_VAR_initial_admin_email: ${{ vars.INITIAL_ADMIN_EMAIL }}
+      TF_VAR_alarm_email: ${{ vars.ALARM_EMAIL }}
     outputs:
       admin_site_bucket_name: ${{ steps.read-outputs.outputs.admin_site_bucket_name }}
       admin_site_distribution_id: ${{ steps.read-outputs.outputs.admin_site_distribution_id }}

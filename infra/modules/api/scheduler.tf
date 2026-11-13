@@ -11,7 +11,16 @@ resource "aws_scheduler_schedule" "apply_due_changes" {
   target {
     arn      = module.scheduler_function.function_arn
     role_arn = aws_iam_role.scheduler_invoke.arn
+
+    retry_policy {
+      maximum_retry_attempts = 0
+    }
   }
+}
+
+resource "aws_lambda_function_event_invoke_config" "scheduler" {
+  function_name          = module.scheduler_function.function_name
+  maximum_retry_attempts = 0
 }
 
 resource "aws_iam_role" "scheduler_invoke" {

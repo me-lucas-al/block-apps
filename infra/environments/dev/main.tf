@@ -51,6 +51,7 @@ module "api" {
   admin_require_mfa     = var.admin_require_mfa
   budget_limit_usd      = var.budget_limit_usd
   budget_alert_email    = var.budget_alert_email
+  alarm_email           = var.alarm_email
 }
 
 module "admin_site" {

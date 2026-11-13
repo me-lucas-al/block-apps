@@ -7,7 +7,6 @@ function buildPort(isRegistered: boolean): BackgroundTaskPort {
   return {
     isRegistered: vi.fn().mockResolvedValue(isRegistered),
     register: vi.fn().mockResolvedValue(undefined),
-    unregister: vi.fn().mockResolvedValue(undefined),
   }
 }
 
@@ -26,21 +25,5 @@ describe('RulesSyncScheduler', () => {
     await new RulesSyncScheduler(port).scheduleRulesSync()
 
     expect(port.register).not.toHaveBeenCalled()
-  })
-
-  it('unregisters the task when it is registered', async () => {
-    const port = buildPort(true)
-
-    await new RulesSyncScheduler(port).cancelRulesSync()
-
-    expect(port.unregister).toHaveBeenCalledWith(RULES_SYNC_TASK_NAME)
-  })
-
-  it('does nothing when cancelling a task that is not registered', async () => {
-    const port = buildPort(false)
-
-    await new RulesSyncScheduler(port).cancelRulesSync()
-
-    expect(port.unregister).not.toHaveBeenCalled()
   })
 })

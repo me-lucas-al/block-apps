@@ -5,10 +5,7 @@ export function useBackgroundRulesSync(signedInEmail: string | null, sessionLoad
   const { rulesSyncScheduler } = useServices()
 
   useEffect(() => {
-    if (sessionLoading) return
-    const pendingChange = signedInEmail
-      ? rulesSyncScheduler.scheduleRulesSync()
-      : rulesSyncScheduler.cancelRulesSync()
-    pendingChange.catch(() => {})
+    if (sessionLoading || !signedInEmail) return
+    rulesSyncScheduler.scheduleRulesSync().catch(() => {})
   }, [rulesSyncScheduler, signedInEmail, sessionLoading])
 }

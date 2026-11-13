@@ -6,6 +6,8 @@ export type {
   TimeWindow,
 } from './rules/blockRule'
 export type { PendingChangeKind, PendingRuleChange } from './rules/pendingRuleChange'
+export { buildScheduledRule } from './rules/buildScheduledRule'
+export type { BuildScheduledRuleResult, NewScheduledRule } from './rules/buildScheduledRule'
 export { describePendingChange } from './cooldown/describePendingChange'
 export { formatRemaining } from './cooldown/formatRemaining'
 export { remainingMinutes } from './cooldown/remainingMinutes'
@@ -25,7 +27,10 @@ export type { ScheduleError } from './schedule/editing/validateSchedule'
 export { normalizeSiteTarget } from './sites/normalizeSiteTarget'
 export { findBlockedKeyword } from './keywords/matching/findBlockedKeyword'
 export { matchesBlockedKeyword } from './keywords/matching/matchesBlockedKeyword'
-export { normalizeKeywordTarget } from './keywords/matching/normalizeKeywordTarget'
+export {
+  MAX_KEYWORD_LENGTH,
+  normalizeKeywordTarget,
+} from './keywords/matching/normalizeKeywordTarget'
 export { extractSearchQuery } from './keywords/search-engines/extractSearchQuery'
 export { SEARCH_ENGINE_HOST_FRAGMENTS } from './keywords/search-engines/searchEngineHostFragments'
 export type {

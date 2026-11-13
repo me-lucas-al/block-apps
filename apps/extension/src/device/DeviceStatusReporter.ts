@@ -6,7 +6,7 @@ import type { SessionGate } from '../ports/data/SessionGate'
 export type DeviceStatusReporterDependencies = {
   readonly deviceRepository: DeviceRepository
   readonly deviceIdStore: DeviceIdStore
-  readonly incognito: IncognitoPort
+  readonly incognito: Pick<IncognitoPort, 'isAllowed'>
   readonly sessionGate: SessionGate
 }
 

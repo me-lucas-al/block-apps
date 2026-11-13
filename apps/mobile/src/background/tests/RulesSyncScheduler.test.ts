@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { BackgroundTaskPort } from '../BackgroundTaskPort'
 import { RulesSyncScheduler } from '../RulesSyncScheduler'
-import { RULES_SYNC_INTERVAL_MINUTES, RULES_SYNC_TASK_NAME } from '../rulesSyncTask'
+import { RULES_SYNC_INTERVAL_MINUTES, RULES_SYNC_TASK_NAME } from '../rulesSyncTaskConfig'
 
 function buildPort(isRegistered: boolean): BackgroundTaskPort {
   return {

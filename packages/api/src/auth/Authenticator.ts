@@ -1,7 +1,8 @@
+import type { AuthResult } from './contracts/AuthResult'
 import type { GoogleAuthorization } from './contracts/GoogleAuthorization'
 
 export interface Authenticator {
-  signInWithPassword(email: string, password: string): Promise<void>
+  signInWithPassword(email: string, password: string): Promise<AuthResult>
   beginGoogleSignIn(redirectUri: string): Promise<GoogleAuthorization>
   exchangeOAuthCode(code: string, verifier: string, redirectUri: string): Promise<void>
   signUpWithPassword(email: string, password: string): Promise<void>
@@ -13,6 +14,7 @@ export interface Authenticator {
   beginTotpEnrollment?(): Promise<string>
   confirmTotpEnrollment?(totpCode: string): Promise<void>
   confirmSignUp?(email: string, code: string): Promise<void>
+  resendConfirmationCode?(email: string): Promise<void>
   requestPasswordReset?(email: string): Promise<void>
   confirmPasswordReset?(email: string, code: string, nextPass: string): Promise<void>
 }

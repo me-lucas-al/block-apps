@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { CognitoOAuthFlow } from '../../src/auth/cognito/CognitoOAuthFlow'
+import { WebPkceCrypto } from '../../src/auth/pkce/WebPkceCrypto'
 
 const hostedConfig = {
   userPoolId: 'pool-1',
@@ -11,7 +12,7 @@ describe('CognitoOAuthFlow', () => {
   afterEach(() => vi.unstubAllGlobals())
 
   it('returns the authorize url together with verifier and state', async () => {
-    const flow = new CognitoOAuthFlow(hostedConfig)
+    const flow = new CognitoOAuthFlow(hostedConfig, new WebPkceCrypto())
 
     const authorization = await flow.buildGoogleAuthorizeUrl('https://app.test/callback')
 
@@ -23,7 +24,7 @@ describe('CognitoOAuthFlow', () => {
   })
 
   it('generates a different verifier and state on every call', async () => {
-    const flow = new CognitoOAuthFlow(hostedConfig)
+    const flow = new CognitoOAuthFlow(hostedConfig, new WebPkceCrypto())
 
     const first = await flow.buildGoogleAuthorizeUrl('https://app.test/callback')
     const second = await flow.buildGoogleAuthorizeUrl('https://app.test/callback')
@@ -51,7 +52,7 @@ describe('CognitoOAuthFlow', () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify(tokenReply)))
     vi.stubGlobal('fetch', fetchMock)
 
-    const tokens = await new CognitoOAuthFlow(hostedConfig).exchangeCode(
+    const tokens = await new CognitoOAuthFlow(hostedConfig, new WebPkceCrypto()).exchangeCode(
       'code-123',
       'https://app.test/callback',
       'explicit-verifier',
@@ -62,7 +63,7 @@ describe('CognitoOAuthFlow', () => {
   })
 
   it('refuses to exchange the code without a verifier', async () => {
-    const flow = new CognitoOAuthFlow(hostedConfig)
+    const flow = new CognitoOAuthFlow(hostedConfig, new WebPkceCrypto())
 
     await expect(flow.exchangeCode('code-123', 'https://app.test/callback', '')).rejects.toThrow(
       'PKCE code verifier is missing',

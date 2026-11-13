@@ -5,10 +5,12 @@ import type {
   UserSession,
 } from '@block-apps/api'
 import { AppBlocker } from '../../modules/app-blocker'
+import { MobileGoogleSignInRequester } from '../adapters/auth/MobileGoogleSignInRequester'
 import { createMobileServices } from '../adapters/createMobileServices'
 import { MobileDeviceIdStore } from '../device/MobileDeviceIdStore'
 import { MobileStatusReporter } from '../device/MobileStatusReporter'
 import type { AppBlockerPort } from '../ports/AppBlockerPort'
+import type { GoogleSignInRequester } from '../ports/GoogleSignInRequester'
 import { AppRulesSync } from '../sync/AppRulesSync'
 
 export type Services = {
@@ -19,6 +21,7 @@ export type Services = {
   readonly blocker: AppBlockerPort
   readonly rulesSync: AppRulesSync
   readonly statusReporter: MobileStatusReporter
+  readonly googleSignIn: GoogleSignInRequester
 }
 
 export function createServices(): Services {
@@ -45,5 +48,6 @@ export function createServices(): Services {
     blocker,
     rulesSync,
     statusReporter,
+    googleSignIn: new MobileGoogleSignInRequester(mobile.authenticator),
   }
 }

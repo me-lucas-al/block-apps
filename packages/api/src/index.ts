@@ -10,11 +10,13 @@ export {
   SignOutUseCase,
   type SignOutOutcome,
 } from './auth/SignOutUseCase'
+export { loginStepFor, type LoginStep } from './auth/loginStepFor'
 export { buildTotpUri } from './auth/buildTotpUri'
 export { LocalUserSession } from './auth/session/LocalUserSession'
 export { MemorySessionStorage } from './auth/storage/MemorySessionStorage'
 export type { CognitoConfig } from './auth/cognito/CognitoConfig'
-export { CognitoAuthenticator } from './auth/cognito/CognitoAuthenticator'
+export type { CognitoAuthenticator } from './auth/cognito/CognitoAuthenticator'
+export { createCognitoAuthenticator } from './auth/cognito/createCognitoAuthenticator'
 export { CognitoOAuthHelper } from './auth/cognito/CognitoOAuthHelper'
 export { CognitoOAuthFlow } from './auth/cognito/CognitoOAuthFlow'
 export { readOAuthCallback } from './auth/cognito/readOAuthCallback'

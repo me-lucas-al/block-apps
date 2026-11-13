@@ -15,6 +15,7 @@ export function ConfirmSignUpStep({ email, onConfirmed, onCancel }: Props) {
   const { authenticator } = useServices()
   const [code, setCode] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
 
   const handleSubmit = async () => {
     try {
@@ -26,13 +27,26 @@ export function ConfirmSignUpStep({ email, onConfirmed, onCancel }: Props) {
     }
   }
 
+  const resendConfirmationCode = async () => {
+    try {
+      setError(null)
+      setNotice(null)
+      await authenticator.resendConfirmationCode?.(email)
+      setNotice(`Código reenviado para ${email}.`)
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : 'Falha ao reenviar o código')
+    }
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Confirmar conta</Text>
       <Text style={styles.subtitle}>Digite o código enviado para {email}</Text>
       <TextField placeholder="Código de 6 dígitos" value={code} onChangeText={setCode} />
       {error && <Text style={styles.error}>{error}</Text>}
+      {notice && <Text style={styles.subtitle}>{notice}</Text>}
       <Button label="Confirmar" onPress={() => void handleSubmit()} />
+      <Button label="Reenviar código" variant="secondary" onPress={() => void resendConfirmationCode()} />
       <Button label="Voltar" variant="secondary" onPress={onCancel} />
     </View>
   )

@@ -6,6 +6,7 @@ import {
 } from 'amazon-cognito-identity-js'
 import type { AuthResult } from '../contracts/AuthResult'
 import type { SessionTokens } from '../contracts/SessionTokens'
+import { challengeForSignInFailure } from './challengeForSignInFailure'
 import type { CognitoConfig } from './CognitoConfig'
 import { extractSessionTokens } from './extractSessionTokens'
 
@@ -53,7 +54,9 @@ export class CognitoSrpAuth {
         },
         onFailure: (err) => {
           this.clearPendingUser()
-          reject(err)
+          const challenge = challengeForSignInFailure(err)
+          if (challenge) resolve({ result: { success: false, challenge } })
+          else reject(err)
         },
         newPasswordRequired: () => {
           resolve({ result: { success: false, challenge: { kind: 'NEW_PASSWORD_REQUIRED' } } })

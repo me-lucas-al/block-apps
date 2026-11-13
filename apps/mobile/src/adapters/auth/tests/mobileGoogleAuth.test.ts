@@ -36,11 +36,11 @@ describe('launchMobileGoogleAuth', () => {
 
     await launchMobileGoogleAuth(authenticator)
 
-    expect(exchangeOAuthCode).toHaveBeenCalledWith(
-      'mobile-oauth-code',
-      'verifier-1',
-      'blockapps://auth',
-    )
+    expect(exchangeOAuthCode).toHaveBeenCalledWith({
+      code: 'mobile-oauth-code',
+      verifier: 'verifier-1',
+      redirectUri: 'blockapps://auth',
+    })
   })
 
   it('refuses a callback with a different state', async () => {

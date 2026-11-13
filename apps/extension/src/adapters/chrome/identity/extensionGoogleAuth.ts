@@ -1,4 +1,4 @@
-import { readOAuthCallback, type Authenticator } from '@block-apps/api'
+import { signInWithGoogle, type GoogleSignInAuthenticator } from '@block-apps/api'
 
 function openGoogleConsentWindow(authorizeUrl: string): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -12,10 +12,6 @@ function openGoogleConsentWindow(authorizeUrl: string): Promise<string> {
   })
 }
 
-export async function launchExtensionGoogleAuth(authenticator: Authenticator): Promise<void> {
-  const redirectUri = chrome.identity.getRedirectURL()
-  const authorization = await authenticator.beginGoogleSignIn(redirectUri)
-  const callbackUrl = await openGoogleConsentWindow(authorization.url)
-  const code = readOAuthCallback(callbackUrl, authorization.state)
-  await authenticator.exchangeOAuthCode(code, authorization.verifier, redirectUri)
+export function launchExtensionGoogleAuth(authenticator: GoogleSignInAuthenticator): Promise<void> {
+  return signInWithGoogle(authenticator, chrome.identity.getRedirectURL(), openGoogleConsentWindow)
 }

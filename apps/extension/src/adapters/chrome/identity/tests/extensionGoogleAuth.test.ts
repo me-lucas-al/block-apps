@@ -35,7 +35,11 @@ describe('launchExtensionGoogleAuth', () => {
     await launchExtensionGoogleAuth(authenticator)
 
     expect(beginGoogleSignIn).toHaveBeenCalledWith(redirectUri)
-    expect(exchangeOAuthCode).toHaveBeenCalledWith('auth-code-123', 'verifier-1', redirectUri)
+    expect(exchangeOAuthCode).toHaveBeenCalledWith({
+      code: 'auth-code-123',
+      verifier: 'verifier-1',
+      redirectUri,
+    })
   })
 
   it('refuses a callback with a different state', async () => {

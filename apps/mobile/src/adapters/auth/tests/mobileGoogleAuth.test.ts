@@ -66,7 +66,7 @@ describe('launchMobileGoogleAuth', () => {
   it('shows the error returned by the provider', async () => {
     openAuthSessionAsync.mockResolvedValue({
       type: 'success',
-      url: 'blockapps://auth?error=access_denied&error_description=Login+cancelled',
+      url: 'blockapps://auth?error=access_denied&error_description=Login+cancelled&state=state-1',
     })
     const { authenticator } = buildAuthenticator()
 

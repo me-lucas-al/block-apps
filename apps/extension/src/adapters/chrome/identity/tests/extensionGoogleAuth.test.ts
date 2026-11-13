@@ -47,7 +47,9 @@ describe('launchExtensionGoogleAuth', () => {
   })
 
   it('shows the error returned by the provider', async () => {
-    stubChromeIdentity(`${redirectUri}?error=access_denied&error_description=Login+cancelled`)
+    stubChromeIdentity(
+      `${redirectUri}?error=access_denied&error_description=Login+cancelled&state=state-1`,
+    )
     const { authenticator } = buildAuthenticator()
 
     await expect(launchExtensionGoogleAuth(authenticator)).rejects.toThrow('Login cancelled')

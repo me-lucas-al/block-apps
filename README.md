@@ -53,7 +53,7 @@ flowchart TD
 | **App Android (`apps/mobile`)** | ✅ Pronto | React Native + Módulo Kotlin, WorkManager, Device Admin, Boot Receiver |
 | **Painel Web (`apps/admin`)** | ✅ Pronto | Gestão de usuários, MFA TOTP obrigatório para admins, Hosted UI Google |
 | **CI/CD (`.github/workflows`)** | ✅ Pronto | GitHub Actions com testes, typecheck, validação Terraform e release |
-| **App iOS** | ⏸️ Pausado | Aguarda conta Apple Developer e entitlement Family Controls |
+| **App iOS** | 🚧 Em validação | Módulo Swift e extensões escritos; falta entitlement Family Controls e teste em aparelho ([docs/IOS.md](docs/IOS.md)) |
 | **Extensão Firefox** | ⏳ Planejado | Adaptação para Gecko via webextension-polyfill |
 
 ---

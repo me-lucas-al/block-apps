@@ -16,6 +16,12 @@ variable "extension_ids" {
   default     = []
 }
 
+variable "firefox_redirect_urls" {
+  description = "URLs de retorno da extensão do Firefox autorizadas para login OAuth (com barra final)."
+  type        = list(string)
+  default     = []
+}
+
 variable "admin_require_mfa" {
   description = "Exige MFA TOTP ativo para que administradores acessem rotas do painel."
   type        = bool

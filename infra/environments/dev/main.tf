@@ -18,17 +18,18 @@ module "data" {
 module "auth" {
   source = "../../modules/auth"
 
-  name_prefix          = local.name_prefix
-  lambda_zip_path      = var.lambda_zip_path
-  deletion_protection  = var.protect_from_deletion
-  allow_self_signup    = var.allow_self_signup
-  hosted_domain_prefix = var.hosted_domain_prefix
-  google_client_id     = var.google_client_id
-  google_client_secret = var.google_client_secret
-  initial_admin_email  = var.initial_admin_email
-  ses_identity_arn     = var.ses_identity_arn
-  ses_from_address     = var.ses_from_address
-  extension_ids        = var.extension_ids
+  name_prefix           = local.name_prefix
+  lambda_zip_path       = var.lambda_zip_path
+  deletion_protection   = var.protect_from_deletion
+  allow_self_signup     = var.allow_self_signup
+  hosted_domain_prefix  = var.hosted_domain_prefix
+  google_client_id      = var.google_client_id
+  google_client_secret  = var.google_client_secret
+  initial_admin_email   = var.initial_admin_email
+  ses_identity_arn      = var.ses_identity_arn
+  ses_from_address      = var.ses_from_address
+  extension_ids         = var.extension_ids
+  firefox_redirect_urls = var.firefox_redirect_urls
 }
 
 module "api" {

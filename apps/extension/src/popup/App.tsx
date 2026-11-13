@@ -4,10 +4,10 @@ import { IncognitoWarning } from './components/status/IncognitoWarning'
 import { useRefreshRulesWhenSignedIn } from './hooks/useRefreshRulesWhenSignedIn'
 import { useSessionEmail } from './hooks/useSessionEmail'
 import { useSessionSync } from './hooks/useSessionSync'
-import { useServices } from './services/ServicesContext'
+import { useSignOut } from './hooks/useSignOut'
 
 export function App() {
-  const { authenticator } = useServices()
+  const signOut = useSignOut()
   useSessionSync()
   const { email, loading } = useSessionEmail()
   useRefreshRulesWhenSignedIn(email)
@@ -19,7 +19,7 @@ export function App() {
     <main className="stack">
       <header className="row between">
         <span className="hint">{email}</span>
-        <button type="button" className="secondary" onClick={() => void authenticator.signOut()}>
+        <button type="button" className="secondary" onClick={() => void signOut()}>
           Sair
         </button>
       </header>

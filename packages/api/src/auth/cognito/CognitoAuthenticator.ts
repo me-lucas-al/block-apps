@@ -12,6 +12,7 @@ import { CognitoOAuthFlow } from './CognitoOAuthFlow'
 import { CognitoPasswordChange } from './CognitoPasswordChange'
 import { CognitoSessionManager } from './CognitoSessionManager'
 import { CognitoSrpAuth } from './CognitoSrpAuth'
+import { CognitoTokenRevoker } from './CognitoTokenRevoker'
 import { CognitoTotpEnrollment } from './CognitoTotpEnrollment'
 
 export class CognitoAuthenticator implements Authenticator {
@@ -33,7 +34,12 @@ export class CognitoAuthenticator implements Authenticator {
     this.challengeResolver = new CognitoChallengeResolver(this.srpAuth)
     this.accountOps = new CognitoAccountOps(config)
     this.oauthFlow = new CognitoOAuthFlow(config, pkceCrypto)
-    this.sessionManager = new CognitoSessionManager(storage, session, this.accountOps)
+    this.sessionManager = new CognitoSessionManager(
+      storage,
+      session,
+      this.accountOps,
+      new CognitoTokenRevoker(config),
+    )
     this.totpEnrollment = new CognitoTotpEnrollment(config)
     this.passwordChange = new CognitoPasswordChange(config)
   }

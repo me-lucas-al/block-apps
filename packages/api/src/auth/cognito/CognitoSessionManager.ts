@@ -1,7 +1,9 @@
 import type { SessionStorage } from '../contracts/SessionStorage'
 import type { SessionTokens } from '../contracts/SessionTokens'
+import { SessionRevocationError } from '../SessionRevocationError'
 import type { LocalUserSession } from '../session/LocalUserSession'
 import type { CognitoAccountOps } from './CognitoAccountOps'
+import type { CognitoTokenRevoker } from './CognitoTokenRevoker'
 import { isRejectedRefreshToken } from './isRejectedRefreshToken'
 
 export class CognitoSessionManager {
@@ -9,6 +11,7 @@ export class CognitoSessionManager {
     private readonly storage: SessionStorage,
     private readonly session: LocalUserSession,
     private readonly accountOps: CognitoAccountOps,
+    private readonly tokenRevoker: CognitoTokenRevoker,
   ) {}
 
   async persistTokens(tokens: SessionTokens): Promise<void> {
@@ -17,9 +20,17 @@ export class CognitoSessionManager {
   }
 
   async signOut(): Promise<void> {
-    const tokens = await this.storage.load()
-    if (tokens?.email) await this.accountOps.globalSignOut(tokens.email)
-    await this.forgetSession()
+    let tokens: SessionTokens | null = null
+    try {
+      tokens = await this.storage.load()
+      await this.revokeRefreshToken(tokens)
+    } finally {
+      try {
+        if (tokens?.email) this.accountOps.clearCachedSession(tokens.email)
+      } finally {
+        await this.forgetSession()
+      }
+    }
   }
 
   async refreshSession(): Promise<SessionTokens | null> {
@@ -32,6 +43,15 @@ export class CognitoSessionManager {
     } catch (refreshError) {
       if (isRejectedRefreshToken(refreshError)) await this.forgetSession()
       return null
+    }
+  }
+
+  private async revokeRefreshToken(tokens: SessionTokens | null): Promise<void> {
+    if (!tokens?.refreshToken) return
+    try {
+      await this.tokenRevoker.revokeRefreshToken(tokens.refreshToken)
+    } catch (revocationFailure) {
+      throw new SessionRevocationError(revocationFailure)
     }
   }
 

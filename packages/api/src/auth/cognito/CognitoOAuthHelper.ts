@@ -1,13 +1,12 @@
 import type { CognitoConfig } from './CognitoConfig'
 import type { SessionTokens } from '../contracts/SessionTokens'
+import { requireHostedDomain } from './requireHostedDomain'
 
 export class CognitoOAuthHelper {
   constructor(private readonly config: CognitoConfig) {}
 
   buildAuthorizeUrl(redirectUri: string, codeChallenge: string, state: string): string {
-    if (!this.config.hostedDomain) {
-      throw new Error('hostedDomain is required for OAuth')
-    }
+    const hostedDomain = requireHostedDomain(this.config)
     const params = new URLSearchParams({
       client_id: this.config.clientId,
       response_type: 'code',
@@ -18,7 +17,7 @@ export class CognitoOAuthHelper {
       code_challenge_method: 'S256',
       state,
     })
-    return `https://${this.config.hostedDomain}/oauth2/authorize?${params.toString()}`
+    return `https://${hostedDomain}/oauth2/authorize?${params.toString()}`
   }
 
   async exchangeAuthorizationCode(
@@ -26,9 +25,7 @@ export class CognitoOAuthHelper {
     codeVerifier: string,
     redirectUri: string,
   ): Promise<SessionTokens> {
-    if (!this.config.hostedDomain) {
-      throw new Error('hostedDomain is required for OAuth')
-    }
+    const hostedDomain = requireHostedDomain(this.config)
     const body = new URLSearchParams({
       grant_type: 'authorization_code',
       client_id: this.config.clientId,
@@ -36,7 +33,7 @@ export class CognitoOAuthHelper {
       redirect_uri: redirectUri,
       code_verifier: codeVerifier,
     })
-    const response = await fetch(`https://${this.config.hostedDomain}/oauth2/token`, {
+    const response = await fetch(`https://${hostedDomain}/oauth2/token`, {
       method: 'POST',
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
       body: body.toString(),

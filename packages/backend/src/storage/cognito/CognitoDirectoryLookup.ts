@@ -4,7 +4,10 @@ import {
   ListUsersCommand,
 } from '@aws-sdk/client-cognito-identity-provider'
 import { buildEmailFilter, findLinkableNativeUser } from './findLinkableNativeUser'
-import type { UserDirectoryLookup } from '../../auth/use-cases/LinkFederatedUserUseCase'
+import type {
+  ProviderLinkRequest,
+  UserDirectoryLookup,
+} from '../../auth/contracts/UserDirectoryLookup'
 
 export class CognitoDirectoryLookup implements UserDirectoryLookup {
   constructor(private readonly client: CognitoIdentityProviderClient) {}
@@ -23,23 +26,18 @@ export class CognitoDirectoryLookup implements UserDirectoryLookup {
     return findLinkableNativeUser(reply.Users ?? [])
   }
 
-  async linkProvider(input: {
-    userPoolId: string
-    destinationUsername: string
-    providerName: string
-    providerUserId: string
-  }): Promise<void> {
+  async linkProvider(request: ProviderLinkRequest): Promise<void> {
     await this.client.send(
       new AdminLinkProviderForUserCommand({
-        UserPoolId: input.userPoolId,
+        UserPoolId: request.userPoolId,
         DestinationUser: {
           ProviderName: 'Cognito',
-          ProviderAttributeValue: input.destinationUsername,
+          ProviderAttributeValue: request.destinationUsername,
         },
         SourceUser: {
-          ProviderName: input.providerName,
+          ProviderName: request.providerName,
           ProviderAttributeName: 'Cognito_Subject',
-          ProviderAttributeValue: input.providerUserId,
+          ProviderAttributeValue: request.providerUserId,
         },
       }),
     )

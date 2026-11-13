@@ -37,7 +37,11 @@ export class RuleChangeScheduler {
       effectiveAt: computeCooldownDeadline(this.clock(), cooldownHours),
     }
     await this.pendingChangeStore.save(userId, change)
-    await this.applyDueChangesForUser.applyDueChangesForUser(userId)
+    await this.applyChangeIfAlreadyDue(userId)
     return change
+  }
+
+  private async applyChangeIfAlreadyDue(userId: string): Promise<void> {
+    await this.applyDueChangesForUser.applyDueChangesForUser(userId).catch(() => undefined)
   }
 }

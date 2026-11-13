@@ -18,7 +18,7 @@ export function useAppRules() {
   const [error, setError] = useState<string | null>(null)
 
   const reload = useCallback(async () => {
-    await pendingRuleChanges.applyDueChanges()
+    await pendingRuleChanges.applyDueChanges().catch(() => undefined)
     const allRules = await ruleRepository.list()
     setRules(onlyApps(allRules))
     setPendingChanges(await pendingRuleChanges.listPendingChanges())

@@ -1,4 +1,5 @@
 const HOSTNAME_PATTERN = /^([a-z0-9-]+\.)+[a-z0-9-]{2,}$/
+const MAX_HOSTNAME_LENGTH = 253
 
 function parseHostname(candidateUrl: string): string | null {
   try {
@@ -17,5 +18,6 @@ export function normalizeSiteTarget(input: string): string | null {
   if (!hostname) return null
 
   const withoutWww = hostname.replace(/^www\./, '')
+  if (withoutWww.length > MAX_HOSTNAME_LENGTH) return null
   return HOSTNAME_PATTERN.test(withoutWww) ? withoutWww : null
 }

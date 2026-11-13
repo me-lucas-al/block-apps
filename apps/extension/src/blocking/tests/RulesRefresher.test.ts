@@ -10,12 +10,15 @@ const remoteRule: BlockRule = {
   windows: [],
 }
 
-function createRefresher(options: { hasSession: boolean; listFails?: boolean }) {
+type RefresherOptions = { hasSession: boolean; listFails?: boolean; applyFails?: boolean }
+
+function createRefresher(options: RefresherOptions) {
   const calls: string[] = []
   const save = vi.fn(async () => {})
   const sync = vi.fn(async () => {})
   const applyDueChanges = vi.fn(async () => {
     calls.push('apply')
+    if (options.applyFails) throw new Error('apply failed')
   })
   const list = vi.fn(async () => {
     calls.push('list')
@@ -37,6 +40,13 @@ describe('RulesRefresher', () => {
     const { refresher, save, sync, calls } = createRefresher({ hasSession: true })
     await refresher.refresh()
     expect(calls).toEqual(['apply', 'list'])
+    expect(save).toHaveBeenCalledWith([remoteRule])
+    expect(sync).toHaveBeenCalledOnce()
+  })
+
+  it('still loads the rules when applying due changes fails', async () => {
+    const { refresher, save, sync } = createRefresher({ hasSession: true, applyFails: true })
+    await refresher.refresh()
     expect(save).toHaveBeenCalledWith([remoteRule])
     expect(sync).toHaveBeenCalledOnce()
   })

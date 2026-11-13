@@ -24,6 +24,17 @@ describe('buildRedirectRules', () => {
     )
   })
 
+  it('skips site targets the browser would reject', () => {
+    const invalidTargets = [rule({ target: 'not a host' }), rule({ target: '' })]
+    expect(buildRedirectRules(invalidTargets, MONDAY_NOON)).toEqual([])
+  })
+
+  it('cleans a full address down to its host', () => {
+    const fullAddress = rule({ target: 'https://WWW.Example.com/a' })
+    const [redirect] = buildRedirectRules([fullAddress], MONDAY_NOON)
+    expect(redirect?.condition.requestDomains).toEqual(['example.com'])
+  })
+
   it('skips app rules', () => {
     expect(buildRedirectRules([rule({ targetType: 'app' })], MONDAY_NOON)).toEqual([])
   })

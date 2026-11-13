@@ -53,7 +53,6 @@ resource "aws_apigatewayv2_stage" "default" {
       ip               = "$context.identity.sourceIp"
       method           = "$context.httpMethod"
       route            = "$context.routeKey"
-      path             = "$context.path"
       status           = "$context.status"
       latencyMs        = "$context.responseLatency"
       userSub          = "$context.authorizer.claims.sub"

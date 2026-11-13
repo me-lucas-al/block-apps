@@ -1,11 +1,13 @@
 import { ChromeDeviceIdStore } from '../adapters/chrome/storage/ChromeDeviceIdStore'
 import { ChromeDynamicRulesPort } from '../adapters/chrome/browser/ChromeDynamicRulesPort'
 import { ChromeIncognitoPort } from '../adapters/chrome/browser/ChromeIncognitoPort'
+import { ChromeOpenTabsPort } from '../adapters/chrome/browser/ChromeOpenTabsPort'
 import { ChromeTabRedirectPort } from '../adapters/chrome/browser/ChromeTabRedirectPort'
 import { ChromeStorageRuleCache } from '../adapters/chrome/storage/ChromeStorageRuleCache'
 import { LocalSessionGate } from '../adapters/chrome/storage/LocalSessionGate'
 import { createExtensionServices } from '../adapters/createExtensionServices'
 import { BlockingSynchronizer } from '../blocking/BlockingSynchronizer'
+import { OpenTabsBlocker } from '../blocking/OpenTabsBlocker'
 import { RulesRefresher } from '../blocking/RulesRefresher'
 import { SearchNavigationGuard } from '../blocking/keywords/SearchNavigationGuard'
 import { DeviceStatusReporter } from '../device/DeviceStatusReporter'
@@ -18,6 +20,7 @@ export function composeBackground() {
   const synchronizer = new BlockingSynchronizer({
     ruleCache,
     dynamicRules: new ChromeDynamicRulesPort(),
+    openTabs: new OpenTabsBlocker(new ChromeOpenTabsPort()),
     now: () => new Date(),
   })
 

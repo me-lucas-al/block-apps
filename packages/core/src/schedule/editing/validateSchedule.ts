@@ -1,7 +1,7 @@
 import type { BlockMode, TimeWindow } from '../../rules/blockRule'
 import { parseTimeOfDay } from '../evaluation/parseTimeOfDay'
 
-export type ScheduleError = 'no-windows' | 'no-days' | 'invalid-time' | null
+export type ScheduleError = 'no-windows' | 'no-days' | 'invalid-time' | 'empty-window' | null
 
 function hasValidTimes(window: TimeWindow): boolean {
   try {
@@ -13,6 +13,10 @@ function hasValidTimes(window: TimeWindow): boolean {
   }
 }
 
+function startsAndEndsAtTheSameTime(window: TimeWindow): boolean {
+  return parseTimeOfDay(window.start) === parseTimeOfDay(window.end)
+}
+
 export function validateSchedule(
   mode: BlockMode,
   windows: readonly TimeWindow[],
@@ -21,5 +25,6 @@ export function validateSchedule(
   if (windows.length === 0) return 'no-windows'
   if (windows.some((window) => window.days.length === 0)) return 'no-days'
   if (!windows.every(hasValidTimes)) return 'invalid-time'
+  if (windows.some(startsAndEndsAtTheSameTime)) return 'empty-window'
   return null
 }

@@ -14,16 +14,23 @@ async function refreshAndReport({ refresher, reporter }: BackgroundServices) {
   await reporter.report().catch(logFailure('device report'))
 }
 
-function scheduleAlarms(): void {
-  chrome.alarms.create(ENFORCE_ALARM, { periodInMinutes: ENFORCE_PERIOD_MINUTES })
-  chrome.alarms.create(REFRESH_ALARM, { periodInMinutes: REFRESH_PERIOD_MINUTES })
+async function scheduleAlarmIfMissing(name: string, periodInMinutes: number): Promise<void> {
+  const scheduledAlarm = await chrome.alarms.get(name)
+  if (!scheduledAlarm) await chrome.alarms.create(name, { periodInMinutes })
+}
+
+async function scheduleMissingAlarms(): Promise<void> {
+  await scheduleAlarmIfMissing(ENFORCE_ALARM, ENFORCE_PERIOD_MINUTES)
+  await scheduleAlarmIfMissing(REFRESH_ALARM, REFRESH_PERIOD_MINUTES)
 }
 
 export function registerListeners(services: BackgroundServices): void {
   const start = () => {
-    scheduleAlarms()
+    void services.synchronizer.sync().catch(logFailure('enforce'))
     void refreshAndReport(services)
   }
+
+  void scheduleMissingAlarms().catch(logFailure('alarms'))
 
   chrome.runtime.onInstalled.addListener(start)
   chrome.runtime.onStartup.addListener(start)

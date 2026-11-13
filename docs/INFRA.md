@@ -28,6 +28,8 @@ terraform validate
 terraform fmt -recursive -check ..\..
 ```
 
+No CI (`terraform` em `.github/workflows/ci.yml`), também rodam `tflint --recursive` (com `infra/.tflint.hcl` e plugin `aws`) e `trivy config --ignorefile infra/.trivyignore.yaml --severity HIGH,CRITICAL --exit-code 1 infra/` (que ignora apenas exceções documentadas de custo/arquitetura: CMK em S3/SNS e WAF no CloudFront).
+
 ## Primeiro uso
 
 1. **Estado remoto** (uma vez):

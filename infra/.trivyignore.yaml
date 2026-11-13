@@ -1,0 +1,14 @@
+misconfigurations:
+  - id: AWS-0132
+    statement: Use AWS-managed KMS/AES256 on S3 buckets to avoid fixed monthly CMK costs.
+    paths:
+      - bootstrap/main.tf
+      - modules/admin_site/main.tf
+  - id: AWS-0011
+    statement: Omit WAFv2 on the admin CloudFront distribution to keep monthly costs minimal.
+    paths:
+      - modules/admin_site/cloudfront.tf
+  - id: AWS-0095
+    statement: Keep the alarms SNS topic unencrypted because CloudWatch and Budgets cannot publish to alias/aws/sns without a paid CMK.
+    paths:
+      - modules/api/notifications.tf

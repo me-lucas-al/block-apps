@@ -1,19 +1,8 @@
-import { CognitoOAuthFlow, type Authenticator } from '@block-apps/api'
-import { readExtensionConfig } from '../../readExtensionConfig'
+import { readOAuthCallback, type Authenticator } from '@block-apps/api'
 
-export async function launchExtensionGoogleAuth(authenticator: Authenticator): Promise<void> {
-  const config = readExtensionConfig()
-  const flow = new CognitoOAuthFlow({
-    userPoolId: config.cognitoUserPoolId,
-    clientId: config.cognitoClientId,
-    hostedDomain: config.cognitoHostedDomain,
-  })
-
-  const redirectUri = chrome.identity.getRedirectURL()
-  const authUrl = await flow.buildGoogleAuthorizeUrl(redirectUri)
-
-  const responseUrl = await new Promise<string>((resolve, reject) => {
-    chrome.identity.launchWebAuthFlow({ url: authUrl, interactive: true }, (callbackUrl) => {
+function openGoogleConsentWindow(authorizeUrl: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    chrome.identity.launchWebAuthFlow({ url: authorizeUrl, interactive: true }, (callbackUrl) => {
       if (chrome.runtime.lastError || !callbackUrl) {
         reject(new Error(chrome.runtime.lastError?.message ?? 'OAuth flow failed'))
         return
@@ -21,10 +10,12 @@ export async function launchExtensionGoogleAuth(authenticator: Authenticator): P
       resolve(callbackUrl)
     })
   })
+}
 
-  const url = new URL(responseUrl)
-  const code = url.searchParams.get('code')
-  if (!code) throw new Error('Authorization code missing in OAuth response')
-
-  await authenticator.exchangeOAuthCode?.(code, undefined, redirectUri)
+export async function launchExtensionGoogleAuth(authenticator: Authenticator): Promise<void> {
+  const redirectUri = chrome.identity.getRedirectURL()
+  const authorization = await authenticator.beginGoogleSignIn(redirectUri)
+  const callbackUrl = await openGoogleConsentWindow(authorization.url)
+  const code = readOAuthCallback(callbackUrl, authorization.state)
+  await authenticator.exchangeOAuthCode(code, authorization.verifier, redirectUri)
 }

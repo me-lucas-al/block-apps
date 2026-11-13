@@ -1,10 +1,11 @@
 import {
   type BlockMode,
+  type BuildScheduledRuleResult,
   type ScheduleError,
   type TimeWindow,
+  buildScheduledRule,
   normalizeKeywordTarget,
 } from '@block-apps/core'
-import { buildRuleWithSchedule, type ScheduledRuleResult } from './buildRuleWithSchedule'
 
 export type KeywordRuleDraft = {
   keyword: string
@@ -14,11 +15,13 @@ export type KeywordRuleDraft = {
 
 export type KeywordRuleError = 'invalid-keyword' | Exclude<ScheduleError, null>
 
-export type BuildKeywordRuleResult = ScheduledRuleResult | { rule: null; error: KeywordRuleError }
+export type BuildKeywordRuleResult =
+  | BuildScheduledRuleResult
+  | { rule: null; error: KeywordRuleError }
 
 export function buildKeywordRule(draft: KeywordRuleDraft): BuildKeywordRuleResult {
   const keyword = normalizeKeywordTarget(draft.keyword)
   if (!keyword) return { rule: null, error: 'invalid-keyword' }
 
-  return buildRuleWithSchedule('keyword', keyword, draft.mode, draft.windows)
+  return buildScheduledRule('keyword', keyword, draft.mode, draft.windows)
 }

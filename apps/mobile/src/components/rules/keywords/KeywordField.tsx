@@ -14,7 +14,6 @@ export function KeywordField({ keyword, onKeywordChange }: KeywordFieldProps) {
         value={keyword}
         onChangeText={onKeywordChange}
         placeholder="Palavra ou frase, ex.: aposta online"
-        maxLength={100}
       />
       <Text style={styles.notice}>
         A palavra fica salva na sua conta e bloqueia buscas nos navegadores com a extensão. Neste

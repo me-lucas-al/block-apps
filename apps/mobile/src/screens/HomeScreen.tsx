@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { FlatList, StyleSheet, Text, View } from 'react-native'
 import { ProtectionStatus } from '../components/protection/ProtectionStatus'
-import { AppRuleItem } from '../components/rules/apps/AppRuleItem'
+import { BlockRuleItem } from '../components/rules/BlockRuleItem'
 import { Button } from '../components/ui/Button'
+import { useInstalledApps } from '../hooks/device/useInstalledApps'
 import { useAppCatalog } from '../hooks/rules/useAppCatalog'
 import { useBlockRules } from '../hooks/rules/useBlockRules'
 import { describeRuleTarget } from '../rules/describeRuleTarget'
-import { useInstalledApps } from '../hooks/device/useInstalledApps'
 import { useServices } from '../services/ServicesContext'
 import { colors } from '../theme'
 import { AddRuleScreen } from './AddRuleScreen'
@@ -41,7 +41,7 @@ export function HomeScreen({ email }: HomeScreenProps) {
         keyExtractor={(rule) => rule.id}
         ListEmptyComponent={<Text style={styles.empty}>Nenhum app ou palavra bloqueada ainda.</Text>}
         renderItem={({ item }) => (
-          <AppRuleItem
+          <BlockRuleItem
             rule={item}
             label={describeRuleTarget(item, labelFor)}
             pendingChange={pendingChanges.find((change) => change.ruleId === item.id)}

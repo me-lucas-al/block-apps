@@ -1,7 +1,7 @@
+import { DueChangesApplicationError } from '../../domain/errors/DueChangesApplicationError'
 import type { Clock } from '../../domain/time/Clock'
 import type { PendingChangeStore } from '../contracts/PendingChangeStore'
 import type { ApplyDueChangesForUserUseCase } from './ApplyDueChangesForUserUseCase'
-import { DueChangesApplicationError } from './DueChangesApplicationError'
 
 export class ApplyAllDueChangesUseCase {
   constructor(

@@ -14,6 +14,7 @@ export interface Authenticator {
   beginTotpEnrollment?(): Promise<string>
   confirmTotpEnrollment?(totpCode: string): Promise<void>
   confirmSignUp?(email: string, code: string): Promise<void>
+  resendConfirmationCode?(email: string): Promise<void>
   requestPasswordReset?(email: string): Promise<void>
   confirmPasswordReset?(email: string, code: string, nextPass: string): Promise<void>
 }

@@ -47,6 +47,19 @@ export class CognitoAccountOps {
     })
   }
 
+  resendConfirmationCode(email: string): Promise<void> {
+    const user = this.getUser(email)
+    return new Promise((resolve, reject) => {
+      user.resendConfirmationCode((err) => {
+        if (err) {
+          reject(err)
+          return
+        }
+        resolve()
+      })
+    })
+  }
+
   forgotPassword(email: string): Promise<void> {
     const user = this.getUser(email)
     return new Promise((resolve, reject) => {

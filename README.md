@@ -50,7 +50,7 @@ flowchart TD
 | **Infraestrutura (`infra`)** | ✅ Pronto | 100% Terraform (auth, api, data, admin_site, bootstrap) |
 | **Cliente de Dados (`packages/api`)** | ✅ Pronto | `HttpApiClient` com auto-refresh, `CognitoAuthenticator` com SRP e PKCE |
 | **Extensão Chrome (`apps/extension`)** | ✅ Pronto | Declarative Net Request, palavras de busca proibidas, Google PKCE, anti-anônimo |
-| **App Android (`apps/mobile`)** | ✅ Pronto | React Native + Módulo Kotlin, WorkManager, Device Admin, Boot Receiver |
+| **App Android (`apps/mobile`)** | ✅ Pronto | React Native + Módulo Kotlin, WorkManager, Device Admin, Boot Receiver; palavras de busca só cadastradas (aplicação nativa pendente, veja `docs/ROADMAP.md`) |
 | **Painel Web (`apps/admin`)** | ✅ Pronto | Gestão de usuários, MFA TOTP obrigatório para admins, Hosted UI Google |
 | **CI/CD (`.github/workflows`)** | ✅ Pronto | GitHub Actions com testes, typecheck, validação Terraform e release |
 | **App iOS** | ⏸️ Pausado | Aguarda conta Apple Developer e entitlement Family Controls |

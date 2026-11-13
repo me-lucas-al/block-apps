@@ -19,6 +19,7 @@ export {
   type GoogleSignInAuthenticator,
 } from './auth/google/signInWithGoogle'
 export { generateCodeChallenge, generateRandomString } from './auth/cognito/pkce'
+export { requireConfigValue } from './config/requireConfigValue'
 export { ApiError } from './http/client/ApiError'
 export { HttpApiClient, type HttpApiConfig } from './http/client/HttpApiClient'
 export type {

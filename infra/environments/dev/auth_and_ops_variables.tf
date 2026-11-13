@@ -22,6 +22,12 @@ variable "admin_require_mfa" {
   default     = true
 }
 
+variable "max_rules_per_user" {
+  description = "Quantidade máxima de regras por usuário."
+  type        = number
+  default     = 200
+}
+
 variable "budget_limit_usd" {
   description = "Limite do orçamento mensal em USD no AWS Budgets. 0 desliga."
   type        = number

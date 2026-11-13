@@ -1,10 +1,11 @@
 import {
   type Authenticator,
-  CognitoAuthenticator,
+  createCognitoAuthenticator,
   HttpApiClient,
   HttpAdminUsersGateway,
   LocalUserSession,
   type UserSession,
+  WebPkceCrypto,
 } from '@block-apps/api'
 import { HttpAdminUsersAdapter } from '../adapters/HttpAdminUsersAdapter'
 import { HttpProfileGateway } from '../adapters/HttpProfileGateway'
@@ -24,7 +25,7 @@ export function createServices(): Services {
   const config = readAdminConfig()
   const storage = new WebSessionStorage()
   const userSession = new LocalUserSession(storage)
-  const authenticator = new CognitoAuthenticator(
+  const authenticator = createCognitoAuthenticator(
     {
       userPoolId: config.cognitoUserPoolId,
       clientId: config.cognitoClientId,
@@ -32,6 +33,7 @@ export function createServices(): Services {
     },
     storage,
     userSession,
+    new WebPkceCrypto(),
   )
 
   const http = new HttpApiClient({

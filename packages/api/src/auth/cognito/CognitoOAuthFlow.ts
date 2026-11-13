@@ -2,7 +2,6 @@ import type { GoogleAuthorization } from '../contracts/GoogleAuthorization'
 import type { SessionTokens } from '../contracts/SessionTokens'
 import type { PkceCrypto } from '../pkce/PkceCrypto'
 import { generateCodeChallenge, generateRandomString } from '../pkce/pkce'
-import { WebPkceCrypto } from '../pkce/WebPkceCrypto'
 import type { CognitoConfig } from './CognitoConfig'
 import { CognitoOAuthHelper } from './CognitoOAuthHelper'
 
@@ -11,7 +10,7 @@ export class CognitoOAuthFlow {
 
   constructor(
     config: CognitoConfig,
-    private readonly pkceCrypto: PkceCrypto = new WebPkceCrypto(),
+    private readonly pkceCrypto: PkceCrypto,
   ) {
     this.helper = new CognitoOAuthHelper(config)
   }

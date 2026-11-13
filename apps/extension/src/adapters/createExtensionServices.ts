@@ -1,10 +1,11 @@
 import {
-  CognitoAuthenticator,
+  createCognitoAuthenticator,
   HttpApiClient,
   HttpBlockRuleRepository,
   HttpDeviceRepository,
   HttpPendingRuleChangeRepository,
   LocalUserSession,
+  WebPkceCrypto,
 } from '@block-apps/api'
 import { ChromeSessionStorage } from './chrome/storage/ChromeSessionStorage'
 import { readExtensionConfig } from './readExtensionConfig'
@@ -14,7 +15,7 @@ export function createExtensionServices() {
   const storage = new ChromeSessionStorage()
   const session = new LocalUserSession(storage)
 
-  const authenticator = new CognitoAuthenticator(
+  const authenticator = createCognitoAuthenticator(
     {
       userPoolId: config.cognitoUserPoolId,
       clientId: config.cognitoClientId,
@@ -22,6 +23,7 @@ export function createExtensionServices() {
     },
     storage,
     session,
+    new WebPkceCrypto(),
   )
 
   const http = new HttpApiClient({

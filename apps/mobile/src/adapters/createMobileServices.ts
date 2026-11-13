@@ -1,5 +1,5 @@
 import {
-  CognitoAuthenticator,
+  createCognitoAuthenticator,
   HttpApiClient,
   HttpBlockRuleRepository,
   HttpDeviceRepository,
@@ -15,7 +15,7 @@ export function createMobileServices() {
   const storage = new SecureSessionStorage()
   const session = new LocalUserSession(storage)
 
-  const authenticator = new CognitoAuthenticator(
+  const authenticator = createCognitoAuthenticator(
     {
       userPoolId: config.cognitoUserPoolId,
       clientId: config.cognitoClientId,

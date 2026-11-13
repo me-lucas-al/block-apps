@@ -3,6 +3,7 @@ import type { CognitoAccountOps } from '../../src/auth/cognito/CognitoAccountOps
 import { CognitoSessionManager } from '../../src/auth/cognito/CognitoSessionManager'
 import type { CognitoTokenRevoker } from '../../src/auth/cognito/CognitoTokenRevoker'
 import type { SessionTokens } from '../../src/auth/contracts/SessionTokens'
+import { SessionRevocationError } from '../../src/auth/SessionRevocationError'
 import { LocalUserSession } from '../../src/auth/session/LocalUserSession'
 import { MemorySessionStorage } from '../../src/auth/storage/MemorySessionStorage'
 
@@ -78,10 +79,32 @@ describe('CognitoSessionManager.signOut', () => {
     const failedRevocation = vi.fn().mockRejectedValue(new Error('Network error'))
     const { storage, manager, clearCachedSession } = await makeHarness(vi.fn(), failedRevocation)
 
-    await expect(manager.signOut()).rejects.toThrow('Network error')
+    await expect(manager.signOut()).rejects.toBeInstanceOf(SessionRevocationError)
 
     expect(clearCachedSession).toHaveBeenCalledWith('user@example.com')
     expect(await storage.load()).toBeNull()
+  })
+
+  it('still forgets the session when clearing the sdk cache throws', async () => {
+    const { storage, manager, clearCachedSession } = await makeHarness(vi.fn())
+    clearCachedSession.mockImplementation(() => {
+      throw new Error('cache failure')
+    })
+
+    await expect(manager.signOut()).rejects.toThrow('cache failure')
+
+    expect(await storage.load()).toBeNull()
+  })
+
+  it('reports a storage read failure and still clears the stored session', async () => {
+    const { storage, manager, revokeRefreshToken } = await makeHarness(vi.fn())
+    const clearStorage = vi.spyOn(storage, 'clear')
+    vi.spyOn(storage, 'load').mockRejectedValue(new Error('read failed'))
+
+    await expect(manager.signOut()).rejects.toThrow('read failed')
+
+    expect(revokeRefreshToken).not.toHaveBeenCalled()
+    expect(clearStorage).toHaveBeenCalled()
   })
 
   it('does nothing on the server when there is no session', async () => {

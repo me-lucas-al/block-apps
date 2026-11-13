@@ -1,6 +1,6 @@
-import { createLinkFederatedUserUseCase } from '../composition/createLinkFederatedUserUseCase'
+import { createLinkFederatedUserUseCase } from '../../composition/createLinkFederatedUserUseCase'
+import { createLazyHandler } from '../createLazyHandler'
 import { answerPreSignUpEvent } from './answerPreSignUpEvent'
-import { createLazyHandler } from './createLazyHandler'
 import type { PreSignUpTriggerEvent } from './PreSignUpTriggerEvent'
 
 export const preSignUpHandler = createLazyHandler(() => {

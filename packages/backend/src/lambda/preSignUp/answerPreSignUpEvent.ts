@@ -1,4 +1,4 @@
-import type { LinkFederatedUserUseCase } from '../auth/use-cases/LinkFederatedUserUseCase'
+import type { LinkFederatedUserUseCase } from '../../auth/use-cases/LinkFederatedUserUseCase'
 import type { PreSignUpTriggerEvent } from './PreSignUpTriggerEvent'
 
 export async function answerPreSignUpEvent(

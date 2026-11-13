@@ -29,7 +29,7 @@ O `userId` vem sempre do `sub` do token validado pelo API Gateway; nenhuma rota 
 
 ## Cota de regras
 
-Cada usuário pode ter até `MAX_RULES_PER_USER` regras (padrão 200). Ao criar a regra seguinte o backend responde `422` com `{ error, code: "rule-quota-exceeded", maxRulesPerUser }`. Uma remoção só libera a vaga quando entra em vigor (depois do cooldown), porque a regra continua valendo até lá; mudanças pendentes só alteram ou removem regras e nunca criam, então não entram na conta. No Terraform o valor vem de `max_rules_per_user` (módulo `api` e ambiente `dev`).
+Cada usuário pode ter até `MAX_RULES_PER_USER` regras (padrão 200). Ao criar a regra seguinte o backend responde `422` com `{ error, code: "rule-quota-exceeded", maxRulesPerUser }`. Uma remoção só libera a vaga quando entra em vigor (depois do cooldown), porque a regra continua valendo até lá; mudanças pendentes só alteram ou removem regras e nunca criam, então não entram na conta. O valor precisa ser um inteiro decimal positivo (`1e3`, `0x10` e espaços são recusados); se for inválido a Lambda `api` registra um log JSON `invalid rule limit configuration` e falha ao atender a primeira chamada. No Terraform o valor vem de `max_rules_per_user` (módulo `api` e ambiente `dev`). Na API local, defina `MAX_RULES_PER_USER` antes de subir (`$env:MAX_RULES_PER_USER = '5'` com `pnpm --filter @block-apps/backend local`, ou no ambiente do `docker compose -f docker-compose.local.yml`); o padrão é 200.
 
 ## Rotas da função `admin`
 
@@ -111,5 +111,5 @@ As rotas `/admin` usam um Cognito falso em memória (`src/local/cognito`) com es
 - Se apagar os dados de um usuário falhar depois de ele ser removido do Cognito, os itens ficam órfãos no DynamoDB e a chamada devolve 500.
 - O cooldown do usuário vive no item `SETTINGS` e ainda não tem rota de escrita: fica em 24h até a fase de administração. Valor inválido (fora de 0 a 168 horas, ou não inteiro) volta para 24h.
 - Sem limite de quantidade de dispositivos por usuário.
-- A cota de regras (`MAX_RULES_PER_USER`) é conferida antes de gravar, sem trava atômica: duas criações simultâneas do mesmo usuário podem passar do limite por uma regra.
+- A cota de regras (`MAX_RULES_PER_USER`) é conferida antes de gravar, sem trava atômica: N criações simultâneas do mesmo usuário, todas lendo a contagem antes de qualquer gravação, passam juntas e o excesso pode chegar a N-1 regras acima do limite. Um contador atômico fica para quando for preciso um limite rígido.
 - Alvos de site são reduzidos ao domínio (`https://www.Exemplo.com/x` vira `exemplo.com`); identificadores de app mantêm a caixa original.

@@ -27,6 +27,11 @@ jobs:
         run: pnpm --filter @block-apps/backend package
       - name: Build extension
         run: pnpm --filter @block-apps/extension build
+        env:
+          VITE_API_URL: ${{ vars.API_URL }}
+          VITE_COGNITO_USER_POOL_ID: ${{ vars.COGNITO_USER_POOL_ID }}
+          VITE_COGNITO_CLIENT_ID: ${{ vars.EXTENSION_COGNITO_CLIENT_ID }}
+          VITE_COGNITO_HOSTED_DOMAIN: ${{ vars.COGNITO_HOSTED_DOMAIN }}
       - name: Create extension zip
         run: cd apps/extension/dist && zip -r ../../../block-apps-extension.zip .
       - name: Upload extension artifact
@@ -41,6 +46,11 @@ jobs:
           path: packages/backend/dist/lambda.zip
       - name: Build admin site
         run: pnpm --filter @block-apps/admin build
+        env:
+          VITE_API_URL: ${{ vars.API_URL }}
+          VITE_COGNITO_USER_POOL_ID: ${{ vars.COGNITO_USER_POOL_ID }}
+          VITE_COGNITO_CLIENT_ID: ${{ vars.ADMIN_COGNITO_CLIENT_ID }}
+          VITE_COGNITO_HOSTED_DOMAIN: ${{ vars.COGNITO_HOSTED_DOMAIN }}
       - name: Upload admin site artifact
         uses: actions/upload-artifact@v4
         with:

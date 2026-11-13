@@ -39,8 +39,18 @@ jobs:
         run: pnpm --filter @block-apps/backend package
       - name: Build extension
         run: pnpm --filter @block-apps/extension build
+        env:
+          VITE_API_URL: https://api.ci.invalid
+          VITE_COGNITO_USER_POOL_ID: ci-region_ciPool
+          VITE_COGNITO_CLIENT_ID: ci-extension-client
+          VITE_COGNITO_HOSTED_DOMAIN: auth.ci.invalid
       - name: Build admin site
         run: pnpm --filter @block-apps/admin build
+        env:
+          VITE_API_URL: https://api.ci.invalid
+          VITE_COGNITO_USER_POOL_ID: ci-region_ciPool
+          VITE_COGNITO_CLIENT_ID: ci-admin-client
+          VITE_COGNITO_HOSTED_DOMAIN: auth.ci.invalid
 
   android:
     name: Android native module

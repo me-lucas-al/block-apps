@@ -33,13 +33,23 @@ jobs:
         run: pnpm --filter @block-apps/extension build:firefox
       - name: Create Firefox extension zip
         run: cd apps/extension/dist-firefox && zip -r ../../../block-apps-extension-firefox.zip .
-      - name: Upload extension artifact
+      - name: Create source zip for the Firefox review
+        run: git archive --format=zip --output block-apps-source.zip HEAD
+      - name: Upload Chrome extension artifact
         uses: actions/upload-artifact@v4
         with:
-          name: block-apps-extension
-          path: |
-            block-apps-extension.zip
-            block-apps-extension-firefox.zip
+          name: block-apps-extension-chrome
+          path: block-apps-extension.zip
+      - name: Upload Firefox extension artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: block-apps-extension-firefox
+          path: block-apps-extension-firefox.zip
+      - name: Upload source artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: block-apps-source
+          path: block-apps-source.zip
       - name: Upload backend lambda artifact
         uses: actions/upload-artifact@v4
         with:

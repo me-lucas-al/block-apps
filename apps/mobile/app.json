@@ -6,6 +6,26 @@
     "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
+    "plugins": ["@bacons/apple-targets"],
+    "ios": {
+      "bundleIdentifier": "com.blockapps.mobile",
+      "supportsTablet": false,
+      "entitlements": {
+        "com.apple.developer.family-controls": true,
+        "com.apple.security.application-groups": ["group.com.blockapps.mobile"]
+      },
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "privacyManifests": {
+        "NSPrivacyAccessedAPITypes": [
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
+            "NSPrivacyAccessedAPITypeReasons": ["CA92.1"]
+          }
+        ]
+      }
+    },
     "android": {
       "package": "com.blockapps.mobile",
       "adaptiveIcon": {

@@ -14,6 +14,15 @@ describe('readOAuthCallback', () => {
     )
   })
 
+  it('hides the provider error text when the callback carries no state', () => {
+    const callbackUrl = 'https://app.test/cb?error=access_denied&error_description=Forged+text'
+
+    expect(() => readOAuthCallback(callbackUrl, 'expected')).toThrow(
+      'O login com o provedor falhou. Tente novamente.',
+    )
+    expect(() => readOAuthCallback(callbackUrl, 'expected')).not.toThrow('Forged text')
+  })
+
   it('rejects a callback without state', () => {
     expect(() => readOAuthCallback('https://app.test/cb?code=abc', 'expected')).toThrow(
       'OAuth state does not match the sign in request',

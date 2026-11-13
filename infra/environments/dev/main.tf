@@ -23,8 +23,6 @@ module "auth" {
   deletion_protection  = var.protect_from_deletion
   allow_self_signup    = var.allow_self_signup
   hosted_domain_prefix = var.hosted_domain_prefix
-  web_callback_urls    = var.web_callback_urls
-  web_logout_urls      = var.web_logout_urls
   google_client_id     = var.google_client_id
   google_client_secret = var.google_client_secret
   initial_admin_email  = var.initial_admin_email

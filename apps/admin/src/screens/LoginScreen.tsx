@@ -1,3 +1,4 @@
+import { loginStepFor, type LoginStep } from '@block-apps/api'
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { useServices } from '../services/ServicesContext'
@@ -7,6 +8,16 @@ import { ResetPasswordScreen } from './ResetPasswordScreen'
 import { TotpScreen } from './TotpScreen'
 
 type AuthView = 'login' | 'new_password' | 'totp' | 'mfa_setup' | 'reset_password'
+
+const UNCONFIRMED_ACCOUNT_MESSAGE = 'Confirme o cadastro desta conta antes de entrar.'
+
+const VIEW_AFTER_STEP: Readonly<Record<Exclude<LoginStep, 'confirm_signup'>, AuthView>> = {
+  signed_in: 'login',
+  new_password: 'new_password',
+  totp: 'totp',
+  mfa_setup: 'mfa_setup',
+  reset_password: 'reset_password',
+}
 
 export function LoginScreen() {
   const { authenticator } = useServices()
@@ -19,14 +30,11 @@ export function LoginScreen() {
     event.preventDefault()
     try {
       setError(null)
-      await authenticator.signInWithPassword(email.trim(), password)
+      const step = loginStepFor(await authenticator.signInWithPassword(email.trim(), password))
+      if (step === 'confirm_signup') setError(UNCONFIRMED_ACCOUNT_MESSAGE)
+      else setView(VIEW_AFTER_STEP[step])
     } catch (failure) {
-      const msg = failure instanceof Error ? failure.message : 'E-mail ou senha incorretos.'
-      if (msg.includes('NEW_PASSWORD_REQUIRED')) setView('new_password')
-      else if (msg.includes('MFA_SETUP')) setView('mfa_setup')
-      else if (msg.includes('SOFTWARE_TOKEN_MFA') || msg.includes('MFA_REQUIRED')) setView('totp')
-      else if (msg.includes('RESET_REQUIRED') || msg.includes('PasswordResetRequiredException')) setView('reset_password')
-      else setError(msg)
+      setError(failure instanceof Error ? failure.message : 'E-mail ou senha incorretos.')
     }
   }
 

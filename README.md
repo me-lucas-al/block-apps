@@ -50,7 +50,7 @@ flowchart TD
 | **Infraestrutura (`infra`)** | ✅ Pronto | 100% Terraform (auth, api, data, admin_site, bootstrap) |
 | **Cliente de Dados (`packages/api`)** | ✅ Pronto | `HttpApiClient` com auto-refresh, `CognitoAuthenticator` com SRP e PKCE |
 | **Extensão Chrome (`apps/extension`)** | ✅ Pronto | Declarative Net Request, palavras de busca proibidas, Google PKCE, anti-anônimo |
-| **App Android (`apps/mobile`)** | ✅ Pronto | React Native + Módulo Kotlin, WorkManager, Device Admin, Boot Receiver |
+| **App Android (`apps/mobile`)** | ✅ Pronto | React Native + Módulo Kotlin, sincronização em segundo plano (`expo-background-task`), Device Admin |
 | **Painel Web (`apps/admin`)** | ✅ Pronto | Gestão de usuários, MFA TOTP obrigatório para admins |
 | **CI/CD (`.github/workflows`)** | ✅ Pronto | GitHub Actions com testes, typecheck, validação Terraform e release |
 | **App iOS** | ⏸️ Pausado | Aguarda conta Apple Developer e entitlement Family Controls |
@@ -73,7 +73,7 @@ Para impedir mudanças impulsivas, regras ativas não podem ser removidas ou afr
 ### 3. Bloqueio Offline e Anti-Burla
 - Clientes realizam cache local das regras (`chrome.storage.local` na extensão e `SharedPreferences` do módulo nativo no Android).
 - Mesmo sem conexão ou se o usuário fizer logout, as regras locais continuam ativas para evitar burlas.
-- No Android, o módulo nativo com `DeviceAdmin` e `WorkManager` restaura regras mesmo após reinício do aparelho.
+- No Android, o módulo nativo com `DeviceAdmin` mantém as regras salvas no aparelho e uma tarefa em segundo plano tenta atualizá-las com intervalo mínimo de 15 minutos. O Android decide quando ela roda (Doze, otimização de bateria) e a tarefa não roda se o usuário forçar a parada do app; por isso a sincronização também acontece ao abrir o app e ao voltar ao primeiro plano.
 
 ---
 

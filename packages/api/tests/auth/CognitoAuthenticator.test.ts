@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { CognitoAuthenticator } from '../../src/auth/cognito/CognitoAuthenticator'
+import { createCognitoAuthenticator } from '../../src/auth/cognito/createCognitoAuthenticator'
+import { WebPkceCrypto } from '../../src/auth/pkce/WebPkceCrypto'
+import { SessionRevocationError } from '../../src/auth/SessionRevocationError'
 import { LocalUserSession } from '../../src/auth/session/LocalUserSession'
 import { MemorySessionStorage } from '../../src/auth/storage/MemorySessionStorage'
 import { buildCognitoSession, sdkScenario } from './cognitoSdkDouble'
@@ -17,7 +19,12 @@ const config = { userPoolId: 'pool-1', clientId: 'client-1', hostedDomain: 'auth
 
 function buildAuthenticator() {
   const storage = new MemorySessionStorage()
-  const authenticator = new CognitoAuthenticator(config, storage, new LocalUserSession(storage))
+  const authenticator = createCognitoAuthenticator(
+    config,
+    storage,
+    new LocalUserSession(storage),
+    new WebPkceCrypto(),
+  )
   return { authenticator, storage }
 }
 
@@ -91,7 +98,7 @@ describe('CognitoAuthenticator.signOut', () => {
       email: 'a@b.com',
     })
 
-    await expect(authenticator.signOut()).rejects.toThrow('status 500')
+    await expect(authenticator.signOut()).rejects.toBeInstanceOf(SessionRevocationError)
 
     expect(await storage.load()).toBeNull()
     expect(sdkScenario.signOutCount).toBe(1)

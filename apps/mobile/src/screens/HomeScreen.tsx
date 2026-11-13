@@ -4,7 +4,8 @@ import { ProtectionStatus } from '../components/protection/ProtectionStatus'
 import { AppRuleItem } from '../components/rules/apps/AppRuleItem'
 import { Button } from '../components/ui/Button'
 import { useAppCatalog } from '../hooks/rules/useAppCatalog'
-import { useAppRules } from '../hooks/rules/useAppRules'
+import { useBlockRules } from '../hooks/rules/useBlockRules'
+import { describeRuleTarget } from '../rules/describeRuleTarget'
 import { useInstalledApps } from '../hooks/device/useInstalledApps'
 import { useServices } from '../services/ServicesContext'
 import { colors } from '../theme'
@@ -16,7 +17,7 @@ type HomeScreenProps = {
 
 export function HomeScreen({ email }: HomeScreenProps) {
   const { authenticator } = useServices()
-  const { rules, pendingChanges, error, create, requestRemoval, cancelChange } = useAppRules()
+  const { rules, pendingChanges, error, create, requestRemoval, cancelChange } = useBlockRules()
   const apps = useInstalledApps()
   const { labelFor } = useAppCatalog(apps)
   const [adding, setAdding] = useState(false)
@@ -38,18 +39,18 @@ export function HomeScreen({ email }: HomeScreenProps) {
       <FlatList
         data={rules}
         keyExtractor={(rule) => rule.id}
-        ListEmptyComponent={<Text style={styles.empty}>Nenhum app bloqueado ainda.</Text>}
+        ListEmptyComponent={<Text style={styles.empty}>Nenhum app ou palavra bloqueada ainda.</Text>}
         renderItem={({ item }) => (
           <AppRuleItem
             rule={item}
-            label={labelFor(item.target)}
+            label={describeRuleTarget(item, labelFor)}
             pendingChange={pendingChanges.find((change) => change.ruleId === item.id)}
             onRemove={(id) => void requestRemoval(id)}
             onCancel={(id) => void cancelChange(id)}
           />
         )}
       />
-      <Button label="Bloquear um app" onPress={() => setAdding(true)} />
+      <Button label="Bloquear app ou palavra" onPress={() => setAdding(true)} />
     </View>
   )
 }

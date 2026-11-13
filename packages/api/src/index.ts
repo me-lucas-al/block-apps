@@ -12,6 +12,7 @@ export { CognitoOAuthHelper } from './auth/cognito/CognitoOAuthHelper'
 export { CognitoOAuthFlow } from './auth/cognito/CognitoOAuthFlow'
 export { generateCodeChallenge, generateRandomString } from './auth/cognito/pkce'
 export { ApiError } from './http/client/ApiError'
+export { describeApiFailure } from './http/describeApiFailure'
 export { HttpApiClient, type HttpApiConfig } from './http/client/HttpApiClient'
 export type {
   BlockRuleRepository,

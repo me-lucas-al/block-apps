@@ -1,14 +1,10 @@
-import type { NewBlockRule } from '@block-apps/api'
+import { describeApiFailure, type NewBlockRule } from '@block-apps/api'
 import type { BlockRule, PendingRuleChange } from '@block-apps/core'
 import { useCallback, useEffect, useState } from 'react'
 import { useServices } from '../../services/ServicesContext'
 
 function keepAppAndKeywordRules(rules: BlockRule[]): BlockRule[] {
   return rules.filter((rule) => rule.targetType === 'app' || rule.targetType === 'keyword')
-}
-
-function messageOf(failure: unknown): string {
-  return failure instanceof Error ? failure.message : 'Erro inesperado'
 }
 
 export function useBlockRules() {
@@ -25,14 +21,14 @@ export function useBlockRules() {
     rulesSync.push(allRules)
   }, [ruleRepository, pendingRuleChanges, rulesSync])
 
-  const run = useCallback(
-    async (action: () => Promise<unknown>) => {
+  const runAndReloadRules = useCallback(
+    async (change: () => Promise<unknown>) => {
       try {
         setError(null)
-        await action()
+        await change()
         await reload()
-      } catch (failure) {
-        setError(messageOf(failure))
+      } catch (failure: unknown) {
+        setError(describeApiFailure(failure))
         throw failure
       }
     },
@@ -40,7 +36,8 @@ export function useBlockRules() {
   )
 
   useEffect(() => {
-    const refresh = () => void reload().catch((failure: unknown) => setError(messageOf(failure)))
+    const refresh = () =>
+      void reload().catch((failure: unknown) => setError(describeApiFailure(failure)))
     refresh()
     return ruleRepository.subscribeToRuleChanges(refresh)
   }, [reload, ruleRepository])
@@ -49,10 +46,12 @@ export function useBlockRules() {
     rules,
     pendingChanges,
     error,
-    create: (rule: NewBlockRule) => run(() => ruleRepository.create(rule)),
+    create: (rule: NewBlockRule) => runAndReloadRules(() => ruleRepository.create(rule)),
     requestRemoval: (ruleId: string) =>
-      run(() => pendingRuleChanges.requestRemoval(ruleId)).catch(() => undefined),
+      runAndReloadRules(() => pendingRuleChanges.requestRemoval(ruleId)).catch(() => undefined),
     cancelChange: (ruleId: string) =>
-      run(() => pendingRuleChanges.cancelPendingChange(ruleId)).catch(() => undefined),
+      runAndReloadRules(() => pendingRuleChanges.cancelPendingChange(ruleId)).catch(
+        () => undefined,
+      ),
   }
 }

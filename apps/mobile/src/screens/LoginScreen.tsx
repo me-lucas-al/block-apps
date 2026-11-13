@@ -21,7 +21,7 @@ export function LoginScreen() {
   if (step === 'new_password') return <NewPasswordStep onCompleted={returnToLogin} />
   if (step === 'totp') return <TotpStep onCompleted={returnToLogin} />
   if (step === 'forgot_password') {
-    return <ForgotPasswordStep initialEmail={email} onCancel={returnToLogin} onCompleted={returnToLogin} />
+    return <ForgotPasswordStep initialEmail={email.trim()} onCancel={returnToLogin} onCompleted={returnToLogin} />
   }
 
   return (

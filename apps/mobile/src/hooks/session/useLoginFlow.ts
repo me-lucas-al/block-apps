@@ -1,6 +1,5 @@
 import { loginStepFor, type LoginStep } from '@block-apps/api'
 import { useState } from 'react'
-import { launchMobileGoogleAuth } from '../../adapters/auth/mobileGoogleAuth'
 import { useServices } from '../../services/ServicesContext'
 
 export type AuthStep = 'login' | 'confirm_signup' | 'new_password' | 'totp' | 'forgot_password'
@@ -21,7 +20,7 @@ function describeFailure(failure: unknown, fallbackMessage: string): string {
 }
 
 export function useLoginFlow() {
-  const { authenticator } = useServices()
+  const { authenticator, googleSignIn } = useServices()
   const [step, setStep] = useState<AuthStep>('login')
   const [error, setError] = useState<string | null>(null)
 
@@ -49,7 +48,7 @@ export function useLoginFlow() {
   const startGoogleSignIn = async () => {
     try {
       setError(null)
-      await launchMobileGoogleAuth(authenticator)
+      await googleSignIn.requestGoogleSignIn()
     } catch (failure) {
       setError(describeFailure(failure, 'Erro no login Google'))
     }

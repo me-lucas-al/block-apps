@@ -1,6 +1,6 @@
 # Backend (Lambda + DynamoDB)
 
-Pacote `packages/backend`: API em Hono, use cases pequenos e adaptadores DynamoDB. Duas funções saem do mesmo pacote: `apiHandler` (regras, mudanças pendentes, dispositivos) e `adminHandler` (rotas `/admin/*`). Cada função só lê as variáveis de ambiente de que precisa, na primeira invocação.
+Pacote `packages/backend`: API em Hono, use cases pequenos e adaptadores DynamoDB e Cognito. Quatro funções saem do mesmo pacote: `apiHandler` (regras, mudanças pendentes, dispositivos), `adminHandler` (rotas `/admin/*`), `preSignUpHandler` (gatilho do Cognito que vincula o login do Google à conta de mesmo e-mail) e `schedulerHandler` (aplica as mudanças vencidas a cada 5 minutos). Cada função só lê as variáveis de ambiente de que precisa, na primeira invocação.
 
 ```
 src/
@@ -8,11 +8,35 @@ src/
   rules/         criar e listar regras
   cooldown/      pedido de alteração, remoção, aplicação das mudanças vencidas
   devices/       status de dispositivos
-  storage/dynamodb/  chaves, tabelas e adaptadores
+  users/         use cases, guardas e contratos das rotas administrativas
+  auth/          vínculo entre login do Google e conta com senha (PreSignUp)
+  storage/       adaptadores DynamoDB (chaves, tabelas) e Cognito
   http/          app Hono, autenticação (claims do JWT), rotas, parsing
   composition/   liga stores e use cases
-  lambda/        entradas das duas funções
+  lambda/        entradas das quatro funções
 ```
+
+## Modelo de dados
+
+Uma única tabela DynamoDB (`<prefixo>-data`), cobrança por demanda, com recuperação em ponto no tempo e criptografia. Chave de partição `pk` e de ordenação `sk`, as duas texto. Tudo de um usuário fica na mesma partição, `USER#<userId>` (o `sub` do Cognito), então apagar um usuário é consultar uma partição só.
+
+| Item | `pk` | `sk` | Atributos |
+| --- | --- | --- | --- |
+| Regra | `USER#<userId>` | `RULE#<ruleId>` | `id`, `targetType` (`app`, `site` ou `keyword`), `target`, `mode`, `windows` |
+| Mudança pendente | `USER#<userId>` | `CHANGE#<ruleId>` | `ruleId`, `kind` (`update` ou `delete`), `mode`, `windows`, `effectiveAt`, `dueBucket` (sempre `DUE`) |
+| Configuração | `USER#<userId>` | `SETTINGS` | `cooldownHours` |
+| Dispositivo | `USER#<userId>` | `DEVICE#<deviceId>` | `deviceId`, `platform`, `incognitoAllowed`, `adminActive`, `lastSeen` |
+
+Há uma mudança pendente por regra (a chave usa o `ruleId`), então pedir de novo substitui o pedido anterior.
+
+Índice secundário global `due-changes`: chave de partição `dueBucket`, de ordenação `effectiveAt`, projeção `ALL`. O `schedulerHandler` consulta o balde `DUE` até o instante atual para achar quem tem mudança vencida.
+
+### Riscos do desenho
+
+- O balde `DUE` é único: todas as mudanças pendentes caem numa partição do índice. Serve para este volume; com muitos usuários, divida em baldes (`DUE#0`, `DUE#1`, ...).
+- O `userId` está no `pk` e no token. Nada na API aceita `userId` no corpo; qualquer rota nova precisa tirá-lo só do token.
+- Itens órfãos: se a exclusão dos dados falhar depois de o usuário sair do Cognito, eles ficam na tabela (ver "Limites conhecidos").
+- O `lastSeen` do dispositivo vem do relógio da Lambda, não do aparelho.
 
 ## Rotas da função `api`
 
@@ -50,6 +74,18 @@ Salvaguardas, todas no código porque o IAM do Cognito não separa grupos nem us
 - "Último administrador" conta só administradores utilizáveis (habilitados, com senha definida). Como o chamador também precisa ser um administrador utilizável e não age sobre si mesmo, a trava só dispara numa corrida.
 - Criar usuário desfaz a criação no Cognito se gravar o cooldown falhar.
 - Não há senha na API: o usuário novo recebe o convite do Cognito por e-mail (senha temporária, troca obrigatória).
+- Com `ADMIN_REQUIRE_MFA` ligada (padrão), o administrador também precisa ter TOTP ativo; sem isso as rotas respondem 403 e o painel leva o administrador ao cadastro do TOTP.
+
+### Administrador e login com Google
+
+O painel só entra por e-mail, senha e TOTP: o client do painel no Cognito não tem login do Google. O Google vale no app e na extensão. Por isso:
+
+1. Convide a pessoa pelo painel (ou pelo `initial_admin_email` do Terraform) usando o **mesmo e-mail** que ela usa no Google. A conta nasce com uma senha temporária enviada por e-mail.
+2. A pessoa troca a senha temporária e cadastra o TOTP no primeiro acesso ao painel. Só depois disso ela é um administrador utilizável.
+3. Se ela entrar no app ou na extensão com o Google *depois* de a conta estar confirmada, o PreSignUp vincula o Google à conta existente: é o mesmo `sub`, então o papel de administrador e os dados continuam os mesmos.
+4. Se a pessoa entrar com o Google *antes* de definir a senha do convite, o Cognito cria uma conta separada (`Google_...`, outro `sub`) com papel `user`. Promovê-la a administrador não ajuda, porque ela não tem senha para o painel. Peça que defina a senha do convite e use essa conta.
+
+Só se vincula conta nativa confirmada, habilitada e com e-mail verificado; qualquer outra situação cria a conta do Google separada.
 
 ## Testes
 
@@ -102,14 +138,15 @@ As rotas `/admin` usam um Cognito falso em memória (`src/local/cognito`) com es
 ## Limites conhecidos
 
 - O índice `due-changes` usa um balde único (`DUE`). Serve para este volume; com muitos usuários, divida em baldes.
-- Ninguém dispara `applyAllDueChanges` ainda (falta o EventBridge Scheduler); hoje as mudanças vencidas são aplicadas quando o próprio usuário chama a API.
+- O EventBridge Scheduler aciona o `schedulerHandler` a cada 5 minutos; além disso as mudanças vencidas de um usuário são aplicadas quando ele chama a API.
 - A regra do último administrador é conferida por contagem no Cognito, sem trava atômica: dois administradores rebaixando um ao outro no mesmo instante poderiam zerar os administradores. A saída de emergência é o administrador inicial do Terraform (ou o console do Cognito).
 - Depois de excluir ou rebaixar alguém, o token de acesso já emitido vale até 15 minutos nas rotas comuns (`api`), que não consultam o Cognito; as rotas `admin` consultam a cada chamada.
 - A listagem lê o cooldown de cada usuário no DynamoDB e não tem paginação: serve para algumas centenas de usuários.
-- Depois do reset de senha o usuário fica em `RESET_REQUIRED` e precisa do fluxo "esqueci a senha"; o painel (fase 4) precisa tratar isso.
+- Depois do reset de senha o usuário fica em `RESET_REQUIRED` e precisa do fluxo "esqueci a senha"; o painel, o app e a extensão têm a tela para isso.
 - A listagem de usuários não traz último acesso (o Cognito não guarda esse dado).
 - Se apagar os dados de um usuário falhar depois de ele ser removido do Cognito, os itens ficam órfãos no DynamoDB e a chamada devolve 500.
-- O cooldown do usuário vive no item `SETTINGS` e ainda não tem rota de escrita: fica em 24h até a fase de administração. Valor inválido (fora de 0 a 168 horas, ou não inteiro) volta para 24h.
+- O cooldown do usuário vive no item `SETTINGS` e um administrador o define ao convidar ou em `PATCH /admin/users/:userId` (`cooldownHours`). Sem o item, vale 24h; valor inválido (fora de 0 a 168 horas, ou não inteiro) também volta para 24h.
+- Se o `schedulerHandler` falhar ao aplicar as mudanças de algum usuário, ele termina os demais e então lança `DueChangesApplicationError` (a mensagem traz a contagem e os 5 primeiros ids). A Lambda registra erro, o alarme `scheduler-errors` dispara e o próximo tick de 5 minutos tenta de novo; não há retry automático na Lambda.
 - Sem limite de quantidade de dispositivos por usuário.
 - A cota de regras (`MAX_RULES_PER_USER`) é conferida antes de gravar, sem trava atômica: N criações simultâneas do mesmo usuário, todas lendo a contagem antes de qualquer gravação, passam juntas e o excesso pode chegar a N-1 regras acima do limite. Um contador atômico fica para quando for preciso um limite rígido.
 - Alvos de site são reduzidos ao domínio (`https://www.Exemplo.com/x` vira `exemplo.com`); identificadores de app mantêm a caixa original.

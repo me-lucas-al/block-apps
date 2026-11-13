@@ -41,6 +41,6 @@ DynamoDB (tabela única)
 4. **Migração dos Clientes:**
    - **Extensão (`apps/extension`):** MV3, storage local, Google OAuth com PKCE, blocking dinâmico e busca proibida.
    - **Mobile Android (`apps/mobile`):** `expo-secure-store`, Google AuthSession, native module com WorkManager e Boot Receiver, status de dispositivo com `adminActive`.
-   - **Painel Admin (`apps/admin`):** Gestão de usuários, MFA TOTP obrigatório, Hosted UI Google e CSP no CloudFront/Nginx.
+   - **Painel Admin (`apps/admin`):** Gestão de usuários, MFA TOTP obrigatório (entrada só por senha) e CSP no CloudFront/Nginx.
 5. **Remoção do Supabase (`chore/remove-supabase`):** Eliminação completa de `supabase/`, pacotes legados e dependências `@supabase/supabase-js`.
 6. **Pipelines CI/CD (`ci/terraform-and-release`):** Validação estrita no CI (`check:no-any`, `typecheck`, `test`), `terraform validate`, `terraform plan` em PRs e deploy automatizado no push para `main`.

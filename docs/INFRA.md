@@ -77,7 +77,7 @@ e só então limpe `initial_admin_email`.
 
 Crie as credenciais OAuth no Google Cloud e informe o ID em `google_client_id` no `terraform.tfvars`. A **chave secreta** vai por variável de ambiente, nunca em arquivo: `$env:TF_VAR_google_client_secret = '...'`. A URL de callback autorizada no Google é `https://<hosted_login_domain>/oauth2/idpresponse`.
 
-Contas do Google e contas com senha são vinculadas pelo gatilho **PreSignUp** quando o e-mail do Google já está verificado (`AdminLinkProviderForUser`), evitando contas duplicadas e tomada de conta. O login Google está habilitado no painel, app e extensão (via OAuth code + PKCE).
+Contas do Google e contas com senha são vinculadas pelo gatilho **PreSignUp** quando o e-mail do Google já está verificado (`AdminLinkProviderForUser`), evitando contas duplicadas e tomada de conta. O login Google está habilitado no app e na extensão (OAuth code + PKCE); o painel entra só por e-mail, senha e TOTP. Ver "Administrador e login com Google" em `docs/BACKEND.md`.
 
 ## Deploy de produção pelo GitHub
 
@@ -85,8 +85,10 @@ O `release.yml` só roda por disparo manual e os jobs de deploy usam o ambiente 
 
 - **Required reviewers:** quem aprova cada deploy.
 - **Deployment branches:** só `main`.
-- **Variables:** `HOSTED_DOMAIN_PREFIX`, `GOOGLE_CLIENT_ID`, `INITIAL_ADMIN_EMAIL`.
+- **Variables:** `HOSTED_DOMAIN_PREFIX`, `GOOGLE_CLIENT_ID`, `INITIAL_ADMIN_EMAIL`, `ALARM_EMAIL` (e-mail que recebe os alarmes).
 - **Secrets:** `AWS_ROLE_ARN`, `TF_STATE_BUCKET`, `GOOGLE_CLIENT_SECRET`.
+
+O job de build da extensão e do painel não usa o ambiente, então crie no nível do repositório as variáveis `API_URL`, `COGNITO_USER_POOL_ID`, `COGNITO_HOSTED_DOMAIN`, `EXTENSION_COGNITO_CLIENT_ID` e `ADMIN_COGNITO_CLIENT_ID` (valores dos outputs do Terraform). O `release.yml` confere essas variáveis antes de empacotar e falha se alguma estiver vazia. Os leitores de configuração dos clientes só lançam erro quando o app abre, não durante o build do Vite.
 
 O workflow passa esses valores ao Terraform por `TF_VAR_*`, gera `release.tfplan` com `plan -out` e aplica exatamente esse arquivo. O `Terraform Plan` das PRs não usa o ambiente (para não pedir aprovação a cada PR), então crie as mesmas variáveis e segredos também no nível do repositório.
 
@@ -94,7 +96,7 @@ O workflow passa esses valores ao Terraform por `TF_VAR_*`, gera `release.tfplan
 
 - **Handlers especializados.** A função `api` só acessa o DynamoDB. A função `admin` acessa o Cognito e exige **MFA TOTP ativo** (`ADMIN_REQUIRE_MFA`, desligável apenas por emergência). A função `scheduler` aplica as mudanças de regras vencidas a cada 5 minutos disparada pelo EventBridge Scheduler.
 - **Hospedagem estática segura.** Painel admin servido via CloudFront com Origin Access Control (OAC) sobre bucket S3 privado e cabeçalhos estritos de CSP, X-Frame-Options e nosniff.
-- **Observabilidade.** Alarmes CloudWatch para erros 5XX no API Gateway, throttling e p95 de duração nas Lambdas, além de alerta de teto de custos no AWS Budgets.
+- **Observabilidade.** Alarmes CloudWatch para erros 5XX no API Gateway, throttling e p95 de duração na Lambda da API e erros na Lambda `scheduler`, além de alerta de teto de custos no AWS Budgets. Todos os alarmes publicam no tópico SNS `<prefixo>-alarms`; informe `alarm_email` para receber o aviso por e-mail (a AWS envia um link de confirmação na primeira vez).
 - Tabela com criptografia, backup contínuo (PITR) e `prevent_destroy`. O user pool também tem `prevent_destroy`; ligue `protect_from_deletion` em produção.
 - Cognito: senha mínima de 10 caracteres, MFA configurável com TOTP obrigatório para administradores, revogação de tokens e tokens de acesso de 15 minutos.
 - `allow_self_signup` ligado por padrão para cadastro aberto de usuários.

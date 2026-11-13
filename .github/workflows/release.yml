@@ -29,11 +29,17 @@ jobs:
         run: pnpm --filter @block-apps/extension build
       - name: Create extension zip
         run: cd apps/extension/dist && zip -r ../../../block-apps-extension.zip .
+      - name: Build Firefox extension
+        run: pnpm --filter @block-apps/extension build:firefox
+      - name: Create Firefox extension zip
+        run: cd apps/extension/dist-firefox && zip -r ../../../block-apps-extension-firefox.zip .
       - name: Upload extension artifact
         uses: actions/upload-artifact@v4
         with:
           name: block-apps-extension
-          path: block-apps-extension.zip
+          path: |
+            block-apps-extension.zip
+            block-apps-extension-firefox.zip
       - name: Upload backend lambda artifact
         uses: actions/upload-artifact@v4
         with:

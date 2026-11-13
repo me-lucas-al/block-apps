@@ -39,6 +39,8 @@ jobs:
         run: pnpm --filter @block-apps/backend package
       - name: Build extension
         run: pnpm --filter @block-apps/extension build
+      - name: Build Firefox extension
+        run: pnpm --filter @block-apps/extension build:firefox
       - name: Build admin site
         run: pnpm --filter @block-apps/admin build
 

@@ -54,7 +54,7 @@ Para rodar o painel em container Docker com Nginx:
 docker compose --env-file apps/admin/.env up admin -d --build
 ```
 
-O build falha se alguma variável `VITE_*` estiver faltando.
+O `.env.example` traz só valores de exemplo: copie para `.env` e troque pelos valores do seu ambiente (outputs do Terraform) antes de usar. O build da imagem falha se alguma variável `VITE_*` estiver vazia.
 
 Abre em `http://localhost:8080`.
 

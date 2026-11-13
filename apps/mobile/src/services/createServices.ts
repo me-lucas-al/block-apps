@@ -8,6 +8,8 @@ import { AppBlocker } from '../../modules/app-blocker'
 import { createMobileServices } from '../adapters/createMobileServices'
 import { MobileDeviceIdStore } from '../device/MobileDeviceIdStore'
 import { MobileStatusReporter } from '../device/MobileStatusReporter'
+import { ExpoBackgroundTaskPort } from '../background/ExpoBackgroundTaskPort'
+import { RulesSyncScheduler } from '../background/RulesSyncScheduler'
 import type { AppBlockerPort } from '../ports/AppBlockerPort'
 import { AppRulesSync } from '../sync/AppRulesSync'
 
@@ -18,6 +20,7 @@ export type Services = {
   readonly pendingRuleChanges: PendingRuleChangeRepository
   readonly blocker: AppBlockerPort
   readonly rulesSync: AppRulesSync
+  readonly rulesSyncScheduler: RulesSyncScheduler
   readonly statusReporter: MobileStatusReporter
 }
 
@@ -44,6 +47,7 @@ export function createServices(): Services {
     pendingRuleChanges: mobile.pendingRuleChanges,
     blocker,
     rulesSync,
+    rulesSyncScheduler: new RulesSyncScheduler(new ExpoBackgroundTaskPort()),
     statusReporter,
   }
 }

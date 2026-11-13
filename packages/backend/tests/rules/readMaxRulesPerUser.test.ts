@@ -14,9 +14,12 @@ describe('readMaxRulesPerUser', () => {
     expect(readMaxRulesPerUser({ MAX_RULES_PER_USER: '50' })).toBe(50)
   })
 
-  it.each(['0', '-3', '1.5', 'abc'])('rejects %s', (invalidLimit) => {
-    expect(() => readMaxRulesPerUser({ MAX_RULES_PER_USER: invalidLimit })).toThrow(
-      'MAX_RULES_PER_USER must be a positive integer',
-    )
-  })
+  it.each(['0', '-3', '1.5', 'abc', '1e3', '0x10', ' 50 ', '1e21', '9007199254740993'])(
+    'rejects %j',
+    (invalidLimit) => {
+      expect(() => readMaxRulesPerUser({ MAX_RULES_PER_USER: invalidLimit })).toThrow(
+        `MAX_RULES_PER_USER must be a positive integer, received "${invalidLimit}"`,
+      )
+    },
+  )
 })

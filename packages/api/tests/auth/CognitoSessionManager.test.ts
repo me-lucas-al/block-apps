@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { CognitoAccountOps } from '../../src/auth/cognito/CognitoAccountOps'
 import { CognitoSessionManager } from '../../src/auth/cognito/CognitoSessionManager'
+import type { CognitoTokenRevoker } from '../../src/auth/cognito/CognitoTokenRevoker'
 import type { SessionTokens } from '../../src/auth/contracts/SessionTokens'
 import { LocalUserSession } from '../../src/auth/session/LocalUserSession'
 import { MemorySessionStorage } from '../../src/auth/storage/MemorySessionStorage'
@@ -18,12 +19,22 @@ function makeCognitoError(name: string): Error {
   return error
 }
 
-async function makeHarness(refreshSession: CognitoAccountOps['refreshSession']) {
+async function makeHarness(
+  refreshSession: CognitoAccountOps['refreshSession'],
+  revokeRefreshToken: CognitoTokenRevoker['revokeRefreshToken'] = vi.fn(),
+) {
   const storage = new MemorySessionStorage()
   await storage.save(storedTokens)
-  const accountOps = { refreshSession } as unknown as CognitoAccountOps
-  const manager = new CognitoSessionManager(storage, new LocalUserSession(storage), accountOps)
-  return { storage, manager }
+  const clearCachedSession = vi.fn()
+  const accountOps = { refreshSession, clearCachedSession } as unknown as CognitoAccountOps
+  const tokenRevoker = { revokeRefreshToken } as unknown as CognitoTokenRevoker
+  const manager = new CognitoSessionManager(
+    storage,
+    new LocalUserSession(storage),
+    accountOps,
+    tokenRevoker,
+  )
+  return { storage, manager, clearCachedSession, revokeRefreshToken }
 }
 
 describe('CognitoSessionManager.refreshSession', () => {
@@ -49,5 +60,36 @@ describe('CognitoSessionManager.refreshSession', () => {
 
     expect(await manager.refreshSession()).toBeNull()
     expect(await storage.load()).toBeNull()
+  })
+})
+
+describe('CognitoSessionManager.signOut', () => {
+  it('revokes the refresh token and clears the local session', async () => {
+    const { storage, manager, clearCachedSession, revokeRefreshToken } = await makeHarness(vi.fn())
+
+    await manager.signOut()
+
+    expect(revokeRefreshToken).toHaveBeenCalledWith('refresh-1')
+    expect(clearCachedSession).toHaveBeenCalledWith('user@example.com')
+    expect(await storage.load()).toBeNull()
+  })
+
+  it('clears the local session and reports the failure when the revocation fails', async () => {
+    const failedRevocation = vi.fn().mockRejectedValue(new Error('Network error'))
+    const { storage, manager, clearCachedSession } = await makeHarness(vi.fn(), failedRevocation)
+
+    await expect(manager.signOut()).rejects.toThrow('Network error')
+
+    expect(clearCachedSession).toHaveBeenCalledWith('user@example.com')
+    expect(await storage.load()).toBeNull()
+  })
+
+  it('does nothing on the server when there is no session', async () => {
+    const { storage, manager, revokeRefreshToken } = await makeHarness(vi.fn())
+    await storage.clear()
+
+    await manager.signOut()
+
+    expect(revokeRefreshToken).not.toHaveBeenCalled()
   })
 })

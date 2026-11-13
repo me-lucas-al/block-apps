@@ -88,7 +88,7 @@ O `release.yml` só roda por disparo manual e os jobs de deploy usam o ambiente 
 - **Variables:** `HOSTED_DOMAIN_PREFIX`, `GOOGLE_CLIENT_ID`, `INITIAL_ADMIN_EMAIL`.
 - **Secrets:** `AWS_ROLE_ARN`, `TF_STATE_BUCKET`, `GOOGLE_CLIENT_SECRET`.
 
-O job de build da extensão e do painel não usa o ambiente, então crie no nível do repositório as variáveis `API_URL`, `COGNITO_USER_POOL_ID`, `COGNITO_HOSTED_DOMAIN`, `EXTENSION_COGNITO_CLIENT_ID` e `ADMIN_COGNITO_CLIENT_ID` (valores dos outputs do Terraform). Sem elas o build falha de propósito.
+O job de build da extensão e do painel não usa o ambiente, então crie no nível do repositório as variáveis `API_URL`, `COGNITO_USER_POOL_ID`, `COGNITO_HOSTED_DOMAIN`, `EXTENSION_COGNITO_CLIENT_ID` e `ADMIN_COGNITO_CLIENT_ID` (valores dos outputs do Terraform). O `release.yml` confere essas variáveis antes de empacotar e falha se alguma estiver vazia. Os leitores de configuração dos clientes só lançam erro quando o app abre, não durante o build do Vite.
 
 O workflow passa esses valores ao Terraform por `TF_VAR_*`, gera `release.tfplan` com `plan -out` e aplica exatamente esse arquivo. O `Terraform Plan` das PRs não usa o ambiente (para não pedir aprovação a cada PR), então crie as mesmas variáveis e segredos também no nível do repositório.
 

@@ -23,6 +23,17 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Require client configuration
+        env:
+          API_URL: ${{ vars.API_URL }}
+          COGNITO_USER_POOL_ID: ${{ vars.COGNITO_USER_POOL_ID }}
+          COGNITO_HOSTED_DOMAIN: ${{ vars.COGNITO_HOSTED_DOMAIN }}
+          EXTENSION_COGNITO_CLIENT_ID: ${{ vars.EXTENSION_COGNITO_CLIENT_ID }}
+          ADMIN_COGNITO_CLIENT_ID: ${{ vars.ADMIN_COGNITO_CLIENT_ID }}
+        run: |
+          for variable_name in API_URL COGNITO_USER_POOL_ID COGNITO_HOSTED_DOMAIN EXTENSION_COGNITO_CLIENT_ID ADMIN_COGNITO_CLIENT_ID; do
+            test -n "${!variable_name}" || { echo "Missing repository variable: $variable_name"; exit 1; }
+          done
       - name: Package backend Lambda
         run: pnpm --filter @block-apps/backend package
       - name: Build extension

@@ -12,7 +12,9 @@ pnpm --filter @block-apps/extension build:firefox
 | Comando | Saída | Navegadores |
 | --- | --- | --- |
 | `build` | `apps/extension/dist` | Chrome e Edge |
-| `build:firefox` | `apps/extension/dist-firefox` | Firefox 128 ou mais novo |
+| `build:firefox` | `apps/extension/dist-firefox` | Firefox 140 ou mais novo (desktop) |
+
+`data_collection_permissions` só existe a partir do Firefox 140 no desktop e do 142 no Android, por isso são os mínimos do manifesto (`strict_min_version` e `gecko_android.strict_min_version`). O Firefox para Android não foi testado e não é um alvo suportado: a chave existe só para o AMO aceitar o pacote.
 
 O manifesto é gerado por `manifest/` (`buildManifest(target)`), não existe `manifest.json` estático.
 O build do Firefox usa `vite build --mode firefox` e injeta `VITE_TARGET_BROWSER=firefox`.

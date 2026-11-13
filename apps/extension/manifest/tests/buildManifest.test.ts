@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { buildManifest } from '../buildManifest'
-import { FIREFOX_ADDON_ID, FIREFOX_COLLECTED_DATA } from '../firefoxManifest'
+import {
+  FIREFOX_ADDON_ID,
+  FIREFOX_ANDROID_MINIMUM_VERSION,
+  FIREFOX_COLLECTED_DATA,
+  FIREFOX_MINIMUM_VERSION,
+} from '../firefoxManifest'
 
 describe('buildManifest', () => {
   it('keeps the chrome manifest on a service worker with a minimum chrome version', () => {
@@ -19,6 +24,15 @@ describe('buildManifest', () => {
     expect(manifest.browser_specific_settings?.gecko.data_collection_permissions.required).toEqual(
       FIREFOX_COLLECTED_DATA,
     )
+  })
+
+  it('requires the firefox versions that understand data collection permissions', () => {
+    const settings = buildManifest('firefox').browser_specific_settings
+
+    expect(FIREFOX_MINIMUM_VERSION).toBe('140.0')
+    expect(settings?.gecko.strict_min_version).toBe('140.0')
+    expect(settings?.gecko_android?.strict_min_version).toBe(FIREFOX_ANDROID_MINIMUM_VERSION)
+    expect(FIREFOX_ANDROID_MINIMUM_VERSION).toBe('142.0')
   })
 
   it('drops the chrome only key and lets firefox request host access at runtime', () => {

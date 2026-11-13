@@ -1,9 +1,13 @@
 import { buildChromeManifest } from './chromeManifest'
-import type { ExtensionManifest } from './ExtensionManifest'
+import type { ExtensionManifest, GeckoCollectedData } from './ExtensionManifest'
 
 export const FIREFOX_ADDON_ID = 'block-apps@block-apps.dev'
-export const FIREFOX_MINIMUM_VERSION = '128.0'
-export const FIREFOX_COLLECTED_DATA = ['authenticationInfo', 'personallyIdentifyingInfo']
+export const FIREFOX_MINIMUM_VERSION = '140.0'
+export const FIREFOX_ANDROID_MINIMUM_VERSION = '142.0'
+export const FIREFOX_COLLECTED_DATA: readonly GeckoCollectedData[] = [
+  'authenticationInfo',
+  'personallyIdentifyingInfo',
+]
 
 export function buildFirefoxManifest(): ExtensionManifest {
   const { minimum_chrome_version: _chromeOnlyKey, ...sharedKeys } = buildChromeManifest()
@@ -17,6 +21,7 @@ export function buildFirefoxManifest(): ExtensionManifest {
         strict_min_version: FIREFOX_MINIMUM_VERSION,
         data_collection_permissions: { required: FIREFOX_COLLECTED_DATA },
       },
+      gecko_android: { strict_min_version: FIREFOX_ANDROID_MINIMUM_VERSION },
     },
   }
 }

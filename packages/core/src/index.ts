@@ -2,9 +2,10 @@ export type {
   BlockMode,
   BlockRule,
   DayOfWeek,
-  TargetType,
   TimeWindow,
 } from './rules/blockRule'
+export { TARGET_TYPES, isTargetType } from './rules/targetTypes'
+export type { TargetType } from './rules/targetTypes'
 export type { PendingChangeKind, PendingRuleChange } from './rules/pendingRuleChange'
 export { describePendingChange } from './cooldown/describePendingChange'
 export { formatRemaining } from './cooldown/formatRemaining'
@@ -22,6 +23,12 @@ export { parseTimeOfDay } from './schedule/evaluation/parseTimeOfDay'
 export { toggleDay } from './schedule/editing/toggleDay'
 export { validateSchedule } from './schedule/editing/validateSchedule'
 export type { ScheduleError } from './schedule/editing/validateSchedule'
+export { normalizeIosSelectionTarget } from './ios/normalizeIosSelectionTarget'
+export {
+  IOS_DENY_APP_REMOVAL_TARGET,
+  PROTECTION_TARGETS,
+  isProtectionTarget,
+} from './ios/protectionTargets'
 export { normalizeSiteTarget } from './sites/normalizeSiteTarget'
 export { findBlockedKeyword } from './keywords/matching/findBlockedKeyword'
 export { matchesBlockedKeyword } from './keywords/matching/matchesBlockedKeyword'

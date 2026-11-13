@@ -1,4 +1,4 @@
-export type TargetType = 'app' | 'site' | 'keyword'
+import type { TargetType } from './targetTypes'
 
 export type BlockMode = 'always' | 'schedule'
 

@@ -20,32 +20,6 @@ variable "hosted_domain_prefix" {
   type        = string
 }
 
-variable "web_callback_urls" {
-  description = "URLs de retorno do login do painel. Use https, exceto localhost em desenvolvimento."
-  type        = list(string)
-
-  validation {
-    condition = alltrue([
-      for url in var.web_callback_urls :
-      startswith(url, "https://") || startswith(url, "http://localhost")
-    ])
-    error_message = "Use https fora de localhost."
-  }
-}
-
-variable "web_logout_urls" {
-  description = "URLs para onde o painel volta depois do logout."
-  type        = list(string)
-
-  validation {
-    condition = alltrue([
-      for url in var.web_logout_urls :
-      startswith(url, "https://") || startswith(url, "http://localhost")
-    ])
-    error_message = "Use https fora de localhost."
-  }
-}
-
 variable "google_client_id" {
   description = "ID do cliente OAuth do Google. Vazio desliga o login com Google."
   type        = string

@@ -22,7 +22,7 @@
 Roda em toda PR e em todo push para `main`:
 - `check`: validação estrita sem `any` (`pnpm check:no-any`), `pnpm typecheck`, `pnpm test` (378 testes com DynamoDB local via Docker), build da extensão e build do painel administrativo.
 - `android`: gera projeto nativo com `expo prebuild` e compila/testa o módulo Kotlin (`./gradlew :app-blocker:testDebugUnitTest`).
-- `terraform`: formatação estrita (`terraform fmt -check`), empacotamento Lambda e `terraform validate` de bootstrap e ambiente `dev`.
+- `terraform`: formatação estrita (`terraform fmt -check`), lint (`tflint` com plugin `aws`), scanner de segurança (`trivy config`), empacotamento Lambda e `terraform validate` de bootstrap e ambiente `dev`.
 
 ### Planejamento (`.github/workflows/terraform-plan.yml`)
 Roda em PRs com alterações em `infra/**`, `packages/backend/**` ou `packages/core/**`:

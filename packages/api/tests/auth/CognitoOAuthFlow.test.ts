@@ -32,6 +32,19 @@ describe('CognitoOAuthFlow', () => {
     expect(first.state).not.toBe(second.state)
   })
 
+  it('generates the pkce values with the injected crypto', async () => {
+    const injectedCrypto = {
+      randomBytes: (length: number) => new Uint8Array(length).fill(3),
+      sha256Base64: async () => 'injected-digest',
+    }
+    const flow = new CognitoOAuthFlow(hostedConfig, injectedCrypto)
+
+    const authorization = await flow.buildGoogleAuthorizeUrl('https://app.test/callback')
+
+    expect(authorization.verifier).toBe('D'.repeat(64))
+    expect(new URL(authorization.url).searchParams.get('code_challenge')).toBe('injected-digest')
+  })
+
   it('exchanges the authorization code using the explicit verifier', async () => {
     const idToken = `header.${btoa(JSON.stringify({ email: 'user@oauth.com' }))}.signature`
     const tokenReply = { access_token: 'acc-token', id_token: idToken, refresh_token: 'ref-token' }

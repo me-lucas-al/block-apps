@@ -4,6 +4,12 @@ export type { AuthChallenge, AuthResult } from './auth/contracts/AuthResult'
 export type { GoogleAuthorization } from './auth/contracts/GoogleAuthorization'
 export type { SessionStorage } from './auth/contracts/SessionStorage'
 export type { SessionTokens } from './auth/contracts/SessionTokens'
+export { SessionRevocationError } from './auth/SessionRevocationError'
+export {
+  SESSION_NOT_REVOKED_NOTICE,
+  SignOutUseCase,
+  type SignOutOutcome,
+} from './auth/SignOutUseCase'
 export { buildTotpUri } from './auth/buildTotpUri'
 export { LocalUserSession } from './auth/session/LocalUserSession'
 export { MemorySessionStorage } from './auth/storage/MemorySessionStorage'

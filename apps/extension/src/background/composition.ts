@@ -6,13 +6,14 @@ import { ChromeTabRedirectPort } from '../adapters/chrome/browser/ChromeTabRedir
 import { ChromeStorageRuleCache } from '../adapters/chrome/storage/ChromeStorageRuleCache'
 import { LocalSessionGate } from '../adapters/chrome/storage/LocalSessionGate'
 import { createExtensionServices } from '../adapters/createExtensionServices'
+import type { BrowserTarget } from '../shared/browser/browserTarget'
 import { BlockingSynchronizer } from '../blocking/BlockingSynchronizer'
 import { OpenTabsBlocker } from '../blocking/OpenTabsBlocker'
 import { RulesRefresher } from '../blocking/RulesRefresher'
 import { SearchNavigationGuard } from '../blocking/keywords/SearchNavigationGuard'
 import { DeviceStatusReporter } from '../device/DeviceStatusReporter'
 
-export function composeBackground() {
+export function composeBackground(target: BrowserTarget) {
   const services = createExtensionServices()
   const ruleCache = new ChromeStorageRuleCache()
   const sessionGate = new LocalSessionGate(services.session)
@@ -41,7 +42,7 @@ export function composeBackground() {
   const reporter = new DeviceStatusReporter({
     deviceRepository: services.deviceRepository,
     deviceIdStore: new ChromeDeviceIdStore(),
-    incognito: createIncognitoPort(),
+    incognito: createIncognitoPort(target),
     sessionGate,
   })
 

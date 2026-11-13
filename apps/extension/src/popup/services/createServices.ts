@@ -10,6 +10,7 @@ import { ExtensionApiHostAccessPort } from '../../adapters/browser/ExtensionApiH
 import { createExtensionServices } from '../../adapters/createExtensionServices'
 import type { BackgroundNotifier } from '../../ports/browser/BackgroundNotifier'
 import type { HostAccessPort } from '../../ports/browser/HostAccessPort'
+import type { BrowserTarget } from '../../shared/browser/browserTarget'
 import type { IncognitoPort } from '../../ports/browser/IncognitoPort'
 
 export type Services = {
@@ -22,14 +23,14 @@ export type Services = {
   readonly background: BackgroundNotifier
 }
 
-export function createServices(): Services {
+export function createServices(target: BrowserTarget): Services {
   const extensionServices = createExtensionServices()
   return {
     userSession: extensionServices.session,
     authenticator: extensionServices.authenticator,
     ruleRepository: extensionServices.ruleRepository,
     pendingRuleChanges: extensionServices.pendingRuleChanges,
-    incognito: createIncognitoPort(),
+    incognito: createIncognitoPort(target),
     hostAccess: new ExtensionApiHostAccessPort(),
     background: new ChromeBackgroundNotifier(),
   }

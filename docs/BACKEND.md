@@ -76,7 +76,7 @@ Salvaguardas, todas no código porque o IAM do Cognito não separa grupos nem us
 
 O painel só entra por e-mail, senha e TOTP: o client do painel no Cognito não tem login do Google. O Google vale no app e na extensão. Por isso:
 
-1. Convide a pessoa pelo painel (ou pelo `initial_admin_email` do Terraform) usando o **mesmo e-mail** que ela usa no Google. A conta nasce com senha.
+1. Convide a pessoa pelo painel (ou pelo `initial_admin_email` do Terraform) usando o **mesmo e-mail** que ela usa no Google. A conta nasce com uma senha temporária enviada por e-mail.
 2. A pessoa troca a senha temporária e cadastra o TOTP no primeiro acesso ao painel. Só depois disso ela é um administrador utilizável.
 3. Se ela entrar no app ou na extensão com o Google *depois* de a conta estar confirmada, o PreSignUp vincula o Google à conta existente: é o mesmo `sub`, então o papel de administrador e os dados continuam os mesmos.
 4. Se a pessoa entrar com o Google *antes* de definir a senha do convite, o Cognito cria uma conta separada (`Google_...`, outro `sub`) com papel `user`. Promovê-la a administrador não ajuda, porque ela não tem senha para o painel. Peça que defina a senha do convite e use essa conta.
@@ -138,9 +138,10 @@ As rotas `/admin` usam um Cognito falso em memória (`src/local/cognito`) com es
 - A regra do último administrador é conferida por contagem no Cognito, sem trava atômica: dois administradores rebaixando um ao outro no mesmo instante poderiam zerar os administradores. A saída de emergência é o administrador inicial do Terraform (ou o console do Cognito).
 - Depois de excluir ou rebaixar alguém, o token de acesso já emitido vale até 15 minutos nas rotas comuns (`api`), que não consultam o Cognito; as rotas `admin` consultam a cada chamada.
 - A listagem lê o cooldown de cada usuário no DynamoDB e não tem paginação: serve para algumas centenas de usuários.
-- Depois do reset de senha o usuário fica em `RESET_REQUIRED` e precisa do fluxo "esqueci a senha"; o painel (fase 4) precisa tratar isso.
+- Depois do reset de senha o usuário fica em `RESET_REQUIRED` e precisa do fluxo "esqueci a senha"; o painel, o app e a extensão têm a tela para isso.
 - A listagem de usuários não traz último acesso (o Cognito não guarda esse dado).
 - Se apagar os dados de um usuário falhar depois de ele ser removido do Cognito, os itens ficam órfãos no DynamoDB e a chamada devolve 500.
-- O cooldown do usuário vive no item `SETTINGS` e ainda não tem rota de escrita: fica em 24h até a fase de administração. Valor inválido (fora de 0 a 168 horas, ou não inteiro) volta para 24h.
+- O cooldown do usuário vive no item `SETTINGS` e um administrador o define ao convidar ou em `PATCH /admin/users/:userId` (`cooldownHours`). Sem o item, vale 24h; valor inválido (fora de 0 a 168 horas, ou não inteiro) também volta para 24h.
+- Se o `schedulerHandler` falhar ao aplicar as mudanças de algum usuário, ele termina os demais e então lança `DueChangesApplicationError` (a mensagem traz a contagem e os 5 primeiros ids). A Lambda registra erro, o alarme `scheduler-errors` dispara e o próximo tick de 5 minutos tenta de novo; não há retry automático na Lambda.
 - Sem limite de quantidade de regras e dispositivos por usuário.
 - Alvos de site são reduzidos ao domínio (`https://www.Exemplo.com/x` vira `exemplo.com`); identificadores de app mantêm a caixa original.

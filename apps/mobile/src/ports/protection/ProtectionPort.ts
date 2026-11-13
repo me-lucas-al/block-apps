@@ -1,0 +1,13 @@
+export type ProtectionCheck = {
+  readonly id: string
+  readonly title: string
+  readonly description: string
+  readonly active: boolean
+  readonly actionLabel: string
+  readonly performAction: () => void
+}
+
+export interface ProtectionPort {
+  listChecks(): readonly ProtectionCheck[]
+  isDeviceProtected(): boolean
+}

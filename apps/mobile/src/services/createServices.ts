@@ -4,11 +4,14 @@ import type {
   PendingRuleChangeRepository,
   UserSession,
 } from '@block-apps/api'
+import { Platform } from 'react-native'
 import { AppBlocker } from '../../modules/app-blocker'
+import { createPlatformAdapters } from '../adapters/blocker/createPlatformAdapters'
 import { createMobileServices } from '../adapters/createMobileServices'
 import { MobileDeviceIdStore } from '../device/MobileDeviceIdStore'
 import { MobileStatusReporter } from '../device/MobileStatusReporter'
-import type { AppBlockerPort } from '../ports/AppBlockerPort'
+import type { AppChoicePort } from '../ports/appchoice/AppChoicePort'
+import type { ProtectionPort } from '../ports/protection/ProtectionPort'
 import { AppRulesSync } from '../sync/AppRulesSync'
 
 export type Services = {
@@ -16,24 +19,26 @@ export type Services = {
   readonly authenticator: Authenticator
   readonly ruleRepository: BlockRuleRepository
   readonly pendingRuleChanges: PendingRuleChangeRepository
-  readonly blocker: AppBlockerPort
+  readonly protection: ProtectionPort
+  readonly appChoice: AppChoicePort
   readonly rulesSync: AppRulesSync
   readonly statusReporter: MobileStatusReporter
 }
 
 export function createServices(): Services {
   const mobile = createMobileServices()
-  const blocker = AppBlocker
+  const adapters = createPlatformAdapters({ platformOs: Platform.OS, androidModule: AppBlocker })
   const rulesSync = new AppRulesSync({
     ruleRepository: mobile.ruleRepository,
     pendingRuleChanges: mobile.pendingRuleChanges,
     userSession: mobile.session,
-    blocker,
+    blocker: adapters.blocker,
   })
   const statusReporter = new MobileStatusReporter({
     deviceRepository: mobile.deviceRepository,
-    blocker,
-    deviceIdStore: new MobileDeviceIdStore(),
+    platform: adapters.platform,
+    protection: adapters.protection,
+    deviceIdStore: new MobileDeviceIdStore(adapters.platform),
     session: mobile.session,
   })
 
@@ -42,7 +47,8 @@ export function createServices(): Services {
     authenticator: mobile.authenticator,
     ruleRepository: mobile.ruleRepository,
     pendingRuleChanges: mobile.pendingRuleChanges,
-    blocker,
+    protection: adapters.protection,
+    appChoice: adapters.appChoice,
     rulesSync,
     statusReporter,
   }

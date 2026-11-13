@@ -4,12 +4,12 @@ import type {
   PendingRuleChangeRepository,
   UserSession,
 } from '@block-apps/api'
-import { Platform } from 'react-native'
-import { AppBlocker } from '../../modules/app-blocker'
-import { createPlatformAdapters } from '../adapters/blocker/createPlatformAdapters'
+import type { TargetType } from '@block-apps/core'
+import { createDeviceAdapters } from '../adapters/blocker/createDeviceAdapters'
 import { createMobileServices } from '../adapters/createMobileServices'
 import { MobileDeviceIdStore } from '../device/MobileDeviceIdStore'
 import { MobileStatusReporter } from '../device/MobileStatusReporter'
+import type { GroupSelectionPort } from '../ports/groupselection/GroupSelectionPort'
 import type { AppChoicePort } from '../ports/appchoice/AppChoicePort'
 import type { ProtectionPort } from '../ports/protection/ProtectionPort'
 import { AppRulesSync } from '../sync/AppRulesSync'
@@ -21,13 +21,16 @@ export type Services = {
   readonly pendingRuleChanges: PendingRuleChangeRepository
   readonly protection: ProtectionPort
   readonly appChoice: AppChoicePort
+  readonly groupSelection: GroupSelectionPort | null
+  readonly listedTargetTypes: readonly TargetType[]
+  readonly needsBackgroundRefresh: boolean
   readonly rulesSync: AppRulesSync
   readonly statusReporter: MobileStatusReporter
 }
 
 export function createServices(): Services {
   const mobile = createMobileServices()
-  const adapters = createPlatformAdapters({ platformOs: Platform.OS, androidModule: AppBlocker })
+  const adapters = createDeviceAdapters()
   const rulesSync = new AppRulesSync({
     ruleRepository: mobile.ruleRepository,
     pendingRuleChanges: mobile.pendingRuleChanges,
@@ -49,6 +52,9 @@ export function createServices(): Services {
     pendingRuleChanges: mobile.pendingRuleChanges,
     protection: adapters.protection,
     appChoice: adapters.appChoice,
+    groupSelection: adapters.groupSelection,
+    listedTargetTypes: adapters.listedTargetTypes,
+    needsBackgroundRefresh: adapters.needsBackgroundRefresh,
     rulesSync,
     statusReporter,
   }

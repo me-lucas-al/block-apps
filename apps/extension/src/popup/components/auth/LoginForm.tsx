@@ -23,7 +23,7 @@ export function LoginForm() {
   if (view === 'new_password') return <NewPasswordForm onCompleted={returnToLogin} />
   if (view === 'totp') return <TotpForm onCompleted={returnToLogin} />
   if (view === 'forgot_password') {
-    return <ForgotPasswordForm initialEmail={email} onCancel={returnToLogin} onCompleted={returnToLogin} />
+    return <ForgotPasswordForm initialEmail={email.trim()} onCancel={returnToLogin} onCompleted={returnToLogin} />
   }
 
   return (

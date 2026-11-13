@@ -1,6 +1,6 @@
 # Block Apps
 
-Bloqueador de aplicativos (Android) e sites (extensão Chrome/Edge) focado em foco e produtividade, com sincronização em nuvem e salvaguardas contra desinstalação ou burla.
+Bloqueador de aplicativos (Android) e sites (extensão Chrome/Edge/Firefox) focado em foco e produtividade, com sincronização em nuvem e salvaguardas contra desinstalação ou burla.
 
 Toda a infraestrutura é construída na **AWS** (API Gateway HTTP, Lambda em ARM64, DynamoDB em tabela única, Cognito e CloudFront), provisionada integralmente via **Terraform**.
 
@@ -54,7 +54,7 @@ flowchart TD
 | **Painel Web (`apps/admin`)** | ✅ Pronto | Gestão de usuários, MFA TOTP obrigatório para admins, Hosted UI Google |
 | **CI/CD (`.github/workflows`)** | ✅ Pronto | GitHub Actions com testes, typecheck, validação Terraform e release |
 | **App iOS** | ⏸️ Pausado | Aguarda conta Apple Developer e entitlement Family Controls |
-| **Extensão Firefox** | ⏳ Planejado | Adaptação para Gecko via webextension-polyfill |
+| **Extensão Firefox** | 🟡 Implementado, falta publicar | `pnpm --filter @block-apps/extension build:firefox`; sem polyfill, o Firefox aceita `chrome.*` com Promises |
 
 ---
 
@@ -86,7 +86,7 @@ block-apps/
 │   ├── api/          # Cliente HTTP, adaptadores Cognito, SessionStorage e Poller
 │   └── backend/      # Handlers Lambda, Hono app, DynamoDB stores e use cases
 ├── apps/
-│   ├── extension/    # Extensão Chrome/Edge (Manifest V3)
+│   ├── extension/    # Extensão Chrome/Edge/Firefox (Manifest V3)
 │   ├── admin/        # Painel web administrativo (React + Vite)
 │   └── mobile/       # Aplicativo Android (React Native + Módulo Kotlin)
 ├── infra/            # Infraestrutura como Código (Terraform)
@@ -130,6 +130,12 @@ pnpm --filter @block-apps/admin dev
 pnpm --filter @block-apps/extension build
 ```
 Carregue a pasta `apps/extension/dist` em `chrome://extensions`.
+
+### Extensão do Firefox
+```powershell
+pnpm --filter @block-apps/extension build:firefox
+```
+Carregue `apps/extension/dist-firefox/manifest.json` em `about:debugging#/runtime/this-firefox`. Detalhes, login Google e publicação em [apps/extension/README.md](apps/extension/README.md).
 
 ---
 

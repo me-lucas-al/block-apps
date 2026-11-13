@@ -14,7 +14,7 @@
 | CI/CD no GitHub Actions | Pronto | Typecheck, testes unitários, formatação e validação Terraform, release |
 | Remoção de tecnologias legadas | Pronto | Supabase, Postgres e Edge Functions 100% removidos |
 | App iOS (Screen Time API) | Pausado | Aguarda Mac com conta Apple Developer e entitlement Family Controls |
-| Extensão Firefox | Planejado | Suporte a Gecko via webextension-polyfill |
+| Extensão Firefox | Implementado, falta publicar | `build:firefox` gera `dist-firefox` (Manifest V3 com `background.scripts` e ID Gecko fixo), sem polyfill. Falta testar em navegador real, informar `firefox_redirect_urls` no Terraform e enviar ao AMO (ver `apps/extension/README.md`) |
 
 ## CI/CD no GitHub Actions
 
@@ -37,6 +37,6 @@ Roda só por disparo manual (`workflow_dispatch`) a partir da branch `main`:
 
 ## Próximos Passos (Futuro)
 
-1. **Extensão Firefox**: empacotamento para Gecko com manifest v2/v3 híbrido.
+1. **Publicação da extensão Firefox**: carregar o zip no AMO, validar o login Google com a URL `extensions.allizom.org` e confirmar a declaração de dados coletados.
 2. **App iOS**: ativação com Screen Time API e `DeviceActivityMonitor` quando houver ambiente Mac.
 3. **Limites de Regras**: implementação de cotas por plano/usuário no backend.

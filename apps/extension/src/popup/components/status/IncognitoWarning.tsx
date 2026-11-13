@@ -1,7 +1,5 @@
-import { readBrowserTarget } from '../../../shared/browser/browserTarget'
 import { useIncognitoAccess } from '../../hooks/useIncognitoAccess'
 import { useServices } from '../../services/ServicesContext'
-import { incognitoSettingName } from './incognitoSettingName'
 
 export function IncognitoWarning() {
   const { incognito } = useServices()
@@ -13,11 +11,11 @@ export function IncognitoWarning() {
     <div className="warning" role="alert">
       <strong>Modo anônimo desprotegido.</strong>
       <p>
-        Ative "{incognitoSettingName(readBrowserTarget())}" nas configurações da
-        extensão para bloquear sites e buscas proibidas também em abas anônimas.
+        Ative "{incognito.settingName}" nas configurações da extensão para
+        bloquear sites e buscas proibidas também em abas anônimas.
       </p>
       <button type="button" onClick={() => void incognito.openSettings()}>
-        Abrir configurações
+        {incognito.openSettingsLabel}
       </button>
     </div>
   )

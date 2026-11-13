@@ -6,7 +6,7 @@ import { Button } from '../components/ui/Button'
 import { useAppCatalog } from '../hooks/rules/useAppCatalog'
 import { useAppRules } from '../hooks/rules/useAppRules'
 import { useInstalledApps } from '../hooks/device/useInstalledApps'
-import { useServices } from '../services/ServicesContext'
+import { useSignOut } from '../hooks/session/useSignOut'
 import { colors } from '../theme'
 import { AddRuleScreen } from './AddRuleScreen'
 
@@ -15,7 +15,7 @@ type HomeScreenProps = {
 }
 
 export function HomeScreen({ email }: HomeScreenProps) {
-  const { authenticator } = useServices()
+  const signOut = useSignOut()
   const { rules, pendingChanges, error, create, requestRemoval, cancelChange } = useAppRules()
   const apps = useInstalledApps()
   const { labelFor } = useAppCatalog(apps)
@@ -31,7 +31,7 @@ export function HomeScreen({ email }: HomeScreenProps) {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.email}>{email}</Text>
-        <Button label="Sair" variant="secondary" onPress={() => void authenticator.signOut()} />
+        <Button label="Sair" variant="secondary" onPress={() => void signOut()} />
       </View>
       <ProtectionStatus />
       {error && <Text style={styles.error}>{error}</Text>}

@@ -1,8 +1,19 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { launchExtensionGoogleAuth } from '../extensionGoogleAuth'
 import type { Authenticator } from '@block-apps/api'
 
 describe('launchExtensionGoogleAuth', () => {
+  beforeEach(() => {
+    vi.stubEnv('VITE_API_URL', 'https://api.test')
+    vi.stubEnv('VITE_COGNITO_USER_POOL_ID', 'pool-test')
+    vi.stubEnv('VITE_COGNITO_CLIENT_ID', 'client-test')
+    vi.stubEnv('VITE_COGNITO_HOSTED_DOMAIN', 'auth.test')
+  })
+
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
   it('launches web auth flow and exchanges received code', async () => {
     vi.stubGlobal('chrome', {
       identity: {

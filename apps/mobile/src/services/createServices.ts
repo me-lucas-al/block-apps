@@ -11,7 +11,8 @@ import { MobileStatusReporter } from '../device/MobileStatusReporter'
 import { ExpoBackgroundTaskPort } from '../background/ExpoBackgroundTaskPort'
 import { RulesSyncScheduler } from '../background/RulesSyncScheduler'
 import type { AppBlockerPort } from '../ports/AppBlockerPort'
-import { AppRulesSync } from '../sync/AppRulesSync'
+import type { AppRulesSync } from '../sync/AppRulesSync'
+import { createRulesSync } from '../sync/createRulesSync'
 
 export type Services = {
   readonly userSession: UserSession
@@ -27,12 +28,7 @@ export type Services = {
 export function createServices(): Services {
   const mobile = createMobileServices()
   const blocker = AppBlocker
-  const rulesSync = new AppRulesSync({
-    ruleRepository: mobile.ruleRepository,
-    pendingRuleChanges: mobile.pendingRuleChanges,
-    userSession: mobile.session,
-    blocker,
-  })
+  const rulesSync = createRulesSync(mobile, blocker)
   const statusReporter = new MobileStatusReporter({
     deviceRepository: mobile.deviceRepository,
     blocker,

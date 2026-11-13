@@ -66,6 +66,17 @@ jobs:
         run: ./gradlew :app-blocker:testDebugUnitTest --no-daemon
         working-directory: apps/mobile/android
 
+  ios-core:
+    name: iOS blocking core (swift test)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container: swift:5.10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Swift unit tests
+        run: swift test
+        working-directory: apps/mobile/modules/app-blocker/ios/BlockingCore
+
   terraform:
     name: Terraform format and validate
     runs-on: ubuntu-latest

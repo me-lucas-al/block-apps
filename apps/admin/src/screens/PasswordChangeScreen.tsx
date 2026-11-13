@@ -10,6 +10,7 @@ type PasswordChangeScreenProps = {
 
 export function PasswordChangeScreen({ onPasswordChanged }: PasswordChangeScreenProps) {
   const { profile: profileGateway, authenticator } = useServices()
+  const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
@@ -17,7 +18,7 @@ export function PasswordChangeScreen({ onPasswordChanged }: PasswordChangeScreen
     event.preventDefault()
     try {
       setErrorMessage(null)
-      await profileGateway.changePassword(newPassword)
+      await profileGateway.changePassword(currentPassword, newPassword)
       await onPasswordChanged()
     } catch (failure) {
       setErrorMessage(describeFailure(failure))
@@ -28,7 +29,12 @@ export function PasswordChangeScreen({ onPasswordChanged }: PasswordChangeScreen
     <main className="center">
       <form className="card stack" onSubmit={submitNewPassword}>
         <h1>Defina uma nova senha</h1>
-        <p className="hint">Sua senha atual é temporária. Escolha uma nova para continuar.</p>
+        <p className="hint">Informe a senha temporária e escolha uma nova para continuar.</p>
+        <label>
+          Senha atual
+          <input type="password" required maxLength={72} autoComplete="current-password"
+            value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
+        </label>
         <label>
           Nova senha
           <input type="password" required minLength={MINIMUM_PASSWORD_LENGTH} maxLength={72} autoComplete="new-password"

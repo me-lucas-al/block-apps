@@ -51,11 +51,8 @@ export class HttpProfileGateway implements ProfileGateway {
     await this.adminUsers.updateUser(profile.id, { displayName })
   }
 
-  async changePassword(password: string): Promise<void> {
-    if (this.authenticator.respondToNewPassword) {
-      await this.authenticator.respondToNewPassword(password)
-      return
-    }
-    throw new Error('Troca de senha não disponível no momento.')
+  async changePassword(currentPassword: string, newPassword: string): Promise<void> {
+    if (!this.authenticator.changePassword) throw new Error('Troca de senha não disponível no momento.')
+    await this.authenticator.changePassword(currentPassword, newPassword)
   }
 }

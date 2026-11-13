@@ -11,5 +11,5 @@ export type MyProfile = {
 export interface ProfileGateway {
   loadMyProfile(): Promise<MyProfile | null>
   updateMyDisplayName(displayName: string | null): Promise<void>
-  changePassword(password: string): Promise<void>
+  changePassword(currentPassword: string, newPassword: string): Promise<void>
 }

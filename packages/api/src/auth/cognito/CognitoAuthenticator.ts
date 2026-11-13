@@ -7,6 +7,7 @@ import { CognitoAccountOps } from './CognitoAccountOps'
 import { CognitoChallengeResolver } from './CognitoChallengeResolver'
 import type { CognitoConfig } from './CognitoConfig'
 import { CognitoOAuthFlow } from './CognitoOAuthFlow'
+import { CognitoPasswordChange } from './CognitoPasswordChange'
 import { CognitoSessionManager } from './CognitoSessionManager'
 import { CognitoSrpAuth } from './CognitoSrpAuth'
 import { CognitoTotpEnrollment } from './CognitoTotpEnrollment'
@@ -18,6 +19,7 @@ export class CognitoAuthenticator implements Authenticator {
   private readonly oauthFlow: CognitoOAuthFlow
   private readonly sessionManager: CognitoSessionManager
   private readonly totpEnrollment: CognitoTotpEnrollment
+  private readonly passwordChange: CognitoPasswordChange
 
   constructor(
     config: CognitoConfig,
@@ -30,6 +32,7 @@ export class CognitoAuthenticator implements Authenticator {
     this.oauthFlow = new CognitoOAuthFlow(config)
     this.sessionManager = new CognitoSessionManager(storage, session, this.accountOps)
     this.totpEnrollment = new CognitoTotpEnrollment(config)
+    this.passwordChange = new CognitoPasswordChange(config)
   }
 
   async authenticate(email: string, password: string): Promise<AuthResult> {
@@ -63,6 +66,10 @@ export class CognitoAuthenticator implements Authenticator {
 
   async confirmTotpEnrollment(totpCode: string): Promise<void> {
     await this.totpEnrollment.confirm(await this.freshTokens(), totpCode)
+  }
+
+  async changePassword(currentPassword: string, newPassword: string): Promise<void> {
+    await this.passwordChange.change(await this.freshTokens(), currentPassword, newPassword)
   }
 
   async signUpWithPassword(email: string, password: string): Promise<void> {

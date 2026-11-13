@@ -41,7 +41,7 @@ describe('HttpProfileGateway', () => {
     signInWithGoogle: vi.fn(),
     signUpWithPassword: vi.fn(),
     signOut: vi.fn(),
-    respondToNewPassword: vi.fn().mockResolvedValue(undefined),
+    changePassword: vi.fn().mockResolvedValue(undefined),
   }
 
   it('loads profile and enriches from admin list', async () => {
@@ -72,9 +72,9 @@ describe('HttpProfileGateway', () => {
     expect(mockAdminUsers.updateUser).toHaveBeenCalledWith('user-admin', { displayName: 'New Name' })
   })
 
-  it('delegates change password to authenticator.respondToNewPassword', async () => {
+  it('delegates change password to authenticator.changePassword', async () => {
     const gateway = new HttpProfileGateway(mockSession, mockAdminUsers, mockAuthenticator)
-    await gateway.changePassword('newpass123')
-    expect(mockAuthenticator.respondToNewPassword).toHaveBeenCalledWith('newpass123')
+    await gateway.changePassword('oldpass123', 'newpass123')
+    expect(mockAuthenticator.changePassword).toHaveBeenCalledWith('oldpass123', 'newpass123')
   })
 })

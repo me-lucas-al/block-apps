@@ -69,7 +69,7 @@ jobs:
         working-directory: apps/mobile/android
 
   terraform:
-    name: Terraform format and validate
+    name: Terraform format, lint, security and validate
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -82,9 +82,25 @@ jobs:
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.11.0
+      - uses: terraform-linters/setup-tflint@v6.3.2
+        with:
+          tflint_version: v0.66.0
+          cache: true
+          tflint_config_path: infra/.tflint.hcl
+      - uses: aquasecurity/setup-trivy@81e514348e19b6112ce2a7e3ecbafe19c1e1f567 # v0.3.1
+        with:
+          version: v0.76.2
+          cache: true
       - run: pnpm install --frozen-lockfile
       - name: Check formatting
         run: terraform fmt -check -recursive infra/
+      - name: Lint Terraform with TFLint
+        working-directory: infra
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: tflint --init && tflint --recursive
+      - name: Scan Terraform security with Trivy
+        run: trivy config --ignorefile infra/.trivyignore.yaml --severity HIGH,CRITICAL --exit-code 1 infra/
       - name: Package Lambda for validation
         run: pnpm --filter @block-apps/backend package
       - name: Validate bootstrap

@@ -31,6 +31,8 @@ module "auth" {
   ses_identity_arn     = var.ses_identity_arn
   ses_from_address     = var.ses_from_address
   extension_ids        = var.extension_ids
+
+  firefox_redirect_urls = var.firefox_redirect_urls
 }
 
 module "api" {

@@ -77,7 +77,7 @@ e só então limpe `initial_admin_email`.
 
 Crie as credenciais OAuth no Google Cloud e informe o ID em `google_client_id` no `terraform.tfvars`. A **chave secreta** vai por variável de ambiente, nunca em arquivo: `$env:TF_VAR_google_client_secret = '...'`. A URL de callback autorizada no Google é `https://<hosted_login_domain>/oauth2/idpresponse`.
 
-Contas do Google e contas com senha são vinculadas pelo gatilho **PreSignUp** quando o e-mail do Google já está verificado (`AdminLinkProviderForUser`), evitando contas duplicadas e tomada de conta. O login Google está habilitado no painel, app e extensão (via OAuth code + PKCE).
+Contas do Google e contas com senha são vinculadas pelo gatilho **PreSignUp** quando o e-mail do Google já está verificado (`AdminLinkProviderForUser`), evitando contas duplicadas e tomada de conta. O login Google está habilitado no app e na extensão (OAuth code + PKCE); o painel entra só por e-mail, senha e TOTP. Ver "Administrador e login com Google" em `docs/BACKEND.md`.
 
 ## Deploy de produção pelo GitHub
 

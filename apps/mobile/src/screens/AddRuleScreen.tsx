@@ -1,10 +1,10 @@
-import type { NewBlockRule } from '@block-apps/api'
+import { describeApiFailure, type NewBlockRule } from '@block-apps/api'
 import type { BlockMode, TimeWindow } from '@block-apps/core'
 import { useState } from 'react'
 import { ScrollView, StyleSheet, Text } from 'react-native'
 import type { InstalledApp } from '../../modules/app-blocker'
-import { KeywordField } from '../components/rules/keywords/KeywordField'
 import { AppPicker } from '../components/rules/apps/AppPicker'
+import { KeywordField } from '../components/rules/keywords/KeywordField'
 import { RuleKindSelector, type RuleKind } from '../components/rules/RuleKindSelector'
 import { RuleModeSelector } from '../components/rules/RuleModeSelector'
 import { Button } from '../components/ui/Button'
@@ -40,15 +40,20 @@ export function AddRuleScreen({ installedApps, onSubmit, onCancel }: AddRuleScre
       setError(null)
       await onSubmit(result.rule)
       onCancel()
-    } catch (failure) {
-      setError(failure instanceof Error ? failure.message : 'Erro inesperado')
+    } catch (failure: unknown) {
+      setError(describeApiFailure(failure))
     }
+  }
+
+  const changeRuleKind = (nextKind: RuleKind) => {
+    setError(null)
+    setKind(nextKind)
   }
 
   return (
     <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
       <Text style={styles.title}>Novo bloqueio</Text>
-      <RuleKindSelector kind={kind} onKindChange={setKind} />
+      <RuleKindSelector kind={kind} onKindChange={changeRuleKind} />
       {kind === 'app' ? (
         <AppPicker
           installedApps={installedApps}

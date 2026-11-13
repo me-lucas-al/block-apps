@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useServices } from '../services/ServicesContext'
+import { createHostAccessActions } from './createHostAccessActions'
 
 export type HostAccessState = {
   readonly granted: boolean | null
@@ -9,14 +10,14 @@ export type HostAccessState = {
 export function useHostAccess(): HostAccessState {
   const { hostAccess } = useServices()
   const [granted, setGranted] = useState<boolean | null>(null)
+  const actions = useMemo(
+    () => createHostAccessActions(hostAccess, setGranted),
+    [hostAccess],
+  )
 
   useEffect(() => {
-    void hostAccess.isGranted().then(setGranted)
-  }, [hostAccess])
+    void actions.loadGrantedState()
+  }, [actions])
 
-  const requestAccess = useCallback(async () => {
-    setGranted(await hostAccess.requestAccess())
-  }, [hostAccess])
-
-  return { granted, requestAccess }
+  return { granted, requestAccess: actions.requestAccess }
 }

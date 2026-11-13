@@ -21,7 +21,8 @@ infra/
   modules/         auth/, api/, data/, admin_site/, lambda_function/
   environments/dev/ main.tf, variables.tf, outputs.tf
 apps/
-  extension/src/   ports/{browser,data}/, adapters/chrome/, blocking/{,keywords/}, device/, popup/, background/
+  extension/        manifest/ (gera o manifest.json por navegador)
+  extension/src/   ports/{browser,data}/, adapters/{browser,chrome,firefox}/, shared/browser/, blocking/{,keywords/}, device/, popup/, background/
   admin/src/       ports/, adapters/, components/, screens/, services/, users/
   mobile/
     src/           ports/, adapters/, sync/, hooks/, screens/, components/, device/
@@ -32,6 +33,15 @@ apps/
 ```
 
 Código nativo de cada plataforma fica dentro do módulo (`android/`, `ios/`). A UI é uma só, em React Native.
+
+## Extensão: um código, dois navegadores
+
+- `adapters/chrome/` guarda adaptadores que usam o namespace `chrome.*`. O Firefox expõe o mesmo namespace com Promises no Manifest V3, então esses adaptadores valem para Chrome, Edge e Firefox.
+- `adapters/firefox/` só recebe o que é exclusivo do Firefox (ex.: `FirefoxIncognitoPort`). Se um comportamento de Chrome também for só de Chrome, ele fica em `adapters/chrome/` com prefixo `Chrome`.
+- `adapters/browser/` guarda o que é neutro: fábricas que escolhem a porta pelo alvo (`createIncognitoPort`) e adaptadores sobre APIs comuns, com nome sem navegador (`ExtensionApiHostAccessPort`).
+- `shared/browser/` guarda o tipo `BrowserTarget` e a leitura do alvo. O alvo é lido uma vez no ponto de entrada (`background/index.ts`, `popup/main.tsx`) e passado por parâmetro; nenhum componente ou use case lê variável de ambiente.
+- `manifest/` (na raiz do app, fora de `src/`) monta o `manifest.json` de cada alvo. Não existe `manifest.json` estático.
+- Diferenças de texto entre navegadores vêm da porta (`settingName`, `openSettingsLabel`), não de `if` na tela.
 
 ## TypeScript 6
 

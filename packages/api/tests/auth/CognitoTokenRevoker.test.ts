@@ -30,6 +30,27 @@ describe('CognitoTokenRevoker', () => {
     )
   })
 
+  it.each(['invalid_token', 'unsupported_token_type'])(
+    'treats the %s answer as a token that is already unusable',
+    async (errorCode) => {
+      const answer = new Response(JSON.stringify({ error: errorCode }), { status: 400 })
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue(answer))
+
+      await expect(
+        new CognitoTokenRevoker(hostedConfig).revokeRefreshToken('refresh-1'),
+      ).resolves.toBeUndefined()
+    },
+  )
+
+  it('still fails for other oauth errors', async () => {
+    const answer = new Response(JSON.stringify({ error: 'invalid_client' }), { status: 400 })
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(answer))
+
+    await expect(
+      new CognitoTokenRevoker(hostedConfig).revokeRefreshToken('refresh-1'),
+    ).rejects.toThrow('status 400')
+  })
+
   it('fails when the hosted domain is not configured', async () => {
     const revoker = new CognitoTokenRevoker({ userPoolId: 'pool-1', clientId: 'client-1' })
 

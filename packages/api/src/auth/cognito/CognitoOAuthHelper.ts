@@ -1,10 +1,11 @@
 import type { CognitoConfig } from './CognitoConfig'
+import type { OAuthCodeExchange } from '../contracts/OAuthCodeExchange'
 import type { SessionTokens } from '../contracts/SessionTokens'
 
 export class CognitoOAuthHelper {
   constructor(private readonly config: CognitoConfig) {}
 
-  buildAuthorizeUrl(redirectUri: string, codeChallenge: string): string {
+  buildAuthorizeUrl(redirectUri: string, codeChallenge: string, state: string): string {
     if (!this.config.hostedDomain) {
       throw new Error('hostedDomain is required for OAuth')
     }
@@ -16,24 +17,21 @@ export class CognitoOAuthHelper {
       identity_provider: 'Google',
       code_challenge: codeChallenge,
       code_challenge_method: 'S256',
+      state,
     })
     return `https://${this.config.hostedDomain}/oauth2/authorize?${params.toString()}`
   }
 
-  async exchangeAuthorizationCode(
-    code: string,
-    codeVerifier: string,
-    redirectUri: string,
-  ): Promise<SessionTokens> {
+  async exchangeAuthorizationCode(codeExchange: OAuthCodeExchange): Promise<SessionTokens> {
     if (!this.config.hostedDomain) {
       throw new Error('hostedDomain is required for OAuth')
     }
     const body = new URLSearchParams({
       grant_type: 'authorization_code',
       client_id: this.config.clientId,
-      code,
-      redirect_uri: redirectUri,
-      code_verifier: codeVerifier,
+      code: codeExchange.code,
+      redirect_uri: codeExchange.redirectUri,
+      code_verifier: codeExchange.verifier,
     })
     const response = await fetch(`https://${this.config.hostedDomain}/oauth2/token`, {
       method: 'POST',
@@ -43,17 +41,16 @@ export class CognitoOAuthHelper {
     if (!response.ok) {
       throw new Error(`OAuth token exchange failed with status ${response.status}`)
     }
-    const data = (await response.json()) as {
+    const tokenReply = (await response.json()) as {
       access_token: string
       id_token: string
       refresh_token: string
     }
-    const email = this.extractEmailFromIdToken(data.id_token)
     return {
-      accessToken: data.access_token,
-      idToken: data.id_token,
-      refreshToken: data.refresh_token,
-      email,
+      accessToken: tokenReply.access_token,
+      idToken: tokenReply.id_token,
+      refreshToken: tokenReply.refresh_token,
+      email: this.extractEmailFromIdToken(tokenReply.id_token),
     }
   }
 

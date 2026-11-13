@@ -21,15 +21,22 @@ describe('readOAuthCallback', () => {
   })
 
   it('shows the provider error description', () => {
-    const callbackUrl = 'https://app.test/cb?error=access_denied&error_description=User+cancelled'
+    const callbackUrl =
+      'https://app.test/cb?error=access_denied&error_description=User+cancelled&state=expected'
 
     expect(() => readOAuthCallback(callbackUrl, 'expected')).toThrow('User cancelled')
   })
 
   it('falls back to the provider error code', () => {
-    expect(() => readOAuthCallback('https://app.test/cb?error=access_denied', 'expected')).toThrow(
-      'access_denied',
-    )
+    const callbackUrl = 'https://app.test/cb?error=access_denied&state=expected'
+
+    expect(() => readOAuthCallback(callbackUrl, 'expected')).toThrow('access_denied')
+  })
+
+  it('checks the state before reading the provider error', () => {
+    const callbackUrl = 'https://app.test/cb?error=access_denied&state=forged'
+
+    expect(() => readOAuthCallback(callbackUrl, 'expected')).toThrow('OAuth state')
   })
 
   it('rejects a callback without code', () => {

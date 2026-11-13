@@ -47,10 +47,11 @@ apps/mobile/
 
 ## Encolher a seleção é afrouxar
 
-Adicionar apps vale na hora. Remover apps fica guardado como seleção pendente e o app cria um pedido de alteração (`POST /rules/:ruleId/update-requests`) para o servidor aplicar o cooldown. Quando a alteração deixa de estar pendente, a seleção guardada vira a ativa. Cancelar a alteração descarta a seleção guardada.
+Adicionar apps vale na hora. Remover apps fica guardado como seleção pendente e o app cria um pedido de alteração (`POST /rules/:ruleId/update-requests`) para o servidor aplicar o cooldown. Só depois de o pedido ser criado com sucesso a seleção pendente recebe uma marca com o horário em que o cooldown termina. A seleção guardada vira a ativa apenas quando o pedido deixou de estar pendente **e** esse horário já passou. Se o pedido some antes (cancelado em outro aparelho), a seleção guardada é descartada e os apps atuais seguem bloqueados. Seleção pendente sem a marca nunca é efetivada. Se o pedido falhar (por exemplo, sem rede), o app descarta a seleção pendente e avisa.
 
 ## Segurança
 
+- Se as regras não puderem ser lidas do App Group, o bloqueio atual é mantido (não limpa nada). O registro das atividades só é refeito quando o plano muda.
 - Autorização conferida a cada volta ao primeiro plano e reportada ao servidor (`PUT /devices/:id/status`, `platform: ios`, `adminActive` igual à autorização ativa).
 - Sair da conta não desbloqueia. Tokens do Cognito ficam no Keychain (`expo-secure-store`).
 - Nenhum dado de uso sai do aparelho. Há manifesto de privacidade em `app.json`.
@@ -60,7 +61,8 @@ Adicionar apps vale na hora. Remover apps fica guardado como seleção pendente 
 1. Assinar o Apple Developer Program (US$ 99 por ano) e criar a conta Expo/EAS.
 2. Pedir à Apple o entitlement de distribuição `com.apple.developer.family-controls` para os quatro identificadores: `com.blockapps.mobile`, `.monitor`, `.shieldconfig` e `.shieldaction`. Pedir no primeiro dia: a aprovação leva semanas e é o caminho crítico.
 3. Criar o App Group `group.com.blockapps.mobile`.
-4. Definir `APPLE_TEAM_ID` (variável de ambiente ou segredo do EAS). Sem ele o plugin avisa e a assinatura falha.
+4. Definir `APPLE_TEAM_ID` como variável de ambiente do EAS (`eas env:create`, ambiente `production`): o build remoto reavalia `app.config.js` no servidor e não herda variáveis do GitHub Actions. Sem ele o plugin avisa e a assinatura falha.
+5. Para o envio ao TestFlight, preencher `submit.production.ios.ascAppId` em `apps/mobile/eas.json` (ou configurar a chave da App Store Connect no EAS).
 
 ## Builds
 

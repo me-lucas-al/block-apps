@@ -9,8 +9,7 @@ struct SaveChosenSelectionUseCase {
 
     func saveChosenSelection(_ chosen: FamilyActivitySelection, ruleId: String) -> String {
         guard let current = selectionStorage.loadSelection(ruleId: ruleId) else {
-            selectionStorage.saveSelection(chosen, ruleId: ruleId)
-            return "saved"
+            return saveFirstSelection(chosen, ruleId: ruleId)
         }
         let change = SelectionChange(
             from: SelectionSnapshot(selection: current),
@@ -22,6 +21,12 @@ struct SaveChosenSelectionUseCase {
             return "removalPending"
         }
         selectionStorage.clearPendingSelection(ruleId: ruleId)
+        return "saved"
+    }
+
+    private func saveFirstSelection(_ chosen: FamilyActivitySelection, ruleId: String) -> String {
+        if SelectionSnapshot(selection: chosen).isEmpty { return "cancelled" }
+        selectionStorage.saveSelection(chosen, ruleId: ruleId)
         return "saved"
     }
 }

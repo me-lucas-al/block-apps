@@ -20,6 +20,14 @@ export class IosGroupSelectionAdapter implements GroupSelectionPort {
     return this.nativeModule.hasPendingSelectionRemoval(ruleId)
   }
 
+  holdPendingRemoval(ruleId: string, effectiveAtIso: string): void {
+    this.nativeModule.holdPendingSelection(ruleId, effectiveAtIso)
+  }
+
+  readPendingRemovalHold(ruleId: string): string | null {
+    return this.nativeModule.getPendingSelectionHold(ruleId)
+  }
+
   commitPendingRemoval(ruleId: string): void {
     this.nativeModule.commitPendingSelection(ruleId)
   }

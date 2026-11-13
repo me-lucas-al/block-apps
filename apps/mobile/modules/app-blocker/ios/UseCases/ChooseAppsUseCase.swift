@@ -17,6 +17,7 @@ struct ChooseAppsUseCase {
     }
 
     func chooseApps(forRuleId ruleId: String) async -> String {
+        if ScreenTimeAuthorization.readStatusName() != "approved" { return "notAuthorized" }
         let initial = selectionStorage.loadSelection(ruleId: ruleId) ?? FamilyActivitySelection()
         guard let chosen = await AppSelectionPresenter.presentPicker(startingFrom: initial) else {
             return "cancelled"

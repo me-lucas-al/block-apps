@@ -135,8 +135,6 @@ jobs:
     environment: production
     timeout-minutes: 90
     if: github.repository == 'me-lucas-al/block-apps' && github.ref == 'refs/heads/main' && inputs.submit_ios
-    env:
-      APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4

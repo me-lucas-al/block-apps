@@ -4,11 +4,14 @@ import type { GroupSelectionPort } from '../../ports/groupselection/GroupSelecti
 
 type GroupAppChoicesDependencies = {
   groupSelection: GroupSelectionPort
-  holdSelectionRemovalUntilCooldownEnds: (rule: BlockRule) => Promise<unknown>
+  holdSelectionRemovalUntilCooldownEnds: (rule: BlockRule) => Promise<boolean>
 }
 
 const REMOVAL_HELD_NOTICE =
   'Remover apps do grupo só vale depois do período de espera. Os apps atuais seguem bloqueados.'
+const REMOVAL_NOT_SCHEDULED_NOTICE =
+  'Não foi possível agendar a remoção. Os apps atuais seguem bloqueados.'
+const NOT_AUTHORIZED_NOTICE = 'Autorize o Tempo de Uso antes de escolher os apps.'
 
 export function useGroupAppChoices(dependencies: GroupAppChoicesDependencies) {
   const { groupSelection, holdSelectionRemovalUntilCooldownEnds } = dependencies
@@ -20,9 +23,12 @@ export function useGroupAppChoices(dependencies: GroupAppChoicesDependencies) {
       setNotice(null)
       const outcome = await groupSelection.chooseApps(rule.id).catch(() => 'cancelled' as const)
       setChoicesVersion((version) => version + 1)
+      if (outcome === 'notAuthorized') return setNotice(NOT_AUTHORIZED_NOTICE)
       if (outcome !== 'removalPending') return
-      await holdSelectionRemovalUntilCooldownEnds(rule)
-      setNotice(REMOVAL_HELD_NOTICE)
+      const removalHeld = await holdSelectionRemovalUntilCooldownEnds(rule)
+      if (removalHeld) return setNotice(REMOVAL_HELD_NOTICE)
+      groupSelection.discardPendingRemoval(rule.id)
+      setNotice(REMOVAL_NOT_SCHEDULED_NOTICE)
     },
     [groupSelection, holdSelectionRemovalUntilCooldownEnds],
   )

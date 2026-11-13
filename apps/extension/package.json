@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite build --watch",
+    "dev:firefox": "vite build --watch --mode firefox",
     "build": "vite build",
     "build:firefox": "vite build --mode firefox",
     "test": "vitest run",

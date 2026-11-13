@@ -2,16 +2,13 @@ import react from '@vitejs/plugin-react'
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import { emitManifestPlugin } from './manifest/emitManifestPlugin'
-import type { BrowserTarget } from './src/shared/browser/browserTarget'
+import { parseBrowserTarget } from './src/shared/browser/browserTarget'
 
 const entry = (relativePath: string) =>
   fileURLToPath(new URL(relativePath, import.meta.url))
 
-const browserTargetFromMode = (mode: string): BrowserTarget =>
-  mode === 'firefox' ? 'firefox' : 'chrome'
-
 export default defineConfig(({ mode }) => {
-  const browserTarget = browserTargetFromMode(mode)
+  const browserTarget = parseBrowserTarget(mode === 'firefox' ? mode : undefined)
   return {
     plugins: [react(), emitManifestPlugin(browserTarget)],
     publicDir: false,

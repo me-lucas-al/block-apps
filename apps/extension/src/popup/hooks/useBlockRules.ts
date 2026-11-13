@@ -1,4 +1,4 @@
-import type { NewBlockRule } from '@block-apps/api'
+import { describeApiFailure, type NewBlockRule } from '@block-apps/api'
 import type { BlockRule, PendingRuleChange } from '@block-apps/core'
 import { useCallback, useEffect, useState } from 'react'
 import { RULE_KINDS } from '../components/rules/ruleKinds'
@@ -6,10 +6,6 @@ import { useServices } from '../services/ServicesContext'
 
 function onlyBrowserRules(rules: BlockRule[]): BlockRule[] {
   return rules.filter((rule) => RULE_KINDS.some((kind) => kind === rule.targetType))
-}
-
-function messageOf(failure: unknown): string {
-  return failure instanceof Error ? failure.message : 'Erro inesperado'
 }
 
 export function useBlockRules() {
@@ -32,14 +28,14 @@ export function useBlockRules() {
         background.notifyRulesChanged()
         await reload()
       } catch (failure) {
-        setError(messageOf(failure))
+        setError(describeApiFailure(failure))
       }
     },
     [background, reload],
   )
 
   useEffect(() => {
-    void reload().catch((failure: unknown) => setError(messageOf(failure)))
+    void reload().catch((failure: unknown) => setError(describeApiFailure(failure)))
   }, [reload])
 
   return {

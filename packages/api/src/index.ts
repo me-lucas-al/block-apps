@@ -21,6 +21,7 @@ export {
 export { generateCodeChallenge, generateRandomString } from './auth/cognito/pkce'
 export { requireConfigValue } from './config/requireConfigValue'
 export { ApiError } from './http/client/ApiError'
+export { describeApiFailure } from './http/describeApiFailure'
 export { HttpApiClient, type HttpApiConfig } from './http/client/HttpApiClient'
 export type {
   BlockRuleRepository,

@@ -1,11 +1,11 @@
-import type { NewBlockRule } from '@block-apps/api'
 import {
   type BlockMode,
+  type BuildScheduledRuleResult,
   type ScheduleError,
   type TimeWindow,
+  buildScheduledRule,
   normalizeKeywordTarget,
   normalizeSiteTarget,
-  validateSchedule,
 } from '@block-apps/core'
 import type { RuleKind } from '../ruleKinds'
 
@@ -22,7 +22,7 @@ export type BlockRuleError =
   | Exclude<ScheduleError, null>
 
 export type BuildBlockRuleResult =
-  | { rule: NewBlockRule; error: null }
+  | BuildScheduledRuleResult
   | { rule: null; error: BlockRuleError }
 
 const TARGET_NORMALIZERS: Record<RuleKind, (input: string) => string | null> = {
@@ -39,10 +39,5 @@ export function buildBlockRule(draft: BlockRuleDraft): BuildBlockRuleResult {
   const target = TARGET_NORMALIZERS[draft.kind](draft.target)
   if (!target) return { rule: null, error: INVALID_TARGET_ERRORS[draft.kind] }
 
-  const scheduleError = validateSchedule(draft.mode, draft.windows)
-  if (scheduleError) return { rule: null, error: scheduleError }
-
-  const windows = draft.mode === 'schedule' ? draft.windows : []
-  const rule: NewBlockRule = { targetType: draft.kind, target, mode: draft.mode, windows }
-  return { rule, error: null }
+  return buildScheduledRule(draft.kind, target, draft.mode, draft.windows)
 }

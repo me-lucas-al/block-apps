@@ -39,4 +39,5 @@ Roda só por disparo manual (`workflow_dispatch`) a partir da branch `main`:
 
 1. **Extensão Firefox**: empacotamento para Gecko com manifest v2/v3 híbrido.
 2. **App iOS**: ativação com Screen Time API e `DeviceActivityMonitor` quando houver ambiente Mac.
-3. **Limites de Regras**: implementação de cotas por plano/usuário no backend.
+3. **Limites de Regras**: o backend limita as regras por usuário (`MAX_RULES_PER_USER`, padrão 200; branch `feat/backend-rule-quota`). Falta cota diferente por plano e um contador atômico para o limite ser rígido.
+4. **Bloqueio nativo de buscas no Android**: o app já cadastra e lista palavras de busca (`targetType: keyword`), mas só a extensão as aplica. Aplicar no celular exige ligar `canRetrieveWindowContent` no serviço de acessibilidade, ler a barra de endereço de cada navegador suportado (ids de view variam por navegador e versão) e testar em aparelho. Como isso amplia a permissão do serviço (pode obrigar o usuário a reativá-lo) e entra na revisão de política da Play Store, fica como decisão do dono do projeto.

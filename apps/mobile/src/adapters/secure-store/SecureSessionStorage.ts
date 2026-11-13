@@ -1,54 +1,72 @@
-import { deleteItemAsync, getItemAsync, setItemAsync } from 'expo-secure-store'
 import type { SessionStorage, SessionTokens } from '@block-apps/api'
-
-const LEGACY_STORAGE_KEY = 'block_apps_tokens'
-
-const TOKEN_KEYS: Readonly<Record<keyof SessionTokens, string>> = {
-  accessToken: 'block_apps_access_token',
-  idToken: 'block_apps_id_token',
-  refreshToken: 'block_apps_refresh_token',
-  email: 'block_apps_session_email',
-}
-
-const TOKEN_FIELDS = Object.keys(TOKEN_KEYS) as ReadonlyArray<keyof SessionTokens>
+import { deleteItemAsync, getItemAsync, setItemAsync } from 'expo-secure-store'
+import { parseLegacySession } from './parseLegacySession'
+import { SerialTaskQueue } from './SerialTaskQueue'
+import { LEGACY_STORAGE_KEY, TOKEN_FIELDS, TOKEN_KEYS } from './secureSessionKeys'
+import { readStoredFields, toCompleteSession, type StoredFields } from './storedFields'
 
 export class SecureSessionStorage implements SessionStorage {
-  async load(): Promise<SessionTokens | null> {
+  private readonly queue = new SerialTaskQueue()
+
+  load(): Promise<SessionTokens | null> {
+    return this.queue.run(() => this.loadOrMigrate())
+  }
+
+  save(tokens: SessionTokens): Promise<void> {
+    return this.queue.run(() => this.writeTokens(tokens))
+  }
+
+  clear(): Promise<void> {
+    return this.queue.run(() => this.deleteAllSessionKeys())
+  }
+
+  private async loadOrMigrate(): Promise<SessionTokens | null> {
+    const currentSession = toCompleteSession(await readStoredFields())
+    return currentSession ?? (await this.migrateLegacySession())
+  }
+
+  private async writeTokens(tokens: SessionTokens): Promise<void> {
+    const previousFields = await readStoredFields()
     try {
-      return (await this.loadFromTokenKeys()) ?? (await this.migrateLegacySession())
-    } catch {
-      return null
+      for (const field of TOKEN_FIELDS) await setItemAsync(TOKEN_KEYS[field], tokens[field])
+    } catch (writeFailure) {
+      await this.restoreFields(previousFields)
+      throw writeFailure
     }
   }
 
-  async save(tokens: SessionTokens): Promise<void> {
-    try {
-      await Promise.all(TOKEN_FIELDS.map((field) => setItemAsync(TOKEN_KEYS[field], tokens[field])))
-    } catch (failure) {
-      await this.clear()
-      throw failure
-    }
-  }
-
-  async clear(): Promise<void> {
-    const keys = [...TOKEN_FIELDS.map((field) => TOKEN_KEYS[field]), LEGACY_STORAGE_KEY]
-    await Promise.all(keys.map((key) => deleteItemAsync(key)))
-  }
-
-  private async loadFromTokenKeys(): Promise<SessionTokens | null> {
-    const storedFields = await Promise.all(
-      TOKEN_FIELDS.map(async (field) => [field, await getItemAsync(TOKEN_KEYS[field])] as const),
+  private async restoreFields(previousFields: StoredFields): Promise<void> {
+    await Promise.allSettled(
+      TOKEN_FIELDS.map((field) => {
+        const previousValue = previousFields[field]
+        return previousValue
+          ? setItemAsync(TOKEN_KEYS[field], previousValue)
+          : deleteItemAsync(TOKEN_KEYS[field])
+      }),
     )
-    if (storedFields.some(([, storedValue]) => !storedValue)) return null
-    return Object.fromEntries(storedFields) as SessionTokens
   }
 
   private async migrateLegacySession(): Promise<SessionTokens | null> {
     const rawLegacySession = await getItemAsync(LEGACY_STORAGE_KEY)
     if (!rawLegacySession) return null
-    const legacyTokens = JSON.parse(rawLegacySession) as SessionTokens
-    await this.save(legacyTokens)
-    await deleteItemAsync(LEGACY_STORAGE_KEY)
-    return legacyTokens
+    const legacySession = parseLegacySession(rawLegacySession)
+    if (!legacySession) return null
+    if (await this.copyAndConfirm(legacySession)) await deleteItemAsync(LEGACY_STORAGE_KEY)
+    return legacySession
+  }
+
+  private async copyAndConfirm(session: SessionTokens): Promise<boolean> {
+    try {
+      await this.writeTokens(session)
+      const storedSession = toCompleteSession(await readStoredFields())
+      return storedSession !== null && TOKEN_FIELDS.every((field) => storedSession[field] === session[field])
+    } catch {
+      return false
+    }
+  }
+
+  private async deleteAllSessionKeys(): Promise<void> {
+    const keys = [...TOKEN_FIELDS.map((field) => TOKEN_KEYS[field]), LEGACY_STORAGE_KEY]
+    await Promise.all(keys.map((key) => deleteItemAsync(key)))
   }
 }

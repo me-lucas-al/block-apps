@@ -11,7 +11,15 @@ describe('readLocalServerConfig', () => {
       port: 3000,
       hostname: '127.0.0.1',
       allowedOrigins: [],
+      maxRulesPerUser: 200,
     })
+  })
+
+  it('reads the rule limit from MAX_RULES_PER_USER and refuses an invalid one', () => {
+    expect(readLocalServerConfig({ ...LOCAL_ENV, MAX_RULES_PER_USER: '5' }).maxRulesPerUser).toBe(5)
+    expect(() => readLocalServerConfig({ ...LOCAL_ENV, MAX_RULES_PER_USER: '0' })).toThrow(
+      'MAX_RULES_PER_USER',
+    )
   })
 
   it.each([

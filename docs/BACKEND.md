@@ -43,13 +43,17 @@ Há uma mudança pendente por regra (a chave usa o `ruleId`), então pedir de no
 | Rota | O que faz |
 | --- | --- |
 | `GET /health` | saúde (sem token) |
-| `GET /rules`, `POST /rules` | listar e criar regras |
+| `GET /rules`, `POST /rules` | listar e criar regras (acima da cota responde 422 com `code: "rule-quota-exceeded"`) |
 | `POST /rules/:ruleId/update-requests` | pede mudança de modo/janelas (cooldown) |
 | `POST /rules/:ruleId/removal-requests` | pede remoção (cooldown) |
 | `GET /pending-changes`, `POST /pending-changes/apply-due`, `DELETE /pending-changes/:ruleId` | ver, aplicar vencidas, cancelar |
 | `PUT /devices/:deviceId/status` | informa status do dispositivo |
 
 O `userId` vem sempre do `sub` do token validado pelo API Gateway; nenhuma rota aceita `userId` no corpo. O id de uma regra é `<app|site>~<alvo>` e o alvo é minúsculo, só com letras, dígitos, ponto, hífen e sublinhado.
+
+## Cota de regras
+
+Cada usuário pode ter até `MAX_RULES_PER_USER` regras (padrão 200). Ao criar a regra seguinte o backend responde `422` com `{ error, code: "rule-quota-exceeded", maxRulesPerUser }`. Uma remoção só libera a vaga quando entra em vigor (depois do cooldown), porque a regra continua valendo até lá; mudanças pendentes só alteram ou removem regras e nunca criam, então não entram na conta. O valor precisa ser um inteiro decimal positivo (`1e3`, `0x10` e espaços são recusados); se for inválido a Lambda `api` registra um log JSON `invalid rule limit configuration` e falha ao atender a primeira chamada. No Terraform o valor vem de `max_rules_per_user` (módulo `api` e ambiente `dev`). Na API local, defina `MAX_RULES_PER_USER` antes de subir (`$env:MAX_RULES_PER_USER = '5'` com `pnpm --filter @block-apps/backend local`, ou no ambiente do `docker compose -f docker-compose.local.yml`); o padrão é 200.
 
 ## Rotas da função `admin`
 
@@ -143,5 +147,6 @@ As rotas `/admin` usam um Cognito falso em memória (`src/local/cognito`) com es
 - Se apagar os dados de um usuário falhar depois de ele ser removido do Cognito, os itens ficam órfãos no DynamoDB e a chamada devolve 500.
 - O cooldown do usuário vive no item `SETTINGS` e um administrador o define ao convidar ou em `PATCH /admin/users/:userId` (`cooldownHours`). Sem o item, vale 24h; valor inválido (fora de 0 a 168 horas, ou não inteiro) também volta para 24h.
 - Se o `schedulerHandler` falhar ao aplicar as mudanças de algum usuário, ele termina os demais e então lança `DueChangesApplicationError` (a mensagem traz a contagem e os 5 primeiros ids). A Lambda registra erro, o alarme `scheduler-errors` dispara e o próximo tick de 5 minutos tenta de novo; não há retry automático na Lambda.
-- Sem limite de quantidade de regras e dispositivos por usuário.
+- Sem limite de quantidade de dispositivos por usuário.
+- A cota de regras (`MAX_RULES_PER_USER`) é conferida antes de gravar, sem trava atômica: N criações simultâneas do mesmo usuário, todas lendo a contagem antes de qualquer gravação, passam juntas e o excesso pode chegar a N-1 regras acima do limite. Um contador atômico fica para quando for preciso um limite rígido.
 - Alvos de site são reduzidos ao domínio (`https://www.Exemplo.com/x` vira `exemplo.com`); identificadores de app mantêm a caixa original.

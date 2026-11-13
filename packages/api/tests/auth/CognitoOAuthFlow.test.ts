@@ -38,11 +38,11 @@ describe('CognitoOAuthFlow', () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify(tokenReply)))
     vi.stubGlobal('fetch', fetchMock)
 
-    const tokens = await new CognitoOAuthFlow(hostedConfig).exchangeCode(
-      'code-123',
-      'https://app.test/callback',
-      'explicit-verifier',
-    )
+    const tokens = await new CognitoOAuthFlow(hostedConfig).exchangeCode({
+      code: 'code-123',
+      verifier: 'explicit-verifier',
+      redirectUri: 'https://app.test/callback',
+    })
 
     expect(tokens.email).toBe('user@oauth.com')
     expect(String(fetchMock.mock.calls[0]![1].body)).toContain('code_verifier=explicit-verifier')
@@ -51,8 +51,8 @@ describe('CognitoOAuthFlow', () => {
   it('refuses to exchange the code without a verifier', async () => {
     const flow = new CognitoOAuthFlow(hostedConfig)
 
-    await expect(flow.exchangeCode('code-123', 'https://app.test/callback', '')).rejects.toThrow(
-      'PKCE code verifier is missing',
-    )
+    const withoutVerifier = { code: 'code-123', verifier: '', redirectUri: 'https://app.test/cb' }
+
+    await expect(flow.exchangeCode(withoutVerifier)).rejects.toThrow('PKCE code verifier is missing')
   })
 })

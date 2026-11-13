@@ -1,9 +1,10 @@
 import type { GoogleAuthorization } from './contracts/GoogleAuthorization'
+import type { OAuthCodeExchange } from './contracts/OAuthCodeExchange'
 
 export interface Authenticator {
   signInWithPassword(email: string, password: string): Promise<void>
   beginGoogleSignIn(redirectUri: string): Promise<GoogleAuthorization>
-  exchangeOAuthCode(code: string, verifier: string, redirectUri: string): Promise<void>
+  exchangeOAuthCode(codeExchange: OAuthCodeExchange): Promise<void>
   signUpWithPassword(email: string, password: string): Promise<void>
   signOut(): Promise<void>
   respondToNewPassword?(newPassword: string): Promise<void>

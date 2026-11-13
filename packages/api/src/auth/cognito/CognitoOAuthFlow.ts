@@ -1,4 +1,5 @@
 import type { GoogleAuthorization } from '../contracts/GoogleAuthorization'
+import type { OAuthCodeExchange } from '../contracts/OAuthCodeExchange'
 import type { SessionTokens } from '../contracts/SessionTokens'
 import type { CognitoConfig } from './CognitoConfig'
 import { CognitoOAuthHelper } from './CognitoOAuthHelper'
@@ -19,8 +20,8 @@ export class CognitoOAuthFlow {
     return { url, verifier, state }
   }
 
-  async exchangeCode(code: string, redirectUri: string, verifier: string): Promise<SessionTokens> {
-    if (!verifier) throw new Error('PKCE code verifier is missing')
-    return this.helper.exchangeAuthorizationCode(code, verifier, redirectUri)
+  async exchangeCode(codeExchange: OAuthCodeExchange): Promise<SessionTokens> {
+    if (!codeExchange.verifier) throw new Error('PKCE code verifier is missing')
+    return this.helper.exchangeAuthorizationCode(codeExchange)
   }
 }

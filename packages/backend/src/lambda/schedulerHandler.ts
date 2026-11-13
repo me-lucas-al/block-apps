@@ -1,7 +1,7 @@
 import { createApplyAllDueChangesUseCase } from '../composition/createApplyAllDueChangesUseCase'
 import { createLazyHandler } from './createLazyHandler'
 
-export type SchedulerResult = {
+type SchedulerResult = {
   readonly applied: number
 }
 

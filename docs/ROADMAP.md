@@ -9,8 +9,8 @@
 | Infraestrutura como Código (`infra`) | Pronto | Módulos Terraform (auth, api, data, admin_site, lambda_function) |
 | Cliente HTTP e Autenticação (`api`) | Pronto | `HttpApiClient`, `CognitoAuthenticator`, `SessionStorage`, `RulePoller` |
 | Extensão Chrome/Edge (`extension`) | Pronto | MV3, blocking declarativo, busca protegida, Google PKCE, anti-anônimo |
-| App Android (`mobile`) | Pronto | React Native + Kotlin native module, WorkManager, Device Admin |
-| Painel Web Administrativo (`admin`) | Pronto | Vite/React, gerenciamento de usuários, MFA TOTP obrigatório, Google PKCE |
+| App Android (`mobile`) | Pronto | React Native + módulo Kotlin, sincronização em segundo plano (`expo-background-task`), Device Admin |
+| Painel Web Administrativo (`admin`) | Pronto | Vite/React, gerenciamento de usuários, MFA TOTP obrigatório, entrada por e-mail e senha |
 | CI/CD no GitHub Actions | Pronto | Typecheck, testes unitários, formatação e validação Terraform, release |
 | Remoção de tecnologias legadas | Pronto | Supabase, Postgres e Edge Functions 100% removidos |
 | App iOS (Screen Time API) | Pausado | Aguarda Mac com conta Apple Developer e entitlement Family Controls |
@@ -39,4 +39,5 @@ Roda só por disparo manual (`workflow_dispatch`) a partir da branch `main`:
 
 1. **Publicação da extensão Firefox**: carregar o zip no AMO, validar o login Google com a URL `extensions.allizom.org` e confirmar a declaração de dados coletados.
 2. **App iOS**: ativação com Screen Time API e `DeviceActivityMonitor` quando houver ambiente Mac.
-3. **Limites de Regras**: implementação de cotas por plano/usuário no backend.
+3. **Limites de Regras**: o backend limita as regras por usuário (`MAX_RULES_PER_USER`, padrão 200; branch `feat/backend-rule-quota`). Falta cota diferente por plano e um contador atômico para o limite ser rígido.
+4. **Bloqueio nativo de buscas no Android**: o app já cadastra e lista palavras de busca (`targetType: keyword`), mas só a extensão as aplica. Aplicar no celular exige ligar `canRetrieveWindowContent` no serviço de acessibilidade, ler a barra de endereço de cada navegador suportado (ids de view variam por navegador e versão) e testar em aparelho. Como isso amplia a permissão do serviço (pode obrigar o usuário a reativá-lo) e entra na revisão de política da Play Store, fica como decisão do dono do projeto.

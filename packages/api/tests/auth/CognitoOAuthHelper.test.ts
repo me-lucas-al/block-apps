@@ -1,6 +1,12 @@
 import { describe, expect, it, vi } from 'vitest'
 import { CognitoOAuthHelper } from '../../src/auth/cognito/CognitoOAuthHelper'
 
+const codeExchange = {
+  code: 'code-123',
+  verifier: 'verifier-123',
+  redirectUri: 'https://app.test',
+}
+
 describe('CognitoOAuthHelper', () => {
   it('builds authorize url with parameters', () => {
     const helper = new CognitoOAuthHelper({
@@ -9,11 +15,12 @@ describe('CognitoOAuthHelper', () => {
       hostedDomain: 'auth.example.com',
     })
 
-    const url = helper.buildAuthorizeUrl('https://app.test/callback', 'challenge-xyz')
+    const url = helper.buildAuthorizeUrl('https://app.test/callback', 'challenge-xyz', 'state-abc')
     expect(url).toContain('https://auth.example.com/oauth2/authorize?')
     expect(url).toContain('client_id=client-1')
     expect(url).toContain('code_challenge=challenge-xyz')
     expect(url).toContain('identity_provider=Google')
+    expect(url).toContain('state=state-abc')
   })
 
   it('exchanges code for tokens', async () => {
@@ -38,7 +45,7 @@ describe('CognitoOAuthHelper', () => {
       hostedDomain: 'auth.example.com',
     })
 
-    const tokens = await helper.exchangeAuthorizationCode('code-123', 'verifier-123', 'https://app.test')
+    const tokens = await helper.exchangeAuthorizationCode(codeExchange)
     expect(tokens.email).toBe('oauth@example.com')
     expect(tokens.accessToken).toBe('acc-1')
     expect(tokens.refreshToken).toBe('ref-1')
@@ -55,8 +62,8 @@ describe('CognitoOAuthHelper', () => {
       hostedDomain: 'auth.example.com',
     })
 
-    await expect(
-      helper.exchangeAuthorizationCode('code-123', 'verifier-123', 'https://app.test'),
-    ).rejects.toThrow('OAuth id token has no email')
+    await expect(helper.exchangeAuthorizationCode(codeExchange)).rejects.toThrow(
+      'OAuth id token has no email',
+    )
   })
 })

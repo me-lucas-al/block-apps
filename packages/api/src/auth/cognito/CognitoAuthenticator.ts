@@ -1,5 +1,7 @@
 import type { Authenticator } from '../Authenticator'
 import type { AuthResult } from '../contracts/AuthResult'
+import type { GoogleAuthorization } from '../contracts/GoogleAuthorization'
+import type { OAuthCodeExchange } from '../contracts/OAuthCodeExchange'
 import type { SessionStorage } from '../contracts/SessionStorage'
 import type { SessionTokens } from '../contracts/SessionTokens'
 import type { LocalUserSession } from '../session/LocalUserSession'
@@ -88,15 +90,12 @@ export class CognitoAuthenticator implements Authenticator {
     await this.accountOps.confirmPassword(email, code, nextPass)
   }
 
-  async signInWithGoogle(redirectUri: string): Promise<void> {
-    const url = await this.oauthFlow.buildGoogleAuthorizeUrl(redirectUri)
-    if (typeof window !== 'undefined') window.location.href = url
+  beginGoogleSignIn(redirectUri: string): Promise<GoogleAuthorization> {
+    return this.oauthFlow.buildGoogleAuthorizeUrl(redirectUri)
   }
 
-  async exchangeOAuthCode(code: string, verifier?: string, redirectUri?: string): Promise<void> {
-    await this.sessionManager.persistTokens(
-      await this.oauthFlow.exchangeCode(code, redirectUri ?? '', verifier),
-    )
+  async exchangeOAuthCode(codeExchange: OAuthCodeExchange): Promise<void> {
+    await this.sessionManager.persistTokens(await this.oauthFlow.exchangeCode(codeExchange))
   }
 
   async signOut(): Promise<void> {

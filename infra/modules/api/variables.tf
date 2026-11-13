@@ -60,6 +60,17 @@ variable "log_retention_days" {
   default     = 30
 }
 
+variable "max_rules_per_user" {
+  description = "Quantidade máxima de regras por usuário. Acima disso a criação de regra responde 422."
+  type        = number
+  default     = 200
+
+  validation {
+    condition     = var.max_rules_per_user >= 1 && floor(var.max_rules_per_user) == var.max_rules_per_user
+    error_message = "max_rules_per_user deve ser um inteiro maior ou igual a 1."
+  }
+}
+
 variable "tags" {
   description = "Tags aplicadas aos recursos."
   type        = map(string)

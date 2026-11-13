@@ -6,6 +6,7 @@ import { createApiApp } from '../../../src/http/app/createApiApp'
 import { buildLocalBindings } from '../../../src/local/buildLocalBindings'
 import { createLocalRouter } from '../../../src/local/createLocalRouter'
 import { seedLocalUsers } from '../../../src/local/seedLocalUsers'
+import { DEFAULT_MAX_RULES_PER_USER } from '../../../src/rules/quota/readMaxRulesPerUser'
 import { InMemoryUserSettings } from '../admin/InMemoryUserSettings'
 import { InMemoryRuleDatabase } from '../InMemoryRuleDatabase'
 
@@ -21,6 +22,7 @@ function buildLocalTestRouter() {
       deviceStore: database,
     },
     () => new Date(),
+    DEFAULT_MAX_RULES_PER_USER,
   )
   const adminCollaborators = assembleCognitoAdminCollaborators(seedLocalUsers().asContext(), {
     userDataEraser: settings,

@@ -28,6 +28,17 @@ variable "admin_require_mfa" {
   default     = true
 }
 
+variable "max_rules_per_user" {
+  description = "Quantidade máxima de regras por usuário."
+  type        = number
+  default     = 200
+
+  validation {
+    condition     = var.max_rules_per_user >= 1 && floor(var.max_rules_per_user) == var.max_rules_per_user
+    error_message = "max_rules_per_user deve ser um inteiro maior ou igual a 1."
+  }
+}
+
 variable "budget_limit_usd" {
   description = "Limite do orçamento mensal em USD no AWS Budgets. 0 desliga."
   type        = number
@@ -36,6 +47,12 @@ variable "budget_limit_usd" {
 
 variable "budget_alert_email" {
   description = "E-mail para envio de alertas do orçamento mensal."
+  type        = string
+  default     = ""
+}
+
+variable "alarm_email" {
+  description = "E-mail que recebe os avisos dos alarmes do CloudWatch."
   type        = string
   default     = ""
 }

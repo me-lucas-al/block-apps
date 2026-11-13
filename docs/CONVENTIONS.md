@@ -25,7 +25,7 @@ apps/
   extension/src/   ports/{browser,data}/, adapters/{browser,chrome,firefox}/, shared/browser/, blocking/{,keywords/}, device/, popup/, background/
   admin/src/       ports/, adapters/, components/, screens/, services/, users/
   mobile/
-    src/           ports/, adapters/, sync/, hooks/, screens/, components/, device/
+    src/           ports/, adapters/, sync/, background/, hooks/, screens/, components/, device/
     modules/app-blocker/
       src/                   ponte TypeScript
       android/.../appblocker/  Kotlin: admin/, service/, system/, ui/, rules/{model,evaluation,storage}/

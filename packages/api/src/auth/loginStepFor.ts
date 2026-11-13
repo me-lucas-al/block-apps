@@ -16,6 +16,6 @@ const STEP_BY_CHALLENGE: Readonly<Record<AuthChallenge['kind'], LoginStep>> = {
   CONFIRMATION_REQUIRED: 'confirm_signup',
 }
 
-export function loginStepFor(result: AuthResult): LoginStep {
-  return result.success ? 'signed_in' : STEP_BY_CHALLENGE[result.challenge.kind]
+export function loginStepFor(authResult: AuthResult): LoginStep {
+  return authResult.success ? 'signed_in' : STEP_BY_CHALLENGE[authResult.challenge.kind]
 }

@@ -85,7 +85,7 @@ O `release.yml` só roda por disparo manual e os jobs de deploy usam o ambiente 
 
 - **Required reviewers:** quem aprova cada deploy.
 - **Deployment branches:** só `main`.
-- **Variables:** `HOSTED_DOMAIN_PREFIX`, `GOOGLE_CLIENT_ID`, `INITIAL_ADMIN_EMAIL`.
+- **Variables:** `HOSTED_DOMAIN_PREFIX`, `GOOGLE_CLIENT_ID`, `INITIAL_ADMIN_EMAIL`, `ALARM_EMAIL` (e-mail que recebe os alarmes).
 - **Secrets:** `AWS_ROLE_ARN`, `TF_STATE_BUCKET`, `GOOGLE_CLIENT_SECRET`.
 
 O workflow passa esses valores ao Terraform por `TF_VAR_*`, gera `release.tfplan` com `plan -out` e aplica exatamente esse arquivo. O `Terraform Plan` das PRs não usa o ambiente (para não pedir aprovação a cada PR), então crie as mesmas variáveis e segredos também no nível do repositório.

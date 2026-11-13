@@ -1,8 +1,8 @@
-import type { HostAccessPort } from '../../../ports/browser/HostAccessPort'
+import type { HostAccessPort } from '../../ports/browser/HostAccessPort'
 
 const ALL_SITES = { origins: ['<all_urls>'] }
 
-export class ChromeHostAccessPort implements HostAccessPort {
+export class ExtensionApiHostAccessPort implements HostAccessPort {
   isGranted(): Promise<boolean> {
     return chrome.permissions.contains(ALL_SITES)
   }

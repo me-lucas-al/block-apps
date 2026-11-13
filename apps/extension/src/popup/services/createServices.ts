@@ -6,7 +6,7 @@ import type {
 } from '@block-apps/api'
 import { ChromeBackgroundNotifier } from '../../adapters/chrome/browser/ChromeBackgroundNotifier'
 import { createIncognitoPort } from '../../adapters/browser/createIncognitoPort'
-import { ChromeHostAccessPort } from '../../adapters/chrome/browser/ChromeHostAccessPort'
+import { ExtensionApiHostAccessPort } from '../../adapters/browser/ExtensionApiHostAccessPort'
 import { createExtensionServices } from '../../adapters/createExtensionServices'
 import type { BackgroundNotifier } from '../../ports/browser/BackgroundNotifier'
 import type { HostAccessPort } from '../../ports/browser/HostAccessPort'
@@ -30,7 +30,7 @@ export function createServices(): Services {
     ruleRepository: extensionServices.ruleRepository,
     pendingRuleChanges: extensionServices.pendingRuleChanges,
     incognito: createIncognitoPort(),
-    hostAccess: new ChromeHostAccessPort(),
+    hostAccess: new ExtensionApiHostAccessPort(),
     background: new ChromeBackgroundNotifier(),
   }
 }

@@ -10,7 +10,7 @@
 | Cliente HTTP e Autenticação (`api`) | Pronto | `HttpApiClient`, `CognitoAuthenticator`, `SessionStorage`, `RulePoller` |
 | Extensão Chrome/Edge (`extension`) | Pronto | MV3, blocking declarativo, busca protegida, Google PKCE, anti-anônimo |
 | App Android (`mobile`) | Pronto | React Native + módulo Kotlin, sincronização em segundo plano (`expo-background-task`), Device Admin |
-| Painel Web Administrativo (`admin`) | Pronto | Vite/React, gerenciamento de usuários, MFA TOTP obrigatório, Google PKCE |
+| Painel Web Administrativo (`admin`) | Pronto | Vite/React, gerenciamento de usuários, MFA TOTP obrigatório, entrada por e-mail e senha |
 | CI/CD no GitHub Actions | Pronto | Typecheck, testes unitários, formatação e validação Terraform, release |
 | Remoção de tecnologias legadas | Pronto | Supabase, Postgres e Edge Functions 100% removidos |
 | App iOS (Screen Time API) | Pausado | Aguarda Mac com conta Apple Developer e entitlement Family Controls |

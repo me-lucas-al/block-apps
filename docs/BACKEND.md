@@ -19,13 +19,17 @@ src/
 | Rota | O que faz |
 | --- | --- |
 | `GET /health` | saúde (sem token) |
-| `GET /rules`, `POST /rules` | listar e criar regras |
+| `GET /rules`, `POST /rules` | listar e criar regras (acima da cota responde 422 com `code: "rule-quota-exceeded"`) |
 | `POST /rules/:ruleId/update-requests` | pede mudança de modo/janelas (cooldown) |
 | `POST /rules/:ruleId/removal-requests` | pede remoção (cooldown) |
 | `GET /pending-changes`, `POST /pending-changes/apply-due`, `DELETE /pending-changes/:ruleId` | ver, aplicar vencidas, cancelar |
 | `PUT /devices/:deviceId/status` | informa status do dispositivo |
 
 O `userId` vem sempre do `sub` do token validado pelo API Gateway; nenhuma rota aceita `userId` no corpo. O id de uma regra é `<app|site>~<alvo>` e o alvo é minúsculo, só com letras, dígitos, ponto, hífen e sublinhado.
+
+## Cota de regras
+
+Cada usuário pode ter até `MAX_RULES_PER_USER` regras (padrão 200). Ao criar a regra seguinte o backend responde `422` com `{ error, code: "rule-quota-exceeded", maxRulesPerUser }`. Uma remoção só libera a vaga quando entra em vigor (depois do cooldown), porque a regra continua valendo até lá; mudanças pendentes só alteram ou removem regras e nunca criam, então não entram na conta. No Terraform o valor vem de `max_rules_per_user` (módulo `api` e ambiente `dev`).
 
 ## Rotas da função `admin`
 
@@ -106,5 +110,6 @@ As rotas `/admin` usam um Cognito falso em memória (`src/local/cognito`) com es
 - A listagem de usuários não traz último acesso (o Cognito não guarda esse dado).
 - Se apagar os dados de um usuário falhar depois de ele ser removido do Cognito, os itens ficam órfãos no DynamoDB e a chamada devolve 500.
 - O cooldown do usuário vive no item `SETTINGS` e ainda não tem rota de escrita: fica em 24h até a fase de administração. Valor inválido (fora de 0 a 168 horas, ou não inteiro) volta para 24h.
-- Sem limite de quantidade de regras e dispositivos por usuário.
+- Sem limite de quantidade de dispositivos por usuário.
+- A cota de regras (`MAX_RULES_PER_USER`) é conferida antes de gravar, sem trava atômica: duas criações simultâneas do mesmo usuário podem passar do limite por uma regra.
 - Alvos de site são reduzidos ao domínio (`https://www.Exemplo.com/x` vira `exemplo.com`); identificadores de app mantêm a caixa original.

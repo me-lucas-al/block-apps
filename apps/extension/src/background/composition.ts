@@ -1,7 +1,7 @@
 import { ChromeDeviceIdStore } from '../adapters/chrome/storage/ChromeDeviceIdStore'
 import { ChromeDynamicRulesPort } from '../adapters/chrome/browser/ChromeDynamicRulesPort'
-import { ChromeIncognitoPort } from '../adapters/chrome/browser/ChromeIncognitoPort'
 import { ChromeOpenTabsPort } from '../adapters/chrome/browser/ChromeOpenTabsPort'
+import { createIncognitoPort } from '../adapters/browser/createIncognitoPort'
 import { ChromeTabRedirectPort } from '../adapters/chrome/browser/ChromeTabRedirectPort'
 import { ChromeStorageRuleCache } from '../adapters/chrome/storage/ChromeStorageRuleCache'
 import { LocalSessionGate } from '../adapters/chrome/storage/LocalSessionGate'
@@ -41,7 +41,7 @@ export function composeBackground() {
   const reporter = new DeviceStatusReporter({
     deviceRepository: services.deviceRepository,
     deviceIdStore: new ChromeDeviceIdStore(),
-    incognito: new ChromeIncognitoPort(),
+    incognito: createIncognitoPort(),
     sessionGate,
   })
 

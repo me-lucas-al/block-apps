@@ -10,6 +10,7 @@ resource "aws_cloudwatch_metric_alarm" "api_5xx_errors" {
   alarm_description   = "API Gateway 5XX errors exceeded threshold"
   treat_missing_data  = "notBreaching"
   alarm_actions       = [aws_sns_topic.alarms.arn]
+  ok_actions          = [aws_sns_topic.alarms.arn]
 
   dimensions = {
     ApiId = aws_apigatewayv2_api.main.id
@@ -30,6 +31,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_throttles" {
   alarm_description   = "API Lambda functions are being throttled"
   treat_missing_data  = "notBreaching"
   alarm_actions       = [aws_sns_topic.alarms.arn]
+  ok_actions          = [aws_sns_topic.alarms.arn]
 
   dimensions = {
     FunctionName = module.api_function.function_name
@@ -50,6 +52,7 @@ resource "aws_cloudwatch_metric_alarm" "api_duration" {
   alarm_description   = "API Lambda p95 duration exceeded 3 seconds"
   treat_missing_data  = "notBreaching"
   alarm_actions       = [aws_sns_topic.alarms.arn]
+  ok_actions          = [aws_sns_topic.alarms.arn]
 
   dimensions = {
     FunctionName = module.api_function.function_name
@@ -70,6 +73,7 @@ resource "aws_cloudwatch_metric_alarm" "scheduler_errors" {
   alarm_description   = "Scheduler Lambda failed to apply due rule changes"
   treat_missing_data  = "notBreaching"
   alarm_actions       = [aws_sns_topic.alarms.arn]
+  ok_actions          = [aws_sns_topic.alarms.arn]
 
   dimensions = {
     FunctionName = module.scheduler_function.function_name

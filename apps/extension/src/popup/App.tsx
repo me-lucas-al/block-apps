@@ -1,5 +1,6 @@
 import { LoginForm } from './components/auth/LoginForm'
 import { RulesPanel } from './components/rules/list/RulesPanel'
+import { HostAccessWarning } from './components/status/HostAccessWarning'
 import { IncognitoWarning } from './components/status/IncognitoWarning'
 import { useRefreshRulesWhenSignedIn } from './hooks/useRefreshRulesWhenSignedIn'
 import { useSessionEmail } from './hooks/useSessionEmail'
@@ -21,6 +22,7 @@ export function App() {
           Sair
         </button>
       </header>
+      <HostAccessWarning />
       <IncognitoWarning />
       <RulesPanel />
     </main>

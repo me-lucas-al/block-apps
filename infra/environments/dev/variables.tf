@@ -21,18 +21,6 @@ variable "hosted_domain_prefix" {
   type        = string
 }
 
-variable "web_callback_urls" {
-  description = "URLs de retorno do login do painel administrativo."
-  type        = list(string)
-  default     = ["http://localhost:5173", "http://localhost:8080"]
-}
-
-variable "web_logout_urls" {
-  description = "URLs para onde o painel volta depois do logout."
-  type        = list(string)
-  default     = ["http://localhost:5173", "http://localhost:8080"]
-}
-
 variable "allowed_origins" {
   description = "Origens autorizadas no CORS da API."
   type        = list(string)

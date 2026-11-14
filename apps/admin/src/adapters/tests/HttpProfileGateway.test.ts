@@ -38,7 +38,8 @@ describe('HttpProfileGateway', () => {
 
   const mockAuthenticator: Authenticator = {
     signInWithPassword: vi.fn(),
-    signInWithGoogle: vi.fn(),
+    beginGoogleSignIn: vi.fn(),
+    exchangeOAuthCode: vi.fn(),
     signUpWithPassword: vi.fn(),
     signOut: vi.fn(),
     changePassword: vi.fn().mockResolvedValue(undefined),

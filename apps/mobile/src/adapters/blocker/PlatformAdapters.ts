@@ -8,7 +8,6 @@ import type { ProtectionPort } from '../../ports/protection/ProtectionPort'
 export type PlatformAdapters = {
   readonly platform: Extract<DevicePlatform, 'android' | 'ios'>
   readonly listedTargetTypes: readonly TargetType[]
-  readonly needsBackgroundRefresh: boolean
   readonly blocker: BlockerPort
   readonly protection: ProtectionPort
   readonly appChoice: AppChoicePort

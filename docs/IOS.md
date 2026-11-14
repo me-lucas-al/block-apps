@@ -15,7 +15,7 @@ Estado: código escrito e testado onde dá (lógica em CI Linux, compilação em
 | Tipo | Alvo | Onde vale |
 | --- | --- | --- |
 | `iosSelection` | nome do grupo (slug, até 50 caracteres) | iOS. O servidor guarda nome, modo e janelas e aplica o cooldown; os tokens ficam só no aparelho, ligados ao id da regra. |
-| `protection` | `ios-deny-app-removal` | iOS, reservado para o modo estrito (Etapa 7, ainda não ligado na tela). |
+| `protection` | `ios-deny-app-removal` | iOS, só modo `always`. É o modo estrito: enquanto a regra existir, o iPhone não deixa remover apps. Desligar é remover a regra, então passa pelo cooldown do servidor. |
 
 Em outro iPhone ou depois de reinstalar, a regra volta do servidor e o app pede para escolher os apps de novo. Android e extensão ignoram os tipos novos.
 
@@ -41,6 +41,7 @@ apps/mobile/
 - O padrão é bloqueado. `ShieldApplier` recalcula tudo a partir das regras salvas e da hora atual e grava no `ManagedSettingsStore`.
 - `ShieldSchedulePlanner` transforma as janelas em atividades de `DeviceActivity`: uma em cada borda (início e fim de cada janela, cortada na meia-noite), sem repetir, com 15 minutos de intervalo. Cada callback só recalcula.
 - Regras que estourariam o limite de 20 atividades ficam sempre bloqueadas, e a tela avisa.
+- Cada atividade tem início e fim com dia da semana explícito (a que cruza a meia-noite termina no dia seguinte). O registro é refeito quando o plano muda ou quando o sistema deixou de monitorar alguma atividade (`DeviceActivityCenter.activities`).
 - O recálculo também roda ao voltar ao primeiro plano e numa tarefa em segundo plano (`expo-background-task`, melhor esforço).
 - `requireAutomaticDateAndTime` fica ligado enquanto houver regra com horário, para o relógio não ser adiantado.
 - A extensão de ação só fecha a tela de bloqueio, nunca libera.
@@ -57,6 +58,8 @@ Adicionar apps vale na hora. Remover apps fica guardado como seleção pendente 
 - Nenhum dado de uso sai do aparelho. Há manifesto de privacidade em `app.json`.
 
 ## Pré-requisitos (feitos por você)
+
+O texto do pedido do entitlement está em [`IOS_ENTITLEMENT_REQUEST.md`](IOS_ENTITLEMENT_REQUEST.md).
 
 1. Assinar o Apple Developer Program (US$ 99 por ano) e criar a conta Expo/EAS.
 2. Pedir à Apple o entitlement de distribuição `com.apple.developer.family-controls` para os quatro identificadores: `com.blockapps.mobile`, `.monitor`, `.shieldconfig` e `.shieldaction`. Pedir no primeiro dia: a aprovação leva semanas e é o caminho crítico.
@@ -81,12 +84,21 @@ Fazer num iPhone com iOS 16 ou mais, depois da aprovação da Apple. Correções
 - Revogar em Ajustes: o app avisa e o servidor recebe o status.
 - Mudar o relógio: impedido.
 - Remover apps do grupo: só vale depois do cooldown.
+- Modo estrito (num aparelho que você possa restaurar): ligar, tentar remover um app (deve ser impedido), pedir para desligar e conferir que só libera depois do cooldown, cancelar o pedido, e desinstalar o Block Apps com o modo desligado para confirmar que a trava não fica presa.
+- Atividades de horário perto da meia-noite e no sábado para domingo.
 - Reinstalar e entrar de novo: as regras voltam e a seleção pede nova escolha.
 - Confiabilidade dos callbacks de `DeviceActivity` e dos tokens depois de atualizar o iOS.
 
-## Modo estrito (Etapa 7, só se a validação passar)
+## Modo estrito (`denyAppRemoval`)
 
-`denyAppRemoval` como regra `protection`, desligado por padrão, com aviso de que impede remover todos os apps e de que há relatos de ficar preso (a saída é restaurar o iPhone). Testar por último e só no aparelho de teste.
+Opcional e **desligado por padrão**. Na tela inicial do iOS há o cartão "Modo estrito".
+
+- **Ligar** pede confirmação com o aviso de que o iPhone passa a não deixar remover **nenhum** app, de que há relatos de a trava continuar depois de o Block Apps ser desinstalado (a saída seria restaurar o iPhone) e de que desligar espera o cooldown. Ligar cria a regra `protection` / `ios-deny-app-removal` (modo `always`) no servidor; apertar é imediato.
+- **Desligar** é um pedido de remoção dessa regra: só vale quando o cooldown da conta termina, e dá para cancelar o pedido antes disso.
+- Por ser uma regra da conta, vale em todos os iPhones dela e volta depois de reinstalar e entrar de novo.
+- No aparelho, `ShieldApplier` liga `store.application.denyAppRemoval` quando existe uma regra `protection` sempre ligada com esse alvo (`StrictModePolicy`, testada em Linux) e desliga quando ela some. Regra com horário ou outro alvo é ignorada.
+
+**Não confirmado em doc oficial:** se `denyAppRemoval` funciona com a autorização `.individual`. Teste em aparelho descartável **antes** de usar no seu iPhone de uso diário.
 
 ## Riscos
 

@@ -42,5 +42,5 @@ Roda só por disparo manual (`workflow_dispatch`) a partir da branch `main`:
 ## Próximos Passos (Futuro)
 
 1. **Extensão Firefox**: empacotamento para Gecko com manifest v2/v3 híbrido.
-2. **App iOS**: pedir o entitlement `family-controls`, validar em aparelho e, se passar, liberar o modo estrito (ver IOS.md).
+2. **App iOS**: pedir o entitlement `family-controls` (texto pronto em `IOS_ENTITLEMENT_REQUEST.md`) e validar em aparelho, incluindo o modo estrito, que já existe mas só deve ser usado num aparelho descartável até validar (ver IOS.md).
 3. **Limites de Regras**: implementação de cotas por plano/usuário no backend.

@@ -19,4 +19,8 @@ struct ShieldSettingsWriter {
     func requireAutomaticDateAndTime(_ required: Bool) {
         store.dateAndTime.requireAutomaticDateAndTime = required ? true : nil
     }
+
+    func denyAppRemoval(_ denied: Bool) {
+        store.application.denyAppRemoval = denied ? true : nil
+    }
 }

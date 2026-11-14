@@ -51,8 +51,10 @@ Abre em `http://localhost:5173`. As variáveis de conexão ficam em `apps/admin/
 Para rodar o painel em container Docker com Nginx:
 
 ```powershell
-docker compose up admin -d --build
+docker compose --env-file apps/admin/.env up admin -d --build
 ```
+
+O `.env.example` traz só valores de exemplo: copie para `.env` e troque pelos valores do seu ambiente (outputs do Terraform) antes de usar. O build da imagem falha se alguma variável `VITE_*` estiver vazia.
 
 Abre em `http://localhost:8080`.
 

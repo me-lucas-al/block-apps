@@ -1,4 +1,6 @@
 import {
+  isProtectionTarget,
+  normalizeIosSelectionTarget,
   normalizeKeywordTarget,
   normalizeSiteTarget,
   parseAppIdentifier,
@@ -16,6 +18,16 @@ export function normalizeRuleTarget(targetType: TargetType, rawTarget: string): 
     const keyword = normalizeKeywordTarget(rawTarget)
     if (!keyword) throw new ValidationError('target must be a valid keyword')
     return keyword
+  }
+  if (targetType === 'iosSelection') {
+    const selectionName = normalizeIosSelectionTarget(rawTarget)
+    if (!selectionName) throw new ValidationError('target must be a valid app group name')
+    return selectionName
+  }
+  if (targetType === 'protection') {
+    const protectionTarget = rawTarget.trim()
+    if (!isProtectionTarget(protectionTarget)) throw new ValidationError('target must be a known protection')
+    return protectionTarget
   }
   const packageName = parseAppIdentifier(rawTarget)
   if (!packageName) throw new ValidationError('target must be an Android package name')

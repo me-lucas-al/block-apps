@@ -34,7 +34,11 @@ describe('AppRulesSync', () => {
     const { sync, applyRules, calls } = createSync('user@example.com')
     await sync.sync()
     expect(calls).toEqual(['apply', 'list'])
-    expect(applyRules).toHaveBeenCalledWith([appRule], [])
+    expect(applyRules).toHaveBeenCalledWith({
+      rules: [appRule],
+      pendingChanges: [],
+      accountId: 'user@example.com',
+    })
   })
 
   it('keeps blocker rules untouched when signed out', async () => {
@@ -47,8 +51,12 @@ describe('AppRulesSync', () => {
 
   it('pushes rules that were already loaded without reading them again', () => {
     const { sync, applyRules, list } = createSync('user@example.com')
-    sync.push([appRule], [])
-    expect(applyRules).toHaveBeenCalledWith([appRule], [])
+    sync.push([appRule], [], '  User@Example.com ')
+    expect(applyRules).toHaveBeenCalledWith({
+      rules: [appRule],
+      pendingChanges: [],
+      accountId: 'user@example.com',
+    })
     expect(list).not.toHaveBeenCalled()
   })
 })

@@ -1,6 +1,7 @@
 import type { NewBlockRule } from '@block-apps/api'
 import type { BlockMode, TimeWindow } from '@block-apps/core'
 import { useState } from 'react'
+import { messageOf } from '../../errors/messageOf'
 import { buildIosGroupRule } from '../../rules/buildIosGroupRule'
 import { ruleErrorMessage } from '../../rules/ruleErrorMessage'
 import type { GroupSelectionPort } from '../../ports/groupselection/GroupSelectionPort'
@@ -9,10 +10,6 @@ type IosGroupRuleFormDependencies = {
   groupSelection: GroupSelectionPort
   createGroupRule: (rule: NewBlockRule) => Promise<void>
   closeForm: () => void
-}
-
-function messageOf(failure: unknown): string {
-  return failure instanceof Error ? failure.message : 'Erro inesperado'
 }
 
 export function useIosGroupRuleForm(dependencies: IosGroupRuleFormDependencies) {

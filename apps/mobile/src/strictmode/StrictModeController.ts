@@ -9,11 +9,18 @@ export type StrictModeDependencies = {
     'listPendingChanges' | 'requestRemoval' | 'cancelPendingChange'
   >
   readonly syncRulesToDevice: () => Promise<void>
+  readonly isScreenTimeAuthorized: () => boolean
 }
 
 function isStrictModeRule(rule: BlockRule): boolean {
-  return rule.targetType === 'protection' && rule.target === IOS_DENY_APP_REMOVAL_TARGET
+  return (
+    rule.targetType === 'protection' &&
+    rule.target === IOS_DENY_APP_REMOVAL_TARGET &&
+    rule.mode === 'always'
+  )
 }
+
+const AUTHORIZATION_REQUIRED = 'Autorize o Tempo de Uso antes de ligar o modo estrito.'
 
 export class StrictModeController {
   constructor(private readonly dependencies: StrictModeDependencies) {}
@@ -30,6 +37,7 @@ export class StrictModeController {
 
   async turnOn(): Promise<void> {
     if (await this.findStrictModeRule()) return
+    if (!this.dependencies.isScreenTimeAuthorized()) throw new Error(AUTHORIZATION_REQUIRED)
     await this.dependencies.ruleRepository.create({
       targetType: 'protection',
       target: IOS_DENY_APP_REMOVAL_TARGET,

@@ -19,17 +19,23 @@ export type AppRulesSyncDependencies = {
 export class AppRulesSync {
   constructor(private readonly dependencies: AppRulesSyncDependencies) {}
 
-  push(rules: readonly BlockRule[], pendingChanges: readonly PendingRuleChange[]): void {
-    this.dependencies.blocker.applyRules(rules, pendingChanges)
+  push(
+    rules: readonly BlockRule[],
+    pendingChanges: readonly PendingRuleChange[],
+    accountEmail: string,
+  ): void {
+    const accountId = accountEmail.trim().toLowerCase()
+    this.dependencies.blocker.applyRules({ rules, pendingChanges, accountId })
   }
 
   async sync(): Promise<void> {
     const { ruleRepository, pendingRuleChanges, userSession } = this.dependencies
-    if (!(await userSession.currentUserEmail())) return
+    const accountEmail = await userSession.currentUserEmail()
+    if (!accountEmail) return
 
     await pendingRuleChanges.applyDueChanges().catch(() => undefined)
     const rules = await ruleRepository.list()
     const pendingChanges = await pendingRuleChanges.listPendingChanges()
-    this.push(rules, pendingChanges)
+    this.push(rules, pendingChanges, accountEmail)
   }
 }

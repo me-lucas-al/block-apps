@@ -37,6 +37,7 @@ export function GroupRuleItem(props: GroupRuleItemProps) {
         <Button
           label={appsChosen ? 'Editar apps' : 'Escolher apps'}
           variant="secondary"
+          disabled={pendingChange?.kind === 'delete'}
           onPress={() => props.onChooseApps(rule)}
         />
         {pendingChange ? (

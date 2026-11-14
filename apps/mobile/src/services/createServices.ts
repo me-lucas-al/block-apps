@@ -61,6 +61,7 @@ export function createServices(): Services {
       ruleRepository: mobile.ruleRepository,
       pendingRuleChanges: mobile.pendingRuleChanges,
       rulesSync,
+      isScreenTimeAuthorized: () => adapters.protection.isDeviceProtected(),
     }),
     listedTargetTypes: adapters.listedTargetTypes,
     needsBackgroundRefresh: adapters.needsBackgroundRefresh,

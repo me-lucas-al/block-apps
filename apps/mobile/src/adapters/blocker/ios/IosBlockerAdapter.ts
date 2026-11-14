@@ -1,5 +1,6 @@
 import type { BlockRule, PendingRuleChange } from '@block-apps/core'
 import type { BlockerPort } from '../../../ports/blocker/BlockerPort'
+import type { RulesSnapshot } from '../../../ports/blocker/RulesSnapshot'
 import type { GroupSelectionPort } from '../../../ports/groupselection/GroupSelectionPort'
 import type { IosNativeModule } from './module/IosNativeModule'
 import { toIosRulesJson } from './rules/toIosRulesJson'
@@ -18,9 +19,9 @@ type IosBlockerDependencies = {
 export class IosBlockerAdapter implements BlockerPort {
   constructor(private readonly dependencies: IosBlockerDependencies) {}
 
-  applyRules(rules: readonly BlockRule[], pendingChanges: readonly PendingRuleChange[]): void {
+  applyRules({ rules, pendingChanges, accountId }: RulesSnapshot): void {
     this.settleHeldSelectionRemovals(rules, pendingChanges)
-    this.dependencies.nativeModule.setRules(toIosRulesJson(rules))
+    this.dependencies.nativeModule.setRules(toIosRulesJson(rules), accountId)
   }
 
   refreshEnforcement(): void {

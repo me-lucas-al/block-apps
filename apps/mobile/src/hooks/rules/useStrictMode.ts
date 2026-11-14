@@ -1,11 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { AppState } from 'react-native'
+import { messageOf } from '../../errors/messageOf'
 import { useServices } from '../../services/ServicesContext'
 import type { StrictModeState } from '../../strictmode/StrictModeState'
-
-function messageOf(failure: unknown): string {
-  return failure instanceof Error ? failure.message : 'Erro inesperado'
-}
 
 export function useStrictMode() {
   const { strictMode } = useServices()

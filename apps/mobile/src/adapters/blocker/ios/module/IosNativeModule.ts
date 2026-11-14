@@ -1,5 +1,5 @@
 export interface IosNativeModule {
-  setRules(rulesJson: string): void
+  setRules(rulesJson: string, ownerId: string): void
   getAuthorizationStatus(): string
   requestScreenTimeAuthorization(): Promise<string>
   presentAppSelectionPicker(ruleId: string): Promise<string>

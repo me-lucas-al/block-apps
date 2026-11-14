@@ -11,6 +11,11 @@ describe('StrictModeController state', () => {
     expect(await buildKit(otherRules).controller.readState()).toEqual({ status: 'off' })
   })
 
+  it('does not count a protection rule that follows a schedule', async () => {
+    const scheduled: BlockRule = { ...STRICT_RULE, mode: 'schedule' }
+    expect(await buildKit([scheduled]).controller.readState()).toEqual({ status: 'off' })
+  })
+
   it('reports on when the rule exists without a pending removal', async () => {
     expect(await buildKit([STRICT_RULE]).controller.readState()).toEqual({ status: 'on' })
   })

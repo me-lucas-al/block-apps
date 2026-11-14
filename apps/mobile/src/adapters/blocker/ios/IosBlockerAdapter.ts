@@ -11,7 +11,7 @@ type HeldRemovalPort = Pick<
 >
 
 type IosBlockerDependencies = {
-  readonly nativeModule: Pick<IosNativeModule, 'setRules' | 'reapplyShields'>
+  readonly nativeModule: Pick<IosNativeModule, 'setRules' | 'reapplyShields' | 'recordAppOpened'>
   readonly groupSelection: HeldRemovalPort
   readonly currentTimeMillis?: () => number
 }
@@ -26,6 +26,10 @@ export class IosBlockerAdapter implements BlockerPort {
 
   refreshEnforcement(): void {
     this.dependencies.nativeModule.reapplyShields()
+  }
+
+  markAppOpened(): void {
+    this.dependencies.nativeModule.recordAppOpened()
   }
 
   private settleHeldSelectionRemovals(

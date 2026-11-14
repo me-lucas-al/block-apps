@@ -7,8 +7,7 @@ import { AndroidProtectionAdapter } from './AndroidProtectionAdapter'
 export function createAndroidAdapters(nativeModule: AndroidNativeModule): PlatformAdapters {
   return {
     platform: 'android',
-    listedTargetTypes: ['app'],
-    needsBackgroundRefresh: false,
+    listedTargetTypes: ['app', 'keyword'],
     blocker: new AndroidBlockerAdapter(nativeModule),
     protection: new AndroidProtectionAdapter(nativeModule),
     appChoice: new AndroidAppChoiceAdapter(nativeModule),

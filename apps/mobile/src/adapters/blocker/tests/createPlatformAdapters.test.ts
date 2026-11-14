@@ -20,6 +20,7 @@ const nativeModule: AndroidNativeModule & IosNativeModule = {
   commitPendingSelection: () => undefined,
   discardPendingSelection: () => undefined,
   reapplyShields: () => undefined,
+  recordAppOpened: () => undefined,
   getUnscheduledRuleIds: () => [],
 }
 
@@ -27,7 +28,7 @@ describe('createPlatformAdapters', () => {
   it('builds the android adapters on android', () => {
     const adapters = createPlatformAdapters({ platformOs: 'android', nativeModule })
     expect(adapters.platform).toBe('android')
-    expect(adapters.listedTargetTypes).toEqual(['app'])
+    expect(adapters.listedTargetTypes).toEqual(['app', 'keyword'])
     expect(adapters.groupSelection).toBeNull()
   })
 

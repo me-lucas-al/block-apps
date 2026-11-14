@@ -24,7 +24,7 @@ function createSync(email: string | null) {
     ruleRepository: { list },
     pendingRuleChanges: { applyDueChanges, listPendingChanges: async () => [] },
     userSession: { currentUserEmail: async () => email },
-    blocker: { applyRules, refreshEnforcement: vi.fn() },
+    blocker: { applyRules, refreshEnforcement: vi.fn(), markAppOpened: vi.fn() },
   })
   return { sync, applyRules, list, applyDueChanges, calls }
 }

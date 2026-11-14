@@ -59,11 +59,17 @@ describe('iOS blocker adapter', () => {
     expect(nativeModule.commitPendingSelection).not.toHaveBeenCalled()
   })
 
+  it('records an app opening natively, which background syncs must not do', () => {
+    const nativeModule = buildNativeModule()
+    createIosAdapters(nativeModule).blocker.markAppOpened()
+    expect(nativeModule.recordAppOpened).toHaveBeenCalledOnce()
+    expect(nativeModule.setRules).not.toHaveBeenCalled()
+  })
+
   it('reapplies the shields natively when refreshing in the background', () => {
     const nativeModule = buildNativeModule()
     const adapters = createIosAdapters(nativeModule)
     adapters.blocker.refreshEnforcement()
     expect(nativeModule.reapplyShields).toHaveBeenCalledOnce()
-    expect(adapters.needsBackgroundRefresh).toBe(true)
   })
 })

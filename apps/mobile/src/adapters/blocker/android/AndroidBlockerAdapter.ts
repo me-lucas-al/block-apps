@@ -13,4 +13,8 @@ export class AndroidBlockerAdapter implements BlockerPort {
   refreshEnforcement(): void {
     return
   }
+
+  markAppOpened(): void {
+    return
+  }
 }

@@ -10,7 +10,6 @@ export function createIosAdapters(nativeModule: IosNativeModule): PlatformAdapte
   return {
     platform: 'ios',
     listedTargetTypes: ['iosSelection'],
-    needsBackgroundRefresh: true,
     blocker: new IosBlockerAdapter({ nativeModule, groupSelection }),
     protection: new IosProtectionAdapter(nativeModule),
     appChoice: new IosAppChoiceAdapter(),

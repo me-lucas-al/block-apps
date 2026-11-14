@@ -103,7 +103,7 @@ Opcional e **desligado por padrão**. Na tela inicial do iOS há o cartão "Modo
 - Por ser uma regra da conta, vale em todos os iPhones dela e volta depois de reinstalar e entrar de novo.
 - No aparelho, `ShieldApplier` liga `store.application.denyAppRemoval` quando existe uma regra `protection` sempre ligada com esse alvo (`StrictModePolicy`, testada em Linux) e desliga quando ela some. Regra com horário ou outro alvo é ignorada.
 
-**Para não ficar preso:** só dá para ligar com a autorização do Tempo de Uso ativa; e a trava se desliga sozinha se o Block Apps ficar mais de 14 dias sem ser aberto (cada sincronização com o app aberto registra a data no App Group), por exemplo se um build de teste do TestFlight expirar. O servidor só aceita a regra `protection` no modo sempre ligado, na criação e em atualizações.
+**Para não ficar preso:** só dá para ligar com a autorização do Tempo de Uso ativa; e a trava se desliga sozinha se o Block Apps ficar mais de 14 dias sem ser aberto (cada vez que o app volta ao primeiro plano registra a data no App Group; a sincronização em segundo plano não conta), por exemplo se um build de teste do TestFlight expirar. O servidor só aceita a regra `protection` no modo sempre ligado, na criação e em atualizações.
 
 **Não confirmado em doc oficial:** se `denyAppRemoval` funciona com a autorização `.individual`. Teste em aparelho descartável **antes** de usar no seu iPhone de uso diário.
 

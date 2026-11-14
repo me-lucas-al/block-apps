@@ -10,5 +10,6 @@ export interface IosNativeModule {
   commitPendingSelection(ruleId: string): void
   discardPendingSelection(ruleId: string): void
   reapplyShields(): void
+  recordAppOpened(): void
   getUnscheduledRuleIds(): string[]
 }

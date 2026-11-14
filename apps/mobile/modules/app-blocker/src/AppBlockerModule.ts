@@ -20,6 +20,7 @@ declare class AppBlockerModule extends NativeModule {
   commitPendingSelection(ruleId: string): void
   discardPendingSelection(ruleId: string): void
   reapplyShields(): void
+  recordAppOpened(): void
   getUnscheduledRuleIds(): string[]
 }
 

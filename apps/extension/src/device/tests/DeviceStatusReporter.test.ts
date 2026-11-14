@@ -7,7 +7,7 @@ function createReporter(hasSession: boolean, incognitoAllowed: boolean) {
   const reporter = new DeviceStatusReporter({
     deviceRepository: { reportStatus } as DeviceRepository,
     deviceIdStore: { getOrCreate: async () => 'device-1' },
-    incognito: { isAllowed: async () => incognitoAllowed, openSettings: async () => {} },
+    incognito: { isAllowed: async () => incognitoAllowed },
     sessionGate: { hasSession: async () => hasSession },
   })
   return { reporter, reportStatus }

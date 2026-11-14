@@ -56,6 +56,7 @@ export function buildNativeModule(overrides: Partial<IosNativeModule> = {}): Ios
     commitPendingSelection: vi.fn(),
     discardPendingSelection: vi.fn(),
     reapplyShields: vi.fn(),
+    recordAppOpened: vi.fn(),
     getUnscheduledRuleIds: () => [],
     ...overrides,
   }

@@ -6,18 +6,15 @@ enum InstallRulesError: Error {
 
 struct InstallRulesUseCase {
     private let rulesStorage: SharedRulesStorage
-    private let activityStorage: AppActivityStorage
     private let scheduleRegistrar: ScheduleRegistrar
     private let shieldApplier: ShieldApplier
 
     init(
         rulesStorage: SharedRulesStorage = SharedRulesStorage(),
-        activityStorage: AppActivityStorage = AppActivityStorage(),
         scheduleRegistrar: ScheduleRegistrar = ScheduleRegistrar(),
         shieldApplier: ShieldApplier = ShieldApplier()
     ) {
         self.rulesStorage = rulesStorage
-        self.activityStorage = activityStorage
         self.scheduleRegistrar = scheduleRegistrar
         self.shieldApplier = shieldApplier
     }
@@ -25,7 +22,6 @@ struct InstallRulesUseCase {
     func installRules(fromJSON rulesJson: String, ownerId: String) throws {
         let rules = try RuleParser.parseRules(fromJSON: rulesJson)
         try requireRulesCanBeReplaced(byOwnerId: ownerId)
-        activityStorage.recordAppOpened(at: Date())
         rulesStorage.saveOwnerId(ownerId)
         rulesStorage.saveRulesJSON(rulesJson)
         shieldApplier.applyShieldsForCurrentMoment()

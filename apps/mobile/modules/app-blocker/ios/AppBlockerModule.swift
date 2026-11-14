@@ -53,6 +53,10 @@ public class AppBlockerModule: Module {
             ShieldApplier().applyShieldsForCurrentMoment()
         }
 
+        Function("recordAppOpened") { () in
+            RecordAppOpenedUseCase().recordAppOpened()
+        }
+
         Function("getUnscheduledRuleIds") { () -> [String] in
             FindUnscheduledRuleIdsUseCase().findUnscheduledRuleIds()
         }

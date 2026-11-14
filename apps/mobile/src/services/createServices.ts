@@ -4,13 +4,16 @@ import type {
   PendingRuleChangeRepository,
   UserSession,
 } from '@block-apps/api'
+import { Platform } from 'react-native'
 import { AppBlocker } from '../../modules/app-blocker'
+import { createPlatformAdapters } from '../adapters/blocker/createPlatformAdapters'
 import { createMobileServices } from '../adapters/createMobileServices'
 import { MobileDeviceIdStore } from '../device/MobileDeviceIdStore'
 import { MobileStatusReporter } from '../device/MobileStatusReporter'
 import { ExpoBackgroundTaskPort } from '../background/ExpoBackgroundTaskPort'
 import { RulesSyncScheduler } from '../background/RulesSyncScheduler'
-import type { AppBlockerPort } from '../ports/AppBlockerPort'
+import type { AppChoicePort } from '../ports/appchoice/AppChoicePort'
+import type { ProtectionPort } from '../ports/protection/ProtectionPort'
 import type { AppRulesSync } from '../sync/AppRulesSync'
 import { createRulesSync } from '../sync/createRulesSync'
 
@@ -19,7 +22,8 @@ export type Services = {
   readonly authenticator: Authenticator
   readonly ruleRepository: BlockRuleRepository
   readonly pendingRuleChanges: PendingRuleChangeRepository
-  readonly blocker: AppBlockerPort
+  readonly protection: ProtectionPort
+  readonly appChoice: AppChoicePort
   readonly rulesSync: AppRulesSync
   readonly rulesSyncScheduler: RulesSyncScheduler
   readonly statusReporter: MobileStatusReporter
@@ -27,12 +31,13 @@ export type Services = {
 
 export function createServices(): Services {
   const mobile = createMobileServices()
-  const blocker = AppBlocker
-  const rulesSync = createRulesSync(mobile, blocker)
+  const adapters = createPlatformAdapters({ platformOs: Platform.OS, androidModule: AppBlocker })
+  const rulesSync = createRulesSync(mobile, adapters.blocker)
   const statusReporter = new MobileStatusReporter({
     deviceRepository: mobile.deviceRepository,
-    blocker,
-    deviceIdStore: new MobileDeviceIdStore(),
+    platform: adapters.platform,
+    protection: adapters.protection,
+    deviceIdStore: new MobileDeviceIdStore(adapters.platform),
     session: mobile.session,
   })
 
@@ -41,7 +46,8 @@ export function createServices(): Services {
     authenticator: mobile.authenticator,
     ruleRepository: mobile.ruleRepository,
     pendingRuleChanges: mobile.pendingRuleChanges,
-    blocker,
+    protection: adapters.protection,
+    appChoice: adapters.appChoice,
     rulesSync,
     rulesSyncScheduler: new RulesSyncScheduler(new ExpoBackgroundTaskPort()),
     statusReporter,

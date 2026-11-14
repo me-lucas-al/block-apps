@@ -4,26 +4,22 @@ import { colors } from '../../theme'
 import { ProtectionRow } from './ProtectionRow'
 
 export function ProtectionStatus() {
-  const { status, openAccessibilitySettings, requestDeviceAdmin } = useProtectionStatus()
+  const checks = useProtectionStatus()
 
-  if (status.accessibilityEnabled && status.deviceAdminActive) return null
+  if (checks.every((check) => check.active)) return null
 
   return (
     <View style={styles.card}>
-      <ProtectionRow
-        title="Serviço de acessibilidade"
-        description="Necessário para detectar e bloquear os apps."
-        active={status.accessibilityEnabled}
-        actionLabel="Ativar"
-        onAction={openAccessibilitySettings}
-      />
-      <ProtectionRow
-        title="Proteção contra desinstalação"
-        description="Exige desativar o administrador antes de desinstalar."
-        active={status.deviceAdminActive}
-        actionLabel="Ativar"
-        onAction={requestDeviceAdmin}
-      />
+      {checks.map((check) => (
+        <ProtectionRow
+          key={check.id}
+          title={check.title}
+          description={check.description}
+          active={check.active}
+          actionLabel={check.actionLabel}
+          onAction={check.performAction}
+        />
+      ))}
     </View>
   )
 }

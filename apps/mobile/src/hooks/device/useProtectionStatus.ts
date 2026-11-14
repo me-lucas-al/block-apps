@@ -1,37 +1,23 @@
 import { useCallback, useEffect, useState } from 'react'
 import { AppState } from 'react-native'
+import type { ProtectionCheck } from '../../ports/protection/ProtectionPort'
 import { useServices } from '../../services/ServicesContext'
 
-export type ProtectionStatus = {
-  accessibilityEnabled: boolean
-  deviceAdminActive: boolean
-}
+export function useProtectionStatus(): readonly ProtectionCheck[] {
+  const { protection } = useServices()
+  const [checks, setChecks] = useState<readonly ProtectionCheck[]>([])
 
-export function useProtectionStatus() {
-  const { blocker } = useServices()
-  const [status, setStatus] = useState<ProtectionStatus>({
-    accessibilityEnabled: false,
-    deviceAdminActive: false,
-  })
-
-  const refresh = useCallback(() => {
-    setStatus({
-      accessibilityEnabled: blocker.isAccessibilityEnabled(),
-      deviceAdminActive: blocker.isDeviceAdminActive(),
-    })
-  }, [blocker])
+  const reloadChecks = useCallback(() => {
+    setChecks(protection.listChecks())
+  }, [protection])
 
   useEffect(() => {
-    refresh()
+    reloadChecks()
     const subscription = AppState.addEventListener('change', (state) => {
-      if (state === 'active') refresh()
+      if (state === 'active') reloadChecks()
     })
     return () => subscription.remove()
-  }, [refresh])
+  }, [reloadChecks])
 
-  return {
-    status,
-    openAccessibilitySettings: () => blocker.openAccessibilitySettings(),
-    requestDeviceAdmin: () => blocker.requestDeviceAdmin(),
-  }
+  return checks
 }

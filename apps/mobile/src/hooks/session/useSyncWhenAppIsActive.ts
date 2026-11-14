@@ -10,7 +10,7 @@ export function useSyncWhenAppIsActive(signedInEmail: string | null): void {
 
     const syncRulesAndReportStatus = () => {
       void rulesSync.sync().catch(() => {})
-      void statusReporter.report().catch(() => {})
+      void statusReporter.reportDeviceStatus().catch(() => {})
     }
 
     syncRulesAndReportStatus()

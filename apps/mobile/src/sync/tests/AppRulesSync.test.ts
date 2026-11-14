@@ -10,11 +10,9 @@ const appRule: BlockRule = {
   windows: [],
 }
 
-const EXPECTED_JSON = '[{"target":"com.instagram.android","mode":"always","windows":[]}]'
-
 function createSync(email: string | null) {
   const calls: string[] = []
-  const setRules = vi.fn()
+  const applyRules = vi.fn()
   const applyDueChanges = vi.fn(async () => {
     calls.push('apply')
   })
@@ -26,31 +24,31 @@ function createSync(email: string | null) {
     ruleRepository: { list },
     pendingRuleChanges: { applyDueChanges },
     userSession: { currentUserEmail: async () => email },
-    blocker: { setRules },
+    blocker: { applyRules },
   })
-  return { sync, setRules, list, applyDueChanges, calls }
+  return { sync, applyRules, list, applyDueChanges, calls }
 }
 
 describe('AppRulesSync', () => {
-  it('applies due changes first, then pushes app rules to the native blocker', async () => {
-    const { sync, setRules, calls } = createSync('user@example.com')
+  it('applies due changes first, then hands the rules to the blocker', async () => {
+    const { sync, applyRules, calls } = createSync('user@example.com')
     await sync.sync()
     expect(calls).toEqual(['apply', 'list'])
-    expect(setRules).toHaveBeenCalledWith(EXPECTED_JSON)
+    expect(applyRules).toHaveBeenCalledWith([appRule])
   })
 
-  it('keeps native rules untouched when signed out', async () => {
-    const { sync, setRules, list, applyDueChanges } = createSync(null)
+  it('keeps blocker rules untouched when signed out', async () => {
+    const { sync, applyRules, list, applyDueChanges } = createSync(null)
     await sync.sync()
     expect(applyDueChanges).not.toHaveBeenCalled()
     expect(list).not.toHaveBeenCalled()
-    expect(setRules).not.toHaveBeenCalled()
+    expect(applyRules).not.toHaveBeenCalled()
   })
 
   it('pushes rules that were already loaded without reading them again', () => {
-    const { sync, setRules, list } = createSync('user@example.com')
+    const { sync, applyRules, list } = createSync('user@example.com')
     sync.push([appRule])
-    expect(setRules).toHaveBeenCalledWith(EXPECTED_JSON)
+    expect(applyRules).toHaveBeenCalledWith([appRule])
     expect(list).not.toHaveBeenCalled()
   })
 })

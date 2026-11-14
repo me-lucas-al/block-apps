@@ -1,5 +1,5 @@
 import type { createMobileServices } from '../adapters/createMobileServices'
-import type { AppBlockerPort } from '../ports/AppBlockerPort'
+import type { BlockerPort } from '../ports/blocker/BlockerPort'
 import { AppRulesSync } from './AppRulesSync'
 
 type RulesSyncServices = Pick<
@@ -9,7 +9,7 @@ type RulesSyncServices = Pick<
 
 export function createRulesSync(
   mobile: RulesSyncServices,
-  blocker: Pick<AppBlockerPort, 'setRules'>,
+  blocker: BlockerPort,
 ): AppRulesSync {
   return new AppRulesSync({
     ruleRepository: mobile.ruleRepository,

@@ -5,7 +5,7 @@ import { ProtectionStatus } from '../../components/protection/ProtectionStatus'
 import { StrictModeCard } from '../../components/protection/StrictModeCard'
 import { GroupRuleItem } from '../../components/rules/groups/GroupRuleItem'
 import { Button } from '../../components/ui/Button'
-import { useAppRules } from '../../hooks/rules/useAppRules'
+import { useBlockRules } from '../../hooks/rules/useBlockRules'
 import { useGroupAppChoices } from '../../hooks/rules/useGroupAppChoices'
 import type { GroupSelectionPort } from '../../ports/groupselection/GroupSelectionPort'
 import { colors } from '../../theme'
@@ -17,7 +17,7 @@ type GroupHomeScreenProps = {
 }
 
 export function GroupHomeScreen({ email, groupSelection }: GroupHomeScreenProps) {
-  const rulesState = useAppRules()
+  const rulesState = useBlockRules()
   const choices = useGroupAppChoices({
     groupSelection,
     holdSelectionRemovalUntilCooldownEnds: rulesState.holdSelectionRemovalUntilCooldownEnds,

@@ -16,10 +16,27 @@ variable "extension_ids" {
   default     = []
 }
 
+variable "firefox_redirect_urls" {
+  description = "URLs de retorno da extensão do Firefox autorizadas para login OAuth (com barra final)."
+  type        = list(string)
+  default     = []
+}
+
 variable "admin_require_mfa" {
   description = "Exige MFA TOTP ativo para que administradores acessem rotas do painel."
   type        = bool
   default     = true
+}
+
+variable "max_rules_per_user" {
+  description = "Quantidade máxima de regras por usuário."
+  type        = number
+  default     = 200
+
+  validation {
+    condition     = var.max_rules_per_user >= 1 && floor(var.max_rules_per_user) == var.max_rules_per_user
+    error_message = "max_rules_per_user deve ser um inteiro maior ou igual a 1."
+  }
 }
 
 variable "budget_limit_usd" {
@@ -30,6 +47,12 @@ variable "budget_limit_usd" {
 
 variable "budget_alert_email" {
   description = "E-mail para envio de alertas do orçamento mensal."
+  type        = string
+  default     = ""
+}
+
+variable "alarm_email" {
+  description = "E-mail que recebe os avisos dos alarmes do CloudWatch."
   type        = string
   default     = ""
 }

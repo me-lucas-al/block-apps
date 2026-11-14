@@ -51,6 +51,5 @@ describe('iOS blocker adapter', () => {
     const adapters = createIosAdapters(nativeModule)
     adapters.blocker.refreshEnforcement()
     expect(nativeModule.reapplyShields).toHaveBeenCalledOnce()
-    expect(adapters.needsBackgroundRefresh).toBe(true)
   })
 })

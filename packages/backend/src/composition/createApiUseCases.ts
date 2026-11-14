@@ -8,10 +8,15 @@ import { ReportDeviceStatusUseCase } from '../devices/use-cases/ReportDeviceStat
 import type { Clock } from '../domain/time/Clock'
 import type { ApiUseCases } from '../http/app/ApiUseCases'
 import { CreateBlockRuleUseCase } from '../rules/use-cases/CreateBlockRuleUseCase'
+import { RuleQuotaGuard } from '../rules/quota/RuleQuotaGuard'
 import { ListBlockRulesUseCase } from '../rules/use-cases/ListBlockRulesUseCase'
 import type { ApiStores } from './ApiStores'
 
-export function createApiUseCases(stores: ApiStores, clock: Clock): ApiUseCases {
+export function createApiUseCases(
+  stores: ApiStores,
+  clock: Clock,
+  maxRulesPerUser: number,
+): ApiUseCases {
   const applyDueChangesForUser = new ApplyDueChangesForUserUseCase(
     stores.pendingChangeStore,
     stores.dueChangeApplier,
@@ -25,7 +30,10 @@ export function createApiUseCases(stores: ApiStores, clock: Clock): ApiUseCases 
     clock,
   )
   return {
-    createBlockRule: new CreateBlockRuleUseCase(stores.blockRuleStore),
+    createBlockRule: new CreateBlockRuleUseCase(
+      stores.blockRuleStore,
+      new RuleQuotaGuard(stores.blockRuleStore, maxRulesPerUser),
+    ),
     listBlockRules: new ListBlockRulesUseCase(stores.blockRuleStore),
     requestRuleUpdate: new RequestRuleUpdateUseCase(ruleChangeScheduler),
     requestRuleRemoval: new RequestRuleRemovalUseCase(ruleChangeScheduler),

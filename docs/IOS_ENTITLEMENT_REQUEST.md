@@ -30,6 +30,9 @@ The app uses Screen Time API with individual authorization (`AuthorizationCenter
 - Shield configuration: `ShieldConfigurationDataSource` extension that shows a short "Blocked" screen.
 - Shield action: `ShieldActionDelegate` extension that only closes the shield; it never lifts it.
 
+**Optional strict mode.**
+The user can opt in to a strict mode that sets `ManagedSettingsStore.application.denyAppRemoval` so the app cannot be removed in a moment of weakness. It is off by default, shows a clear warning before it is enabled, can only be disabled after the cooldown the user set, and switches itself off if the app has not been opened for 14 days.
+
 **What data does the app collect?**
 The app does not read, store or send app usage data. Selected apps are opaque tokens kept only on the device (shared with the extensions through an App Group). The account stores only the user's rules (a group name, the mode and the time windows), not which apps were selected.
 

@@ -145,7 +145,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - uses: expo/expo-github-action@v8
         with:
-          eas-version: latest
+          eas-version: 16.x
           token: ${{ secrets.EXPO_TOKEN }}
       - name: Build and submit to TestFlight
         run: eas build --platform ios --profile production --non-interactive --wait --auto-submit

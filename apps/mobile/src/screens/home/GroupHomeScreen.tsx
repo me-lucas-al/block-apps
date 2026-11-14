@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { FlatList, StyleSheet, Text, View } from 'react-native'
 import { HomeHeader } from '../../components/home/HomeHeader'
 import { ProtectionStatus } from '../../components/protection/ProtectionStatus'
+import { StrictModeCard } from '../../components/protection/StrictModeCard'
 import { GroupRuleItem } from '../../components/rules/groups/GroupRuleItem'
 import { Button } from '../../components/ui/Button'
 import { useAppRules } from '../../hooks/rules/useAppRules'
@@ -37,6 +38,7 @@ export function GroupHomeScreen({ email, groupSelection }: GroupHomeScreenProps)
     <View style={styles.container}>
       <HomeHeader email={email} />
       <ProtectionStatus />
+      <StrictModeCard />
       {rulesState.error && <Text style={styles.error}>{rulesState.error}</Text>}
       {choices.notice && <Text style={styles.notice}>{choices.notice}</Text>}
       <FlatList

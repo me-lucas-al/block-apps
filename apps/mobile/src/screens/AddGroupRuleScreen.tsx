@@ -1,7 +1,6 @@
 import type { NewBlockRule } from '@block-apps/api'
 import { ScrollView, StyleSheet, Text } from 'react-native'
-import { RuleModeSelector } from '../components/rules/schedule/RuleModeSelector'
-import { ScheduleEditor } from '../components/rules/schedule/ScheduleEditor'
+import { RuleModeSelector } from '../components/rules/RuleModeSelector'
 import { Button } from '../components/ui/Button'
 import { TextField } from '../components/ui/TextField'
 import { useIosGroupRuleForm } from '../hooks/rules/useIosGroupRuleForm'
@@ -34,10 +33,12 @@ export function AddGroupRuleScreen({ groupSelection, onSubmit, onCancel }: AddGr
         variant={form.appsChosen ? 'secondary' : 'primary'}
         onPress={() => void form.chooseAppsForGroup()}
       />
-      <RuleModeSelector mode={form.mode} onSelect={form.setMode} />
-      {form.mode === 'schedule' && (
-        <ScheduleEditor windows={form.windows} onChange={form.setWindows} />
-      )}
+      <RuleModeSelector
+        mode={form.mode}
+        windows={form.windows}
+        onModeChange={form.setMode}
+        onWindowsChange={form.setWindows}
+      />
       {form.error && <Text style={styles.error}>{form.error}</Text>}
       <Button label="Bloquear" onPress={() => void form.submitGroupRule()} />
       <Button label="Cancelar" variant="secondary" onPress={onCancel} />

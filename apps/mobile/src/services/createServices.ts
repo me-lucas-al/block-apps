@@ -9,10 +9,13 @@ import { createDeviceAdapters } from '../adapters/blocker/createDeviceAdapters'
 import { createMobileServices } from '../adapters/createMobileServices'
 import { MobileDeviceIdStore } from '../device/MobileDeviceIdStore'
 import { MobileStatusReporter } from '../device/MobileStatusReporter'
+import { ExpoBackgroundTaskPort } from '../background/ExpoBackgroundTaskPort'
+import { RulesSyncScheduler } from '../background/RulesSyncScheduler'
 import type { GroupSelectionPort } from '../ports/groupselection/GroupSelectionPort'
 import type { AppChoicePort } from '../ports/appchoice/AppChoicePort'
 import type { ProtectionPort } from '../ports/protection/ProtectionPort'
-import { AppRulesSync } from '../sync/AppRulesSync'
+import type { AppRulesSync } from '../sync/AppRulesSync'
+import { createRulesSync } from '../sync/createRulesSync'
 
 export type Services = {
   readonly userSession: UserSession
@@ -23,20 +26,15 @@ export type Services = {
   readonly appChoice: AppChoicePort
   readonly groupSelection: GroupSelectionPort | null
   readonly listedTargetTypes: readonly TargetType[]
-  readonly needsBackgroundRefresh: boolean
   readonly rulesSync: AppRulesSync
+  readonly rulesSyncScheduler: RulesSyncScheduler
   readonly statusReporter: MobileStatusReporter
 }
 
 export function createServices(): Services {
   const mobile = createMobileServices()
   const adapters = createDeviceAdapters()
-  const rulesSync = new AppRulesSync({
-    ruleRepository: mobile.ruleRepository,
-    pendingRuleChanges: mobile.pendingRuleChanges,
-    userSession: mobile.session,
-    blocker: adapters.blocker,
-  })
+  const rulesSync = createRulesSync(mobile, adapters.blocker)
   const statusReporter = new MobileStatusReporter({
     deviceRepository: mobile.deviceRepository,
     platform: adapters.platform,
@@ -54,8 +52,8 @@ export function createServices(): Services {
     appChoice: adapters.appChoice,
     groupSelection: adapters.groupSelection,
     listedTargetTypes: adapters.listedTargetTypes,
-    needsBackgroundRefresh: adapters.needsBackgroundRefresh,
     rulesSync,
+    rulesSyncScheduler: new RulesSyncScheduler(new ExpoBackgroundTaskPort()),
     statusReporter,
   }
 }

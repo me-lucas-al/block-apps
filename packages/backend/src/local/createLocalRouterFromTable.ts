@@ -11,7 +11,9 @@ import { DynamoUserDataEraser } from '../storage/dynamodb/users/DynamoUserDataEr
 import { createLocalRouter, type LocalRouterOptions } from './createLocalRouter'
 import { seedLocalUsers } from './seedLocalUsers'
 
-export function createLocalRouterFromTable(table: TableContext, options: LocalRouterOptions) {
+export type LocalApiOptions = LocalRouterOptions & { readonly maxRulesPerUser: number }
+
+export function createLocalRouterFromTable(table: TableContext, options: LocalApiOptions) {
   const adminUseCases = createAdminUseCases(
     assembleCognitoAdminCollaborators(seedLocalUsers().asContext(), {
       userDataEraser: new DynamoUserDataEraser(table),
@@ -19,7 +21,11 @@ export function createLocalRouterFromTable(table: TableContext, options: LocalRo
       cooldownSettingsWriter: new DynamoCooldownSettingsWriter(table),
     }),
   )
-  const apiUseCases = createApiUseCases(createDynamoStores(table), () => new Date())
+  const apiUseCases = createApiUseCases(
+    createDynamoStores(table),
+    () => new Date(),
+    options.maxRulesPerUser,
+  )
   const adminApp = createAdminApp('admin', adminUseCases)
   return createLocalRouter(createApiApp(apiUseCases), adminApp, options)
 }

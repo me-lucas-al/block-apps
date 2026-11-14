@@ -1,6 +1,15 @@
 locals {
   google_enabled     = var.google_client_id != ""
   identity_providers = local.google_enabled ? ["COGNITO", "Google"] : ["COGNITO"]
+
+  extension_callback_urls = concat(
+    [for id in var.extension_ids : "https://${id}.chromiumapp.org/"],
+    var.firefox_redirect_urls
+  )
+  extension_logout_urls = concat(
+    [for id in var.extension_ids : "https://${id}.chromiumapp.org/logout"],
+    [for redirect_url in var.firefox_redirect_urls : "${redirect_url}logout"]
+  )
 }
 
 resource "aws_cognito_identity_provider" "google" {
@@ -60,13 +69,13 @@ resource "aws_cognito_user_pool_client" "device" {
   allowed_oauth_flows_user_pool_client = true
   allowed_oauth_flows                  = ["code"]
   allowed_oauth_scopes                 = ["openid", "email", "profile"]
-  callback_urls = length(concat(var.device_callback_urls, var.extension_ids)) > 0 ? concat(
+  callback_urls = length(concat(var.device_callback_urls, local.extension_callback_urls)) > 0 ? concat(
     var.device_callback_urls,
-    [for id in var.extension_ids : "https://${id}.chromiumapp.org/"]
+    local.extension_callback_urls
   ) : ["blockapps://auth"]
-  logout_urls = length(concat(var.device_logout_urls, var.extension_ids)) > 0 ? concat(
+  logout_urls = length(concat(var.device_logout_urls, local.extension_logout_urls)) > 0 ? concat(
     var.device_logout_urls,
-    [for id in var.extension_ids : "https://${id}.chromiumapp.org/logout"]
+    local.extension_logout_urls
   ) : ["blockapps://logout"]
   read_attributes  = ["email", "email_verified"]
   write_attributes = ["email"]

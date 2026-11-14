@@ -15,3 +15,9 @@ variable "budget_alert_email" {
   type        = string
   default     = ""
 }
+
+variable "alarm_email" {
+  description = "E-mail que recebe os avisos dos alarmes do CloudWatch. Vazio cria o tópico sem assinatura."
+  type        = string
+  default     = ""
+}

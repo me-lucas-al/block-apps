@@ -18,7 +18,19 @@ const siteRule: BlockRule = {
   windows: [],
 }
 
+const keywordRule: BlockRule = {
+  id: 'rule-3',
+  targetType: 'keyword',
+  target: 'aposta',
+  mode: 'always',
+  windows: [],
+}
+
 describe('toNativeRulesJson', () => {
+  it('never sends keyword rules to the native blocker', () => {
+    expect(toNativeRulesJson([keywordRule])).toBe('[]')
+  })
+
   it('keeps only app rules and drops ids', () => {
     expect(JSON.parse(toNativeRulesJson([appRule, siteRule]))).toEqual([
       {

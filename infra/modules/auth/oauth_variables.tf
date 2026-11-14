@@ -21,3 +21,14 @@ variable "extension_ids" {
   type        = list(string)
   default     = []
 }
+
+variable "firefox_redirect_urls" {
+  description = "URLs de retorno da extensão do Firefox, exatamente como browser.identity.getRedirectURL() devolve, com barra final (https://<hash>.extensions.allizom.org/)."
+  type        = list(string)
+  default     = []
+
+  validation {
+    condition     = alltrue([for redirect_url in var.firefox_redirect_urls : can(regex("^https://[a-z0-9]+\\.extensions\\.allizom\\.org/$", redirect_url))])
+    error_message = "Cada URL deve seguir https://<hash>.extensions.allizom.org/ com barra final."
+  }
+}

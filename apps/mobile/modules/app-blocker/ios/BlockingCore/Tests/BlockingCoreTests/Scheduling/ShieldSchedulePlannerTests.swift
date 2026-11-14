@@ -25,13 +25,18 @@ final class ShieldSchedulePlannerTests: XCTestCase {
     func testActivityUsesCalendarWeekdayAndMinimumInterval() {
         let rule = scheduledRule("a", TimeWindow(days: [1], startMinute: 18 * 60, endMinute: 20 * 60))
         let first = ShieldSchedulePlanner.plan(rules: [rule]).activities[0]
-        XCTAssertEqual(first, PlannedActivity(name: "tick-1-1080", weekday: 2, startMinute: 1080, endMinute: 1095))
+        XCTAssertEqual(
+            first,
+            PlannedActivity(name: "tick-1-1080", weekday: 2, startMinute: 1080, endMinute: 1095, endWeekday: 2)
+        )
     }
 
     func testIntervalNearMidnightWrapsAroundTheDay() {
         let rule = scheduledRule("a", TimeWindow(days: [1], startMinute: 23 * 60 + 50, endMinute: 23 * 60 + 55))
         let first = ShieldSchedulePlanner.plan(rules: [rule]).activities[0]
         XCTAssertEqual(first.endMinute, 5)
+        XCTAssertEqual(first.weekday, 2)
+        XCTAssertEqual(first.endWeekday, 3)
     }
 
     func testWindowCrossingMidnightIsCutAndSharesTheMidnightActivity() {

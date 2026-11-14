@@ -3,11 +3,13 @@ public struct PlannedActivity: Equatable, Hashable, Sendable {
     public let weekday: Int
     public let startMinute: Int
     public let endMinute: Int
+    public let endWeekday: Int
 
-    public init(name: String, weekday: Int, startMinute: Int, endMinute: Int) {
+    public init(name: String, weekday: Int, startMinute: Int, endMinute: Int, endWeekday: Int) {
         self.name = name
         self.weekday = weekday
         self.startMinute = startMinute
         self.endMinute = endMinute
+        self.endWeekday = endWeekday
     }
 }

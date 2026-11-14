@@ -31,12 +31,15 @@ public enum ShieldSchedulePlanner {
     }
 
     private static func makeActivity(from trigger: ActivityTrigger) -> PlannedActivity {
-        let endMinute = (trigger.minuteOfDay + minimumIntervalMinutes) % WindowPieceSplitter.minutesPerDay
+        let unwrappedEndMinute = trigger.minuteOfDay + minimumIntervalMinutes
+        let endsOnNextDay = unwrappedEndMinute >= WindowPieceSplitter.minutesPerDay
+        let weekday = trigger.dayOfWeek + 1
         return PlannedActivity(
             name: "tick-\(trigger.dayOfWeek)-\(trigger.minuteOfDay)",
-            weekday: trigger.dayOfWeek + 1,
+            weekday: weekday,
             startMinute: trigger.minuteOfDay,
-            endMinute: endMinute
+            endMinute: unwrappedEndMinute % WindowPieceSplitter.minutesPerDay,
+            endWeekday: endsOnNextDay ? weekday % 7 + 1 : weekday
         )
     }
 }

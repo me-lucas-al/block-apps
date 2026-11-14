@@ -6,6 +6,7 @@ import { ApplyAllDueChangesUseCase } from '../../src/cooldown/use-cases/ApplyAll
 import { ApplyDueChangesForUserUseCase } from '../../src/cooldown/use-cases/ApplyDueChangesForUserUseCase'
 import type { ApiEnv } from '../../src/http/app/ApiEnv'
 import { createApiApp } from '../../src/http/app/createApiApp'
+import { DEFAULT_MAX_RULES_PER_USER } from '../../src/rules/quota/readMaxRulesPerUser'
 import { userPartitionKey } from '../../src/storage/dynamodb/keys/partitionKeys'
 import { SETTINGS_SORT_KEY } from '../../src/storage/dynamodb/keys/sortKeys'
 import type { ApiStores } from '../../src/composition/ApiStores'
@@ -21,15 +22,19 @@ export type TestBackend = {
   dispose(): Promise<void>
 }
 
-export type BackendFactory = { readonly name: string; create(): Promise<TestBackend> }
+export type BackendFactory = {
+  readonly name: string
+  create(maxRulesPerUser?: number): Promise<TestBackend>
+}
 
 function assembleBackend(
   stores: ApiStores,
   clock: FakeClock,
+  maxRulesPerUser: number,
   setCooldownHours: TestBackend['setCooldownHours'],
   dispose: TestBackend['dispose'],
 ): TestBackend {
-  const useCases = createApiUseCases(stores, clock.now)
+  const useCases = createApiUseCases(stores, clock.now, maxRulesPerUser)
   const applyAll = new ApplyAllDueChangesUseCase(
     stores.pendingChangeStore,
     new ApplyDueChangesForUserUseCase(stores.pendingChangeStore, stores.dueChangeApplier, clock.now),
@@ -46,7 +51,7 @@ function assembleBackend(
 
 const inMemoryFactory: BackendFactory = {
   name: 'in-memory',
-  create: async () => {
+  create: async (maxRulesPerUser = DEFAULT_MAX_RULES_PER_USER) => {
     const database = new InMemoryRuleDatabase()
     const stores: ApiStores = {
       blockRuleStore: database,
@@ -58,14 +63,14 @@ const inMemoryFactory: BackendFactory = {
     const setCooldownHours = async (userId: string, cooldownHours: number) => {
       database.setCooldownHours(userId, cooldownHours)
     }
-    return assembleBackend(stores, new FakeClock(), setCooldownHours, async () => {})
+    return assembleBackend(stores, new FakeClock(), maxRulesPerUser, setCooldownHours, async () => {})
   },
 }
 
 function buildDynamoFactory(endpoint: string): BackendFactory {
   return {
     name: 'dynamodb-local',
-    create: async () => {
+    create: async (maxRulesPerUser = DEFAULT_MAX_RULES_PER_USER) => {
       const table = await createLocalTable(endpoint)
       const setCooldownHours = async (userId: string, cooldownHours: number) => {
         await table.context.client.send(
@@ -75,7 +80,13 @@ function buildDynamoFactory(endpoint: string): BackendFactory {
           }),
         )
       }
-      return assembleBackend(createDynamoStores(table.context), new FakeClock(), setCooldownHours, table.dropTable)
+      return assembleBackend(
+        createDynamoStores(table.context),
+        new FakeClock(),
+        maxRulesPerUser,
+        setCooldownHours,
+        table.dropTable,
+      )
     },
   }
 }

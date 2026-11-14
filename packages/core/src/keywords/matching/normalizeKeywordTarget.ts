@@ -1,7 +1,7 @@
 import { normalizeKeywordText } from './normalizeKeywordText'
 
 const MIN_KEYWORD_LENGTH = 2
-const MAX_KEYWORD_LENGTH = 100
+export const MAX_KEYWORD_LENGTH = 100
 
 export function normalizeKeywordTarget(input: string): string | null {
   const normalized = normalizeKeywordText(input)

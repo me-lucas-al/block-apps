@@ -14,7 +14,7 @@ public class AppBlockerModule: Module {
 
         AsyncFunction("presentAppSelectionPicker") { (ruleId: String) async -> String in
             await ChooseAppsUseCase().chooseApps(forRuleId: ruleId)
-        }.runOnQueue(.main)
+        }
 
         Function("hasSelection") { (ruleId: String) -> Bool in
             SelectionStorage().loadSelection(ruleId: ruleId) != nil

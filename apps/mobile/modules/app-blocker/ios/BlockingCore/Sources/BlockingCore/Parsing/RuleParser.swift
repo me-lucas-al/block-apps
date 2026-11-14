@@ -28,6 +28,9 @@ public enum RuleParser {
     }
 
     private static func toWindow(_ document: WindowDocument) throws -> TimeWindow {
+        if let invalidDay = document.days.first(where: { !(0...6).contains($0) }) {
+            throw RuleParsingError.invalidDay(invalidDay)
+        }
         return TimeWindow(
             days: Set(document.days),
             startMinute: try MinuteOfDayParser.parseMinuteOfDay(document.start),

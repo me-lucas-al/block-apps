@@ -55,4 +55,13 @@ final class RuleParserTests: XCTestCase {
             XCTAssertEqual(error as? RuleParsingError, .invalidTimeOfDay("25:00"))
         }
     }
+
+    func testRejectsAWeekdayOutsideTheWeek() {
+        let json = """
+        [{"id":"a","targetType":"site","target":"a.com","mode":"schedule","windows":[{"days":[7],"start":"09:00","end":"10:00"}]}]
+        """
+        XCTAssertThrowsError(try RuleParser.parseRules(fromJSON: json)) { error in
+            XCTAssertEqual(error as? RuleParsingError, .invalidDay(7))
+        }
+    }
 }

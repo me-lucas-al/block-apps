@@ -2,6 +2,6 @@ module.exports = ({ config }) => ({
   ...config,
   ios: {
     ...config.ios,
-    appleTeamId: process.env.APPLE_TEAM_ID,
+    appleTeamId: process.env.APPLE_TEAM_ID ?? config.ios?.appleTeamId,
   },
 })

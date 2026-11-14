@@ -2,7 +2,7 @@ import { NativeModule, requireNativeModule } from 'expo'
 import type { InstalledApp } from './types'
 
 declare class AppBlockerModule extends NativeModule {
-  setRules(rulesJson: string): void
+  setRules(rulesJson: string, ownerId?: string): void
 
   isAccessibilityEnabled(): boolean
   openAccessibilitySettings(): void

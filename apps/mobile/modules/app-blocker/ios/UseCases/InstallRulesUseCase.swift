@@ -1,24 +1,46 @@
 import Foundation
 
+enum InstallRulesError: Error {
+    case anotherAccountOwnsTheRules
+}
+
 struct InstallRulesUseCase {
     private let rulesStorage: SharedRulesStorage
+    private let activityStorage: AppActivityStorage
     private let scheduleRegistrar: ScheduleRegistrar
     private let shieldApplier: ShieldApplier
 
     init(
         rulesStorage: SharedRulesStorage = SharedRulesStorage(),
+        activityStorage: AppActivityStorage = AppActivityStorage(),
         scheduleRegistrar: ScheduleRegistrar = ScheduleRegistrar(),
         shieldApplier: ShieldApplier = ShieldApplier()
     ) {
         self.rulesStorage = rulesStorage
+        self.activityStorage = activityStorage
         self.scheduleRegistrar = scheduleRegistrar
         self.shieldApplier = shieldApplier
     }
 
-    func installRules(fromJSON rulesJson: String) throws {
+    func installRules(fromJSON rulesJson: String, ownerId: String) throws {
         let rules = try RuleParser.parseRules(fromJSON: rulesJson)
+        try requireRulesCanBeReplaced(byOwnerId: ownerId)
+        activityStorage.recordAppOpened(at: Date())
+        rulesStorage.saveOwnerId(ownerId)
         rulesStorage.saveRulesJSON(rulesJson)
         shieldApplier.applyShieldsForCurrentMoment()
         try scheduleRegistrar.registerActivities(of: ShieldSchedulePlanner.plan(rules: rules))
+    }
+
+    private func requireRulesCanBeReplaced(byOwnerId ownerId: String) throws {
+        let storedRules = rulesStorage.loadRules()
+        let decision = RulesOwnershipPolicy.decide(
+            storedOwnerId: rulesStorage.loadOwnerId(),
+            incomingOwnerId: ownerId,
+            hasStoredRules: (storedRules?.isEmpty ?? false) == false
+        )
+        if decision == .rejectBecauseAnotherAccountOwnsTheRules {
+            throw InstallRulesError.anotherAccountOwnsTheRules
+        }
     }
 }

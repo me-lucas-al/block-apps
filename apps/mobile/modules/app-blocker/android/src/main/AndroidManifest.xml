@@ -1,6 +1,4 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-  <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-
   <queries>
     <intent>
       <action android:name="android.intent.action.MAIN" />
@@ -31,15 +29,6 @@
         android:resource="@xml/app_blocker_device_admin" />
       <intent-filter>
         <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
-      </intent-filter>
-    </receiver>
-
-    <receiver
-      android:name=".boot.BootCompletedReceiver"
-      android:exported="false">
-      <intent-filter>
-        <action android:name="android.intent.action.BOOT_COMPLETED" />
-        <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
       </intent-filter>
     </receiver>
 

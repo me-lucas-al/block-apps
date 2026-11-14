@@ -10,9 +10,12 @@ import { createPlatformAdapters } from '../adapters/blocker/createPlatformAdapte
 import { createMobileServices } from '../adapters/createMobileServices'
 import { MobileDeviceIdStore } from '../device/MobileDeviceIdStore'
 import { MobileStatusReporter } from '../device/MobileStatusReporter'
+import { ExpoBackgroundTaskPort } from '../background/ExpoBackgroundTaskPort'
+import { RulesSyncScheduler } from '../background/RulesSyncScheduler'
 import type { AppChoicePort } from '../ports/appchoice/AppChoicePort'
 import type { ProtectionPort } from '../ports/protection/ProtectionPort'
-import { AppRulesSync } from '../sync/AppRulesSync'
+import type { AppRulesSync } from '../sync/AppRulesSync'
+import { createRulesSync } from '../sync/createRulesSync'
 
 export type Services = {
   readonly userSession: UserSession
@@ -22,18 +25,14 @@ export type Services = {
   readonly protection: ProtectionPort
   readonly appChoice: AppChoicePort
   readonly rulesSync: AppRulesSync
+  readonly rulesSyncScheduler: RulesSyncScheduler
   readonly statusReporter: MobileStatusReporter
 }
 
 export function createServices(): Services {
   const mobile = createMobileServices()
   const adapters = createPlatformAdapters({ platformOs: Platform.OS, androidModule: AppBlocker })
-  const rulesSync = new AppRulesSync({
-    ruleRepository: mobile.ruleRepository,
-    pendingRuleChanges: mobile.pendingRuleChanges,
-    userSession: mobile.session,
-    blocker: adapters.blocker,
-  })
+  const rulesSync = createRulesSync(mobile, adapters.blocker)
   const statusReporter = new MobileStatusReporter({
     deviceRepository: mobile.deviceRepository,
     platform: adapters.platform,
@@ -50,6 +49,7 @@ export function createServices(): Services {
     protection: adapters.protection,
     appChoice: adapters.appChoice,
     rulesSync,
+    rulesSyncScheduler: new RulesSyncScheduler(new ExpoBackgroundTaskPort()),
     statusReporter,
   }
 }

@@ -1,12 +1,4 @@
-export type UserDirectoryLookup = {
-  findNativeUserByEmail(userPoolId: string, email: string): Promise<{ username: string } | null>
-  linkProvider(input: {
-    userPoolId: string
-    destinationUsername: string
-    providerName: string
-    providerUserId: string
-  }): Promise<void>
-}
+import type { UserDirectoryLookup } from '../contracts/UserDirectoryLookup'
 
 export type FederatedUserEvent = {
   readonly triggerSource: string

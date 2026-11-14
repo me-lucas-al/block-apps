@@ -1,3 +1,5 @@
+import { readMaxRulesPerUser } from '../rules/quota/readMaxRulesPerUser'
+
 const AWS_ENVIRONMENT_SIGNALS = [
   'AWS_LAMBDA_FUNCTION_NAME',
   'AWS_EXECUTION_ENV',
@@ -15,6 +17,7 @@ export type LocalServerConfig = {
   readonly hostname: string
   readonly allowedOrigins: readonly string[]
   readonly allowedHosts: readonly string[]
+  readonly maxRulesPerUser: number
 }
 
 function splitList(rawList: string | undefined): string[] {
@@ -44,5 +47,6 @@ export function readLocalServerConfig(env: NodeJS.ProcessEnv): LocalServerConfig
     hostname,
     allowedOrigins: splitList(env['LOCAL_ALLOWED_ORIGINS']),
     allowedHosts: splitList(env['LOCAL_ALLOWED_HOSTS']),
+    maxRulesPerUser: readMaxRulesPerUser(env),
   }
 }

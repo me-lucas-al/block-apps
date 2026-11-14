@@ -1,5 +1,7 @@
 import type { TargetType } from './targetTypes'
 
+export type { TargetType } from './targetTypes'
+
 export type BlockMode = 'always' | 'schedule'
 
 export type DayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6

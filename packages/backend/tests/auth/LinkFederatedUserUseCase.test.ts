@@ -1,8 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import {
-  LinkFederatedUserUseCase,
-  type UserDirectoryLookup,
-} from '../../src/auth/use-cases/LinkFederatedUserUseCase'
+import type { UserDirectoryLookup } from '../../src/auth/contracts/UserDirectoryLookup'
+import { LinkFederatedUserUseCase } from '../../src/auth/use-cases/LinkFederatedUserUseCase'
 
 describe('LinkFederatedUserUseCase', () => {
   function makeHarness() {

@@ -1,3 +1,5 @@
+import { requireConfigValue } from '@block-apps/api'
+
 export type AdminConfig = {
   readonly apiUrl: string
   readonly cognitoUserPoolId: string
@@ -7,11 +9,18 @@ export type AdminConfig = {
 
 export function readAdminConfig(): AdminConfig {
   return {
-    apiUrl: import.meta.env.VITE_API_URL ?? 'https://i51vicajy2.execute-api.sa-east-1.amazonaws.com',
-    cognitoUserPoolId: import.meta.env.VITE_COGNITO_USER_POOL_ID ?? 'sa-east-1_Xs9lFCHn5',
-    cognitoClientId: import.meta.env.VITE_COGNITO_CLIENT_ID ?? '6r3dn6koip7gfpf4iu06ai3d47',
-    cognitoHostedDomain:
-      import.meta.env.VITE_COGNITO_HOSTED_DOMAIN ??
-      'block-apps-auth-090082365159.auth.sa-east-1.amazoncognito.com',
+    apiUrl: requireConfigValue('VITE_API_URL', import.meta.env.VITE_API_URL),
+    cognitoUserPoolId: requireConfigValue(
+      'VITE_COGNITO_USER_POOL_ID',
+      import.meta.env.VITE_COGNITO_USER_POOL_ID,
+    ),
+    cognitoClientId: requireConfigValue(
+      'VITE_COGNITO_CLIENT_ID',
+      import.meta.env.VITE_COGNITO_CLIENT_ID,
+    ),
+    cognitoHostedDomain: requireConfigValue(
+      'VITE_COGNITO_HOSTED_DOMAIN',
+      import.meta.env.VITE_COGNITO_HOSTED_DOMAIN,
+    ),
   }
 }

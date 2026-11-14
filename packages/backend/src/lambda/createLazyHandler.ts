@@ -1,11 +1,9 @@
-import type { handle } from '@hono/aws-lambda'
-
-export type LambdaHandler = ReturnType<typeof handle>
-
-export function createLazyHandler(buildHandler: () => LambdaHandler): LambdaHandler {
-  let builtHandler: LambdaHandler | undefined
-  return (event, lambdaContext) => {
+export function createLazyHandler<Arguments extends readonly unknown[], Reply>(
+  buildHandler: () => (...handlerArguments: Arguments) => Reply,
+): (...handlerArguments: Arguments) => Reply {
+  let builtHandler: ((...handlerArguments: Arguments) => Reply) | undefined
+  return (...handlerArguments) => {
     builtHandler ??= buildHandler()
-    return builtHandler(event, lambdaContext)
+    return builtHandler(...handlerArguments)
   }
 }

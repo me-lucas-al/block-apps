@@ -10,7 +10,8 @@ module "api_function" {
   tags                    = var.tags
 
   environment = {
-    TABLE_NAME = var.table_name
+    TABLE_NAME         = var.table_name
+    MAX_RULES_PER_USER = tostring(var.max_rules_per_user)
   }
 }
 

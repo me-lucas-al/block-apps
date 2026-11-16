@@ -123,7 +123,7 @@ Opcional e **escondido por padrão**: o cartão "Modo estrito" só aparece em bu
 
 - **Relógio:** a remoção de apps usa a hora do servidor, não a do aparelho. `requireAutomaticDateAndTime` fica ligado com regra de horário **ou** modo estrito ativo (`AutomaticClockPolicy`).
 - **Reinstalar:** a regra volta do servidor sem a seleção de apps, que fica só no aparelho, e o grupo fica sem bloqueio até escolher os apps de novo (o app avisa). A primeira escolha depois de reinstalar não passa pelo cooldown.
-- **Apps por grupo:** relata-se que a Apple só protege cerca de 50 apps por seleção (não confirmado). A lista avisa quando um grupo passa de 50 apps (`SelectionLimits`), mas o módulo não corta a seleção: o corte automático fica para depois do teste em aparelho.
+- **Apps por grupo:** relata-se que a Apple só protege cerca de 50 apps por seleção (não confirmado). A lista avisa quando um grupo passa de 50 apps escolhidos individualmente (`SelectionLimits`; categorias não entram na conta), mas o módulo não corta a seleção: o corte automático fica para depois do teste em aparelho.
 - **Domínios:** `blockedByFilter` aceita cerca de 50 domínios (relato não confirmado); o excedente não é tratado nem avisado, e a lista de grupos do iOS não mostra regras de site.
 - **Seleção órfã:** a seleção guardada de uma regra removida ou de um formulário cancelado não é apagada (não há função nativa para isso); se a regra for recriada com o mesmo nome, herda a seleção antiga.
 - **Corrida na atualização:** uma atualização da lista logo depois de pedir a remoção pode descartar o pedido guardado; o efeito é seguro (os apps continuam bloqueados) mas o pedido precisa ser refeito.
@@ -145,4 +145,4 @@ Opcional e **escondido por padrão**: o cartão "Modo estrito" só aparece em bu
 
 ## Ordem de merge da pilha do iOS
 
-As PRs do iOS são empilhadas: cada uma aponta para a anterior. Mesclar **de baixo para cima**, uma por vez, com **merge commit** (sem squash e sem rebase), porque a PR de cima aponta para a branch de baixo e o squash reescreveria os commits dela. Ao mesclar, apague a branch: o GitHub reaponta a PR seguinte para `main`. A ordem é: #72, #73, #74, #75, #76, #77, #78 e depois as PRs de correção, na ordem em que foram abertas.
+As PRs do iOS são empilhadas: cada uma aponta para a anterior. Mesclar **de baixo para cima**, uma por vez, com **merge commit** (sem squash e sem rebase), porque a PR de cima aponta para a branch de baixo e o squash reescreveria os commits dela. Ao mesclar, apague a branch: o GitHub reaponta a PR seguinte para `main`. A ordem é a da cadeia de bases: comece pela PR cuja base é `main` e siga sempre pela PR que aponta para a branch recém-mesclada, até a última da pilha.

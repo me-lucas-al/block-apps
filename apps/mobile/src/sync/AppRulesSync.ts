@@ -25,9 +25,9 @@ export class AppRulesSync {
     rules: readonly BlockRule[],
     pendingChanges: readonly PendingRuleChange[],
     accountId: string,
-  ): void {
+  ): Promise<void> {
     const { blocker, serverClock } = this.dependencies
-    blocker.applyRules({
+    return blocker.applyRules({
       rules,
       pendingChanges,
       accountId,
@@ -43,6 +43,6 @@ export class AppRulesSync {
     await pendingRuleChanges.applyDueChanges().catch(() => undefined)
     const rules = await ruleRepository.list()
     const pendingChanges = await pendingRuleChanges.listPendingChanges()
-    this.push(rules, pendingChanges, accountId)
+    await this.push(rules, pendingChanges, accountId)
   }
 }

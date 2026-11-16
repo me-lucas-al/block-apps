@@ -11,7 +11,7 @@ struct AppSelectionPickerView: View {
     }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             FamilyActivityPicker(selection: $selection)
                 .navigationTitle("Escolher apps")
                 .navigationBarTitleDisplayMode(.inline)

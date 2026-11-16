@@ -5,13 +5,15 @@ export type ChooseAppsOutcome =
   | 'notAuthorized'
   | 'notOwner'
 
-export type SelectionStatus = 'absent' | 'unreadable' | 'found'
+export type GroupStates = {
+  readonly chosenRuleIds: readonly string[]
+  readonly unreadableRuleIds: readonly string[]
+  readonly unscheduledRuleIds: readonly string[]
+}
 
 export interface GroupSelectionPort {
-  hasChosenApps(ruleId: string): boolean
-  selectionStatusOf(ruleId: string): SelectionStatus
+  loadGroupStates(ruleIds: readonly string[]): Promise<GroupStates>
   chooseApps(ruleId: string): Promise<ChooseAppsOutcome>
   holdPendingRemoval(ruleId: string, effectiveAtIso: string): Promise<void>
   discardPendingRemoval(ruleId: string): void
-  listUnscheduledRuleIds(): readonly string[]
 }

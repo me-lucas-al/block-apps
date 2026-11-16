@@ -20,6 +20,7 @@ export function GroupHomeScreen({ email, groupSelection }: GroupHomeScreenProps)
   const rulesState = useBlockRules()
   const choices = useGroupAppChoices({
     groupSelection,
+    ruleIds: rulesState.rules.map((rule) => rule.id),
     holdSelectionRemovalUntilCooldownEnds: rulesState.holdSelectionRemovalUntilCooldownEnds,
   })
   const [adding, setAdding] = useState(false)
@@ -43,7 +44,6 @@ export function GroupHomeScreen({ email, groupSelection }: GroupHomeScreenProps)
       {choices.notice && <Text style={styles.notice}>{choices.notice}</Text>}
       <FlatList
         data={rulesState.rules}
-        extraData={choices.choicesVersion}
         keyExtractor={(rule) => rule.id}
         ListEmptyComponent={<Text style={styles.empty}>Nenhum grupo de apps ainda.</Text>}
         renderItem={({ item }) => (
@@ -51,7 +51,7 @@ export function GroupHomeScreen({ email, groupSelection }: GroupHomeScreenProps)
             rule={item}
             appsChosen={choices.hasChosenApps(item.id)}
             selectionUnreadable={choices.isSelectionUnreadable(item.id)}
-            alwaysBlockedForLackOfSlots={choices.unscheduledRuleIds.includes(item.id)}
+            alwaysBlockedForLackOfSlots={choices.isBlockedForLackOfSlots(item.id)}
             pendingChange={rulesState.pendingChanges.find((change) => change.ruleId === item.id)}
             onChooseApps={(rule) => void choices.chooseAppsOfRule(rule)}
             onRemove={(id) => void rulesState.requestRemoval(id)}

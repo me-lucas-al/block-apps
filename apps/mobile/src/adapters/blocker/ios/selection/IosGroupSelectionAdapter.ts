@@ -1,11 +1,10 @@
 import type {
   ChooseAppsOutcome,
   GroupSelectionPort,
-  SelectionStatus,
+  GroupStates,
 } from '../../../../ports/groupselection/GroupSelectionPort'
 import type { IosNativeModule } from '../module/IosNativeModule'
 import { parseChooseAppsOutcome } from './parseChooseAppsOutcome'
-import { parseSelectionStatus } from './parseSelectionStatus'
 
 export type CurrentOwnerId = () => Promise<string | null>
 
@@ -15,12 +14,8 @@ export class IosGroupSelectionAdapter implements GroupSelectionPort {
     private readonly currentOwnerId: CurrentOwnerId,
   ) {}
 
-  hasChosenApps(ruleId: string): boolean {
-    return this.nativeModule.hasSelection(ruleId)
-  }
-
-  selectionStatusOf(ruleId: string): SelectionStatus {
-    return parseSelectionStatus(this.nativeModule.getSelectionStatus(ruleId))
+  loadGroupStates(ruleIds: readonly string[]): Promise<GroupStates> {
+    return this.nativeModule.getGroupStates([...ruleIds])
   }
 
   async chooseApps(ruleId: string): Promise<ChooseAppsOutcome> {
@@ -37,9 +32,5 @@ export class IosGroupSelectionAdapter implements GroupSelectionPort {
 
   discardPendingRemoval(ruleId: string): void {
     this.nativeModule.discardPendingSelection(ruleId)
-  }
-
-  listUnscheduledRuleIds(): readonly string[] {
-    return this.nativeModule.getUnscheduledRuleIds()
   }
 }

@@ -52,6 +52,8 @@ Adicionar apps vale na hora. Remover apps fica guardado como seleção pendente 
 ## Segurança
 
 - Se as regras não puderem ser lidas do App Group, o bloqueio atual é mantido (não limpa nada). O registro das atividades só é refeito quando o plano muda.
+- A autorização do Tempo de Uso é pedida na primeira abertura, com o app logado, enquanto o status for "não determinado" (o botão "Autorizar" continua no cartão de proteção).
+- O módulo expõe `setRules`, `reapplyShields` e `recordAppOpened` como `AsyncFunction`, e `getGroupStates` devolve numa só chamada a seleção e o agendamento de todos os grupos. O `expo-module.config.json` usa a plataforma `apple` (conferido com `expo-modules-autolinking resolve --platform apple`).
 - Autorização conferida a cada volta ao primeiro plano e reportada ao servidor (`PUT /devices/:id/status`, `platform: ios`, `adminActive` igual à autorização ativa).
 - Sair da conta não desbloqueia, e **entrar com outra conta não substitui as regras** enquanto houver regras em vigor: o app grava no App Group o dono das regras (o `sub` do Cognito, que não muda com o e-mail) e o módulo recusa `setRules`, o seletor de apps (resultado `notOwner`) e o pedido de remoção de outra conta (`RulesOwnershipPolicy`). Quando o dono fica sem regras (por exemplo, removeu tudo depois do cooldown), outra conta pode assumir. Hoje isso vale só no iOS; o Android ainda aceita a troca.
 - Tokens do Cognito ficam no Keychain (`expo-secure-store`).

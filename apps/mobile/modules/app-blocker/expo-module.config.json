@@ -1,9 +1,16 @@
 {
-  "platforms": ["android", "ios"],
+  "platforms": [
+    "android",
+    "apple"
+  ],
   "android": {
-    "modules": ["expo.modules.appblocker.AppBlockerModule"]
+    "modules": [
+      "expo.modules.appblocker.AppBlockerModule"
+    ]
   },
-  "ios": {
-    "modules": ["AppBlockerModule"]
+  "apple": {
+    "modules": [
+      "AppBlockerModule"
+    ]
   }
 }

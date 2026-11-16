@@ -18,12 +18,8 @@ public class AppBlockerModule: Module {
             }
         }
 
-        Function("hasSelection") { (ruleId: String) -> Bool in
-            SelectionStorage().hasNonEmptySelection(ruleId: ruleId)
-        }
-
-        Function("getSelectionStatus") { (ruleId: String) -> String in
-            SelectionStorage().loadSelectionResult(ruleId: ruleId).statusName
+        AsyncFunction("getGroupStates") { (ruleIds: [String]) -> GroupStatesRecord in
+            LoadGroupStatesUseCase().loadGroupStates(ruleIds: ruleIds)
         }
 
         Function("holdPendingSelection") { (ruleId: String, effectiveAtIso: String, ownerId: String) throws in
@@ -40,7 +36,7 @@ public class AppBlockerModule: Module {
             DiscardPendingSelectionUseCase().discardPendingSelection(ruleId: ruleId)
         }
 
-        Function("setRules") { (json: String, ownerId: String, pendingIds: [String], serverNow: String?) throws in
+        AsyncFunction("setRules") { (json: String, ownerId: String, pendingIds: [String], serverNow: String?) throws in
             try NativeExceptionMapper.run {
                 try InstallRulesUseCase().installRules(
                     fromJSON: json,
@@ -59,16 +55,12 @@ public class AppBlockerModule: Module {
             try NativeExceptionMapper.run { try AcceptStrictModeUseCase().acceptStrictModeOnThisDevice() }
         }
 
-        Function("reapplyShields") { () in
+        AsyncFunction("reapplyShields") { () in
             ShieldApplier().applyShieldsForCurrentMoment()
         }
 
-        Function("recordAppOpened") { () in
+        AsyncFunction("recordAppOpened") { () in
             RecordAppOpenedUseCase().recordAppOpened()
-        }
-
-        Function("getUnscheduledRuleIds") { () -> [String] in
-            FindUnscheduledRuleIdsUseCase().findUnscheduledRuleIds()
         }
     }
 }

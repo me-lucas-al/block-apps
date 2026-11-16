@@ -61,4 +61,14 @@ describe('iOS blocker adapter', () => {
     createIosAdapters(nativeModule, signedInOwner).blocker.refreshEnforcement()
     expect(nativeModule.reapplyShields).toHaveBeenCalledOnce()
   })
+
+  it('lets a native failure reach the caller as a rejected promise', async () => {
+    const nativeModule = buildNativeModule({
+      setRules: vi.fn(async () => {
+        throw new Error('native failed')
+      }),
+    })
+    const blocker = createIosAdapters(nativeModule, signedInOwner).blocker
+    await expect(blocker.applyRules(snapshotOf([groupRule]))).rejects.toThrow('native failed')
+  })
 })

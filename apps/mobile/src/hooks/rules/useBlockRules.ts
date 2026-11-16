@@ -30,7 +30,7 @@ export function useBlockRules() {
     setPendingChanges(currentPendingChanges)
     try {
       const accountId = await userSession.currentUserId()
-      if (accountId) rulesSync.push(allRules, currentPendingChanges, accountId)
+      if (accountId) await rulesSync.push(allRules, currentPendingChanges, accountId)
     } catch (failure) {
       setError(describeAppFailure(failure))
     }

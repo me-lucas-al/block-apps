@@ -31,4 +31,14 @@ describe('iOS protection adapter', () => {
     const [authorizationCheck] = createIosAdapters(nativeModule, signedInOwner).protection.listChecks()
     await expect(authorizationCheck?.performAction()).rejects.toThrow('authorization failed')
   })
+
+  it('asks for the authorization on the first open only while it is undetermined', async () => {
+    const undetermined = buildNativeModule({ getAuthorizationStatus: () => 'notDetermined' })
+    await createIosAdapters(undetermined, signedInOwner).protection.requestAuthorizationOnFirstOpen()
+    expect(undetermined.requestScreenTimeAuthorization).toHaveBeenCalledOnce()
+
+    const decided = buildNativeModule({ getAuthorizationStatus: () => 'denied' })
+    await createIosAdapters(decided, signedInOwner).protection.requestAuthorizationOnFirstOpen()
+    expect(decided.requestScreenTimeAuthorization).not.toHaveBeenCalled()
+  })
 })

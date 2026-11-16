@@ -10,4 +10,5 @@ export type ProtectionCheck = {
 export interface ProtectionPort {
   listChecks(): readonly ProtectionCheck[]
   isDeviceProtected(): boolean
+  requestAuthorizationOnFirstOpen(): Promise<void>
 }

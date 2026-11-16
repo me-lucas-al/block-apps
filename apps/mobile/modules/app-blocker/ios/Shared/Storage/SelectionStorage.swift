@@ -18,7 +18,10 @@ struct SelectionStorage {
 
     func hasNonEmptySelection(ruleId: String) -> Bool {
         guard let selection: FamilyActivitySelection = loadSelection(ruleId: ruleId) else { return false }
-        return !SelectionSnapshot(selection: selection).isEmpty
+        let hasAnyToken: Bool = !selection.applicationTokens.isEmpty
+            || !selection.categoryTokens.isEmpty
+            || !selection.webDomainTokens.isEmpty
+        return hasAnyToken
     }
 
     func saveSelection(_ selection: FamilyActivitySelection, ruleId: String) throws {

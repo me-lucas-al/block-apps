@@ -1,7 +1,7 @@
 import type { RulesSnapshot } from './RulesSnapshot'
 
 export interface BlockerPort {
-  applyRules(snapshot: RulesSnapshot): void
-  refreshEnforcement(): void
-  markAppOpened(): void
+  applyRules(snapshot: RulesSnapshot): Promise<void>
+  refreshEnforcement(): Promise<void>
+  markAppOpened(): Promise<void>
 }

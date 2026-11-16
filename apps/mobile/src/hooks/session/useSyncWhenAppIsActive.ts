@@ -17,7 +17,7 @@ export function useSyncWhenAppIsActive(signedInEmail: string | null): {
     let isStillActive = true
 
     const syncRulesAndReportStatus = () => {
-      blocker.markAppOpened()
+      void blocker.markAppOpened().catch((failure: unknown) => setSyncFailure(describeAppFailure(failure)))
       void rulesSync
         .sync()
         .then(() => isStillActive && setSyncFailure(null))

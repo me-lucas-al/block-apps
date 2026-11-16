@@ -10,7 +10,7 @@ const appRule: BlockRule = {
   windows: [],
 }
 
-function createSync(email: string | null) {
+function createSync(userId: string | null) {
   const calls: string[] = []
   const applyRules = vi.fn()
   const applyDueChanges = vi.fn(async () => {
@@ -23,7 +23,8 @@ function createSync(email: string | null) {
   const sync = new AppRulesSync({
     ruleRepository: { list },
     pendingRuleChanges: { applyDueChanges, listPendingChanges: async () => [] },
-    userSession: { currentUserEmail: async () => email },
+    userSession: { currentUserId: async () => userId },
+    serverClock: { lastServerTimeIso: () => '2026-11-16T12:00:00.000Z' },
     blocker: { applyRules, refreshEnforcement: vi.fn(), markAppOpened: vi.fn() },
   })
   return { sync, applyRules, list, applyDueChanges, calls }
@@ -31,13 +32,14 @@ function createSync(email: string | null) {
 
 describe('AppRulesSync', () => {
   it('applies due changes first, then hands the rules to the blocker', async () => {
-    const { sync, applyRules, calls } = createSync('user@example.com')
+    const { sync, applyRules, calls } = createSync('user-sub-1')
     await sync.sync()
     expect(calls).toEqual(['apply', 'list'])
     expect(applyRules).toHaveBeenCalledWith({
       rules: [appRule],
       pendingChanges: [],
-      accountId: 'user@example.com',
+      accountId: 'user-sub-1',
+      serverNowIso: '2026-11-16T12:00:00.000Z',
     })
   })
 
@@ -50,12 +52,13 @@ describe('AppRulesSync', () => {
   })
 
   it('pushes rules that were already loaded without reading them again', () => {
-    const { sync, applyRules, list } = createSync('user@example.com')
-    sync.push([appRule], [], '  User@Example.com ')
+    const { sync, applyRules, list } = createSync('user-sub-1')
+    sync.push([appRule], [], 'user-sub-1')
     expect(applyRules).toHaveBeenCalledWith({
       rules: [appRule],
       pendingChanges: [],
-      accountId: 'user@example.com',
+      accountId: 'user-sub-1',
+      serverNowIso: '2026-11-16T12:00:00.000Z',
     })
     expect(list).not.toHaveBeenCalled()
   })

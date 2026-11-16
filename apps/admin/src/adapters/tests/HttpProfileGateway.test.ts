@@ -14,6 +14,7 @@ describe('HttpProfileGateway', () => {
 
   const mockSession: UserSession = {
     currentUserEmail: vi.fn().mockResolvedValue('admin@blockapps.com'),
+    currentUserId: vi.fn().mockResolvedValue('admin-sub'),
     currentIdToken: vi.fn().mockResolvedValue(sampleToken),
     currentAccessToken: vi.fn().mockResolvedValue('acc'),
     watchUserEmail: vi.fn(),

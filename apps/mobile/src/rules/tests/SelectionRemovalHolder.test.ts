@@ -1,6 +1,7 @@
 import type { BlockRule, PendingRuleChange } from '@block-apps/core'
 import { describe, expect, it } from 'vitest'
 import { SelectionRemovalHolder } from '../SelectionRemovalHolder'
+import { PendingRuleEditBlocksRemovalError } from '../selectionRemovalErrors'
 
 const RULE: BlockRule = {
   id: 'iosSelection~social',
@@ -11,7 +12,7 @@ const RULE: BlockRule = {
 }
 
 function pendingChange(kind: 'update' | 'delete'): PendingRuleChange {
-  return { id: RULE.id, ruleId: RULE.id, kind, mode: null, windows: null, effectiveAt: 'old' }
+  return { id: RULE.id, ruleId: RULE.id, kind, mode: RULE.mode, windows: RULE.windows, effectiveAt: 'old' }
 }
 
 function buildKit(pendingChanges: PendingRuleChange[]) {
@@ -57,5 +58,12 @@ describe('SelectionRemovalHolder', () => {
     const { holder, calls } = buildKit([other])
     await holder.holdRemovalOf(RULE)
     expect(calls).toEqual([`update:${RULE.id}`])
+  })
+
+  it('refuses to cancel a pending schedule edit that differs from the current rule', async () => {
+    const realEdit = { ...pendingChange('update'), mode: 'schedule' as const, windows: [] }
+    const { holder, calls } = buildKit([realEdit])
+    await expect(holder.holdRemovalOf(RULE)).rejects.toBeInstanceOf(PendingRuleEditBlocksRemovalError)
+    expect(calls).toEqual([])
   })
 })

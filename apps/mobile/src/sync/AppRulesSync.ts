@@ -1,6 +1,7 @@
 import type {
   BlockRuleRepository,
   PendingRuleChangeRepository,
+  ServerClock,
   UserSession,
 } from '@block-apps/api'
 import type { BlockRule, PendingRuleChange } from '@block-apps/core'
@@ -12,7 +13,8 @@ export type AppRulesSyncDependencies = {
     PendingRuleChangeRepository,
     'applyDueChanges' | 'listPendingChanges'
   >
-  readonly userSession: Pick<UserSession, 'currentUserEmail'>
+  readonly userSession: Pick<UserSession, 'currentUserId'>
+  readonly serverClock: ServerClock
   readonly blocker: BlockerPort
 }
 
@@ -22,20 +24,25 @@ export class AppRulesSync {
   push(
     rules: readonly BlockRule[],
     pendingChanges: readonly PendingRuleChange[],
-    accountEmail: string,
+    accountId: string,
   ): void {
-    const accountId = accountEmail.trim().toLowerCase()
-    this.dependencies.blocker.applyRules({ rules, pendingChanges, accountId })
+    const { blocker, serverClock } = this.dependencies
+    blocker.applyRules({
+      rules,
+      pendingChanges,
+      accountId,
+      serverNowIso: serverClock.lastServerTimeIso(),
+    })
   }
 
   async sync(): Promise<void> {
     const { ruleRepository, pendingRuleChanges, userSession } = this.dependencies
-    const accountEmail = await userSession.currentUserEmail()
-    if (!accountEmail) return
+    const accountId = await userSession.currentUserId()
+    if (!accountId) return
 
     await pendingRuleChanges.applyDueChanges().catch(() => undefined)
     const rules = await ruleRepository.list()
     const pendingChanges = await pendingRuleChanges.listPendingChanges()
-    this.push(rules, pendingChanges, accountEmail)
+    this.push(rules, pendingChanges, accountId)
   }
 }

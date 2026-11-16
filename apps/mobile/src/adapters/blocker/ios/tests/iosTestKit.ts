@@ -38,9 +38,10 @@ export const pendingUpdate: PendingRuleChange = {
 export function snapshotOf(
   rules: BlockRule[],
   pendingChanges: PendingRuleChange[] = [],
-  accountId = 'user@example.com',
+  accountId = 'user-sub-1',
+  serverNowIso: string | null = '2026-11-16T12:00:00.000Z',
 ) {
-  return { rules, pendingChanges, accountId }
+  return { rules, pendingChanges, accountId, serverNowIso }
 }
 
 export function buildNativeModule(overrides: Partial<IosNativeModule> = {}): IosNativeModule {
@@ -50,10 +51,7 @@ export function buildNativeModule(overrides: Partial<IosNativeModule> = {}): Ios
     requestScreenTimeAuthorization: vi.fn(async () => 'approved'),
     presentAppSelectionPicker: vi.fn(async () => 'saved'),
     hasSelection: () => true,
-    hasPendingSelectionRemoval: () => false,
     holdPendingSelection: vi.fn(),
-    getPendingSelectionHold: () => null,
-    commitPendingSelection: vi.fn(),
     discardPendingSelection: vi.fn(),
     reapplyShields: vi.fn(),
     recordAppOpened: vi.fn(),
@@ -61,3 +59,6 @@ export function buildNativeModule(overrides: Partial<IosNativeModule> = {}): Ios
     ...overrides,
   }
 }
+
+export const signedInOwner = async (): Promise<string | null> => 'owner-sub'
+export const signedOutOwner = async (): Promise<string | null> => null

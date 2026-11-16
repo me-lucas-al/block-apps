@@ -1,7 +1,6 @@
 import { describeApiFailure, type NewBlockRule } from '@block-apps/api'
 import type { BlockRule, PendingRuleChange, TargetType } from '@block-apps/core'
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { SelectionRemovalHolder } from '../../rules/SelectionRemovalHolder'
+import { useCallback, useEffect, useState } from 'react'
 import { useServices } from '../../services/ServicesContext'
 
 function keepListedTypes(rules: BlockRule[], listedTypes: readonly TargetType[]): BlockRule[] {
@@ -16,11 +15,8 @@ export function useBlockRules() {
     groupSelection,
     listedTargetTypes,
     userSession,
+    selectionRemovalHolder,
   } = useServices()
-  const removalHolder = useMemo(
-    () => new SelectionRemovalHolder({ ruleRepository, pendingRuleChanges }),
-    [ruleRepository, pendingRuleChanges],
-  )
   const [rules, setRules] = useState<BlockRule[]>([])
   const [pendingChanges, setPendingChanges] = useState<PendingRuleChange[]>([])
   const [error, setError] = useState<string | null>(null)
@@ -32,8 +28,8 @@ export function useBlockRules() {
     setRules(keepListedTypes(allRules, listedTargetTypes))
     setPendingChanges(currentPendingChanges)
     try {
-      const accountEmail = await userSession.currentUserEmail()
-      if (accountEmail) rulesSync.push(allRules, currentPendingChanges, accountEmail)
+      const accountId = await userSession.currentUserId()
+      if (accountId) rulesSync.push(allRules, currentPendingChanges, accountId)
     } catch (failure) {
       setError(describeApiFailure(failure))
     }
@@ -67,8 +63,8 @@ export function useBlockRules() {
 
   const holdSelectionRemoval = async (rule: BlockRule): Promise<boolean> => {
     try {
-      const change = await removalHolder.holdRemovalOf(rule)
-      groupSelection?.holdPendingRemoval(rule.id, change.effectiveAt)
+      const change = await selectionRemovalHolder.holdRemovalOf(rule)
+      await groupSelection?.holdPendingRemoval(rule.id, change.effectiveAt)
       await reload()
       return true
     } catch (failure) {

@@ -28,6 +28,7 @@ export function useIosGroupRuleForm(dependencies: IosGroupRuleFormDependencies) 
       setError(null)
       const outcome = await groupSelection.chooseApps(draft.ruleId)
       if (outcome === 'removalPending') groupSelection.discardPendingRemoval(draft.ruleId)
+      if (outcome === 'notOwner') setError(ruleErrorMessage('not-owner'))
       if (outcome === 'notAuthorized') setError(ruleErrorMessage('not-authorized'))
       setAppsChosen(groupSelection.hasChosenApps(draft.ruleId))
     } catch (failure) {

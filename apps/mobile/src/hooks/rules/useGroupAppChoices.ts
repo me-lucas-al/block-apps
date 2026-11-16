@@ -12,6 +12,7 @@ const REMOVAL_HELD_NOTICE =
 const REMOVAL_NOT_SCHEDULED_NOTICE =
   'Não foi possível agendar a remoção. Os apps atuais seguem bloqueados.'
 const NOT_AUTHORIZED_NOTICE = 'Autorize o Tempo de Uso antes de escolher os apps.'
+const NOT_OWNER_NOTICE = 'Este aparelho está protegido por outra conta. Entre com a conta original.'
 
 export function useGroupAppChoices(dependencies: GroupAppChoicesDependencies) {
   const { groupSelection, holdSelectionRemovalUntilCooldownEnds } = dependencies
@@ -24,6 +25,7 @@ export function useGroupAppChoices(dependencies: GroupAppChoicesDependencies) {
       const outcome = await groupSelection.chooseApps(rule.id).catch(() => 'cancelled' as const)
       setChoicesVersion((version) => version + 1)
       if (outcome === 'notAuthorized') return setNotice(NOT_AUTHORIZED_NOTICE)
+      if (outcome === 'notOwner') return setNotice(NOT_OWNER_NOTICE)
       if (outcome !== 'removalPending') return
       const removalHeld = await holdSelectionRemovalUntilCooldownEnds(rule)
       if (removalHeld) return setNotice(REMOVAL_HELD_NOTICE)

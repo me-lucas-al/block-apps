@@ -5,21 +5,16 @@ import {
   buildNativeModule,
   groupRule,
   pendingUpdate,
+  signedInOwner,
   siteRule,
   snapshotOf,
 } from './iosTestKit'
 
-function buildHeldRemovalModule(holdEffectiveAt: string | null) {
-  return buildNativeModule({
-    hasPendingSelectionRemoval: () => true,
-    getPendingSelectionHold: () => holdEffectiveAt,
-  })
-}
-
 describe('iOS blocker adapter', () => {
   it('sends ios selections, sites and protections with ids to the native module', () => {
     const nativeModule = buildNativeModule()
-    createIosAdapters(nativeModule).blocker.applyRules(snapshotOf([groupRule, siteRule, androidRule]))
+    const snapshot = snapshotOf([groupRule, siteRule, androidRule])
+    createIosAdapters(nativeModule, signedInOwner).blocker.applyRules(snapshot)
     const sentRules: unknown = JSON.parse(vi.mocked(nativeModule.setRules).mock.calls[0]?.[0] ?? '')
     expect(sentRules).toEqual([
       { id: groupRule.id, targetType: 'iosSelection', target: 'social', mode: 'always', windows: [] },
@@ -29,47 +24,41 @@ describe('iOS blocker adapter', () => {
 
   it('tells the native module which account owns the rules', () => {
     const nativeModule = buildNativeModule()
-    createIosAdapters(nativeModule).blocker.applyRules(snapshotOf([groupRule], [], 'owner@example.com'))
-    expect(vi.mocked(nativeModule.setRules).mock.calls[0]?.[1]).toBe('owner@example.com')
+    const snapshot = snapshotOf([groupRule], [], 'owner-sub-9')
+    createIosAdapters(nativeModule, signedInOwner).blocker.applyRules(snapshot)
+    expect(vi.mocked(nativeModule.setRules).mock.calls[0]?.[1]).toBe('owner-sub-9')
   })
 
-  it('commits a held removal once the cooldown ended and the change is gone', () => {
-    const nativeModule = buildHeldRemovalModule('2020-01-01T00:00:00.000Z')
-    createIosAdapters(nativeModule).blocker.applyRules(snapshotOf([groupRule]))
-    expect(nativeModule.commitPendingSelection).toHaveBeenCalledWith(groupRule.id)
+  it('hands the pending rule ids and the server time to the native module', () => {
+    const nativeModule = buildNativeModule()
+    const snapshot = snapshotOf([groupRule], [pendingUpdate], 'owner', '2026-11-16T12:00:00.000Z')
+    createIosAdapters(nativeModule, signedInOwner).blocker.applyRules(snapshot)
+    expect(nativeModule.setRules).toHaveBeenCalledWith(
+      expect.any(String),
+      'owner',
+      [groupRule.id],
+      '2026-11-16T12:00:00.000Z',
+    )
   })
 
-  it('keeps a held removal while the cooldown change is still pending', () => {
-    const nativeModule = buildHeldRemovalModule('2020-01-01T00:00:00.000Z')
-    createIosAdapters(nativeModule).blocker.applyRules(snapshotOf([groupRule], [pendingUpdate]))
-    expect(nativeModule.commitPendingSelection).not.toHaveBeenCalled()
-    expect(nativeModule.discardPendingSelection).not.toHaveBeenCalled()
-  })
-
-  it('discards a held removal whose change vanished before the cooldown ended', () => {
-    const nativeModule = buildHeldRemovalModule('2999-01-01T00:00:00.000Z')
-    createIosAdapters(nativeModule).blocker.applyRules(snapshotOf([groupRule]))
-    expect(nativeModule.discardPendingSelection).toHaveBeenCalledWith(groupRule.id)
-    expect(nativeModule.commitPendingSelection).not.toHaveBeenCalled()
-  })
-
-  it('never commits a pending removal that was not held by a cooldown change', () => {
-    const nativeModule = buildHeldRemovalModule(null)
-    createIosAdapters(nativeModule).blocker.applyRules(snapshotOf([groupRule]))
-    expect(nativeModule.commitPendingSelection).not.toHaveBeenCalled()
+  it('passes no server time when none was received yet', () => {
+    const nativeModule = buildNativeModule()
+    createIosAdapters(nativeModule, signedInOwner).blocker.applyRules(
+      snapshotOf([groupRule], [], 'owner', null),
+    )
+    expect(vi.mocked(nativeModule.setRules).mock.calls[0]?.[3]).toBeNull()
   })
 
   it('records an app opening natively, which background syncs must not do', () => {
     const nativeModule = buildNativeModule()
-    createIosAdapters(nativeModule).blocker.markAppOpened()
+    createIosAdapters(nativeModule, signedInOwner).blocker.markAppOpened()
     expect(nativeModule.recordAppOpened).toHaveBeenCalledOnce()
     expect(nativeModule.setRules).not.toHaveBeenCalled()
   })
 
   it('reapplies the shields natively when refreshing in the background', () => {
     const nativeModule = buildNativeModule()
-    const adapters = createIosAdapters(nativeModule)
-    adapters.blocker.refreshEnforcement()
+    createIosAdapters(nativeModule, signedInOwner).blocker.refreshEnforcement()
     expect(nativeModule.reapplyShields).toHaveBeenCalledOnce()
   })
 })

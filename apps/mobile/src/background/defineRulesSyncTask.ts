@@ -7,8 +7,9 @@ import { RULES_SYNC_TASK_NAME } from './rulesSyncTaskConfig'
 import { syncRulesInBackground } from './syncRulesInBackground'
 
 defineTask(RULES_SYNC_TASK_NAME, async () => {
-  const { blocker } = createDeviceAdapters()
-  const outcome = await syncRulesInBackground(() => createRulesSync(createMobileServices(), blocker))
+  const mobile = createMobileServices()
+  const { blocker } = createDeviceAdapters(() => mobile.session.currentUserId())
+  const outcome = await syncRulesInBackground(() => createRulesSync(mobile, blocker))
   try {
     blocker.refreshEnforcement()
   } catch {

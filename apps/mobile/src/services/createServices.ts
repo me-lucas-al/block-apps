@@ -19,6 +19,7 @@ import type { StrictModeController } from '../strictmode/StrictModeController'
 import { createStrictMode } from '../strictmode/createStrictMode'
 import type { AppRulesSync } from '../sync/AppRulesSync'
 import { createRulesSync } from '../sync/createRulesSync'
+import { SelectionRemovalHolder } from '../rules/SelectionRemovalHolder'
 
 export type Services = {
   readonly userSession: UserSession
@@ -32,13 +33,14 @@ export type Services = {
   readonly strictMode: StrictModeController | null
   readonly listedTargetTypes: readonly TargetType[]
   readonly rulesSync: AppRulesSync
+  readonly selectionRemovalHolder: SelectionRemovalHolder
   readonly rulesSyncScheduler: RulesSyncScheduler
   readonly statusReporter: MobileStatusReporter
 }
 
 export function createServices(): Services {
   const mobile = createMobileServices()
-  const adapters = createDeviceAdapters()
+  const adapters = createDeviceAdapters(() => mobile.session.currentUserId())
   const rulesSync = createRulesSync(mobile, adapters.blocker)
   const statusReporter = new MobileStatusReporter({
     deviceRepository: mobile.deviceRepository,
@@ -66,6 +68,10 @@ export function createServices(): Services {
     }),
     listedTargetTypes: adapters.listedTargetTypes,
     rulesSync,
+    selectionRemovalHolder: new SelectionRemovalHolder({
+      ruleRepository: mobile.ruleRepository,
+      pendingRuleChanges: mobile.pendingRuleChanges,
+    }),
     rulesSyncScheduler: new RulesSyncScheduler(new ExpoBackgroundTaskPort()),
     statusReporter,
   }

@@ -59,6 +59,10 @@ public class AppBlockerModule: Module {
             try NativeExceptionMapper.run { try AcceptStrictModeUseCase().acceptStrictModeOnThisDevice() }
         }
 
+        Function("revokeStrictMode") { () in
+            RevokeStrictModeUseCase().revokeStrictModeOnThisDevice()
+        }
+
         Function("reapplyShields") { () in
             ShieldApplier().applyShieldsForCurrentMoment()
         }

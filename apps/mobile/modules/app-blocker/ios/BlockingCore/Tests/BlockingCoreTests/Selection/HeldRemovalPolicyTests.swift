@@ -40,6 +40,11 @@ final class HeldRemovalPolicyTests: XCTestCase {
         XCTAssertEqual(decide(holdEffectiveAt: effectiveAt, serverNow: effectiveAt), .commit)
     }
 
+    func testRemovalIsCommittedWhenTheServerClockIsOneSecondBehindBecauseOfTruncation() {
+        let truncatedServerNow: Date = effectiveAt.addingTimeInterval(-0.9)
+        XCTAssertEqual(decide(holdEffectiveAt: effectiveAt, serverNow: truncatedServerNow), .commit)
+    }
+
     func testRemovalIsDiscardedWhenTheChangeVanishedBeforeTheCooldownEnded() {
         let earlier: Date = Date(timeIntervalSince1970: 500)
         XCTAssertEqual(decide(holdEffectiveAt: effectiveAt, serverNow: earlier), .discard)

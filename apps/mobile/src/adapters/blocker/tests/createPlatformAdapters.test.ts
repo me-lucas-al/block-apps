@@ -19,6 +19,7 @@ const nativeModule: AndroidNativeModule & IosNativeModule = {
   discardPendingSelection: () => undefined,
   hasAcceptedStrictMode: () => false,
   acceptStrictMode: () => undefined,
+  revokeStrictMode: () => undefined,
   reapplyShields: () => undefined,
   recordAppOpened: () => undefined,
   getUnscheduledRuleIds: () => [],

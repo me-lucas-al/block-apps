@@ -38,11 +38,12 @@ apps/mobile/
 
 ## Como bloqueia (falha fechado)
 
+- O padrão é bloqueado. `ShieldApplier` recalcula tudo a partir das regras salvas e da hora atual e grava no `ManagedSettingsStore`.
 - `ShieldSchedulePlanner` transforma as janelas em atividades de `DeviceActivity` que **repetem todo dia**: uma por minuto de borda distinto (início e fim de cada janela), sem repetir, com 15 minutos de intervalo. O dia da semana não entra, então horários iguais em dias diferentes gastam uma só atividade. Cada callback só recalcula.
 - Regras que estourariam o limite de 20 atividades ficam sempre bloqueadas, e a tela avisa.
 - Se algum `startMonitoring` falha, o registrador marca o agendamento como incompleto no App Group e toda regra com horário fica bloqueada até um novo registro dar certo. `InstallRulesUseCase` aplica os bloqueios mesmo quando o registro falha. O registro é refeito quando o plano muda ou quando o sistema deixou de monitorar alguma atividade (`DeviceActivityCenter.activities`).
 - O recálculo também roda ao voltar ao primeiro plano e numa tarefa em segundo plano (`expo-background-task`, melhor esforço).
-- `requireAutomaticDateAndTime` fica ligado enquanto houver regra com horário, para o relógio não ser adiantado.
+- `requireAutomaticDateAndTime` fica ligado com regra de horário ou modo estrito aceito (`AutomaticClockPolicy`), para o relógio não ser adiantado.
 - A extensão de ação só fecha a tela de bloqueio, nunca libera.
 
 ## Encolher a seleção é afrouxar
@@ -93,8 +94,7 @@ Fazer num iPhone com iOS 16 ou mais, depois da aprovação da Apple. Correções
 - Atividade diária que cruza a meia-noite (início 23:50, fim 00:05 sem dia da semana): confirmar que dispara nos dois pontos.
 - Entrar com outra conta com regras ativas é recusado, e voltar à conta original funciona.
 - Modo estrito: depois de aceitar num build com a flag, instalar um build sem ela e abrir o app: a trava deve cair.
-- Modo estrito: a atividade `strict-mode-heartbeat` dispara todo dia e a trava libera depois de 14 dias sem abrir o app mesmo sem outra regra de horário; em um segundo aparelho, o aceite é pedido antes de a trava ligar;
-- Modo estrito: sem autorização do Tempo de Uso o app não deixa ligar; e a trava libera depois de 14 dias sem abrir o app.
+- Modo estrito: sem autorização do Tempo de Uso o app não deixa ligar; a atividade `strict-mode-heartbeat` dispara todo dia e a trava libera depois de 14 dias sem abrir o app, mesmo sem outra regra de horário; em um segundo aparelho, o aceite é pedido antes de a trava ligar.
 - Reinstalar e entrar de novo: as regras voltam e a seleção pede nova escolha.
 - Ver no Console.app os logs do módulo e conferir que as falhas chegam ao app com os códigos de `ERR_*` (por exemplo, abrir o seletor sem tela disponível).
 - Grupo com mais de 50 apps: ver se o iOS bloqueia todos ou só parte, e se a lista mostra o aviso.
@@ -104,7 +104,7 @@ Fazer num iPhone com iOS 16 ou mais, depois da aprovação da Apple. Correções
 
 - O módulo e as extensões registram falhas com `os.Logger` (subsistema `com.blockapps.mobile`, categorias `storage`, `schedule`, `selection`, `authorization`); dá para ver no Console.app com o aparelho conectado.
 - App Group ausente, seleção que não grava, regras ilegíveis, falha de agendamento, outra conta e seletor que não abriu viram exceções com código (`ERR_APP_GROUP_UNAVAILABLE`, `ERR_SELECTION_NOT_SAVED`, `ERR_INVALID_RULES`, `ERR_SCHEDULE_REGISTRATION_FAILED`, `ERR_ANOTHER_ACCOUNT_OWNS_RULES`, `ERR_PICKER_NOT_PRESENTED`). O app traduz o código em `describeAppFailure`. Os códigos são definidos explicitamente nas classes de `Exceptions/`; não confirmado em aparelho que o Expo os entrega com esse valor.
-- Uma seleção guardada que não pode ser lida aparece na lista do grupo como "não pôde ser lida" (`getSelectionStatus`), diferente de "ainda não escolhida".
+- Uma seleção guardada que não pode ser lida aparece na lista do grupo como "não pôde ser lida" (`getGroupStates`, campo `unreadableRuleIds`), diferente de "ainda não escolhida".
 - Falha da sincronização aparece como aviso no topo da tela inicial; falha ao pedir a autorização do Tempo de Uso aparece no cartão de proteção.
 
 ## Modo estrito (`denyAppRemoval`)
@@ -124,7 +124,7 @@ Opcional e **escondido por padrão**: o cartão "Modo estrito" só aparece em bu
 
 - **Relógio:** a remoção de apps usa a hora do servidor, não a do aparelho. `requireAutomaticDateAndTime` fica ligado com regra de horário **ou** modo estrito ativo (`AutomaticClockPolicy`).
 - **Reinstalar:** a regra volta do servidor sem a seleção de apps, que fica só no aparelho, e o grupo fica sem bloqueio até escolher os apps de novo (o app avisa). A primeira escolha depois de reinstalar não passa pelo cooldown.
-- **Apps por grupo:** relata-se que a Apple só protege cerca de 50 apps por seleção (não confirmado). A lista avisa quando um grupo passa de 50 apps escolhidos individualmente (`SelectionLimits`; categorias não entram na conta), mas o módulo não corta a seleção: o corte automático fica para depois do teste em aparelho.
+- **Apps por grupo:** relata-se que a Apple só protege cerca de 50 apps por seleção (não confirmado). O limite relatado vale para o total bloqueado, mas a lista avisa por grupo (dois grupos de 30 apps não avisam), quando um grupo passa de 50 apps escolhidos individualmente (`SelectionLimits`; categorias não entram na conta), mas o módulo não corta a seleção: o corte automático fica para depois do teste em aparelho.
 - **Domínios:** `blockedByFilter` aceita cerca de 50 domínios (relato não confirmado); o excedente não é tratado nem avisado, e a lista de grupos do iOS não mostra regras de site.
 - **Seleção órfã:** a seleção guardada de uma regra removida ou de um formulário cancelado não é apagada (não há função nativa para isso); se a regra for recriada com o mesmo nome, herda a seleção antiga.
 - **Corrida na atualização:** uma atualização da lista logo depois de pedir a remoção pode descartar o pedido guardado; o efeito é seguro (os apps continuam bloqueados) mas o pedido precisa ser refeito.

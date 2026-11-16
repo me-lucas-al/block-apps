@@ -38,8 +38,8 @@ struct InstallRulesUseCase {
             pendingRuleIds: Set(pendingRuleIds),
             serverNowIso: serverNowIso
         )
-        rulesStorage.saveOwnerId(ownerId)
-        rulesStorage.saveRulesJSON(rulesJson)
+        try rulesStorage.saveOwnerId(ownerId)
+        try rulesStorage.saveRulesJSON(rulesJson)
         defer { shieldApplier.applyShieldsForCurrentMoment() }
         try scheduleRegistrar.registerActivities(of: ShieldSchedulePlanner.plan(rules: rules))
     }

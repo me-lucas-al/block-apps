@@ -8,8 +8,8 @@ struct StrictModeAcceptanceStorage {
         self.defaults = defaults
     }
 
-    func saveAcceptedOnThisDevice() {
-        defaults?.set(true, forKey: acceptedKey)
+    func saveAcceptedOnThisDevice() throws {
+        try SharedDefaults.requireDefaults(defaults).set(true, forKey: acceptedKey)
     }
 
     func clearAcceptedOnThisDevice() {

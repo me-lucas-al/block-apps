@@ -8,8 +8,11 @@ enum AppSelectionPresenter {
 
     static func presentPicker(
         startingFrom initialSelection: FamilyActivitySelection
-    ) async -> FamilyActivitySelection? {
-        guard let presenter: UIViewController = TopViewControllerFinder.findTopViewController() else { return nil }
+    ) async throws -> FamilyActivitySelection? {
+        guard let presenter: UIViewController = TopViewControllerFinder.findTopViewController() else {
+            AppLogger.selection.error("No view controller available to present the picker")
+            throw PickerNotPresentedError.noViewControllerAvailable
+        }
         return await withCheckedContinuation { (continuation: SelectionContinuation) in
             var hostingController: UIViewController?
             var alreadyFinished: Bool = false

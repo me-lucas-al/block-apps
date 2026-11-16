@@ -8,8 +8,12 @@ struct SelectionStorage {
         self.defaults = defaults
     }
 
-    func loadSelection(ruleId: String) -> FamilyActivitySelection? {
+    func loadSelectionResult(ruleId: String) -> SelectionLoadResult {
         return load(key: selectionKey(ruleId))
+    }
+
+    func loadSelection(ruleId: String) -> FamilyActivitySelection? {
+        return loadSelectionResult(ruleId: ruleId).selection
     }
 
     func hasNonEmptySelection(ruleId: String) -> Bool {
@@ -17,17 +21,17 @@ struct SelectionStorage {
         return !SelectionSnapshot(selection: selection).isEmpty
     }
 
-    func saveSelection(_ selection: FamilyActivitySelection, ruleId: String) {
-        save(selection, key: selectionKey(ruleId))
+    func saveSelection(_ selection: FamilyActivitySelection, ruleId: String) throws {
+        try save(selection, key: selectionKey(ruleId))
     }
 
     func loadPendingSelection(ruleId: String) -> FamilyActivitySelection? {
-        return load(key: pendingKey(ruleId))
+        return load(key: pendingKey(ruleId)).selection
     }
 
-    func savePendingSelection(_ selection: FamilyActivitySelection, ruleId: String) {
+    func savePendingSelection(_ selection: FamilyActivitySelection, ruleId: String) throws {
         clearPendingSelection(ruleId: ruleId)
-        save(selection, key: pendingKey(ruleId))
+        try save(selection, key: pendingKey(ruleId))
     }
 
     func clearPendingSelection(ruleId: String) {
@@ -35,9 +39,10 @@ struct SelectionStorage {
         defaults?.removeObject(forKey: holdKey(ruleId))
     }
 
-    func holdPendingSelection(ruleId: String, effectiveAtIso: String) {
+    func holdPendingSelection(ruleId: String, effectiveAtIso: String) throws {
+        let appGroup: UserDefaults = try SharedDefaults.requireDefaults(defaults)
         guard loadPendingSelection(ruleId: ruleId) != nil else { return }
-        defaults?.set(effectiveAtIso, forKey: holdKey(ruleId))
+        appGroup.set(effectiveAtIso, forKey: holdKey(ruleId))
     }
 
     func loadPendingSelectionHold(ruleId: String) -> String? {
@@ -56,13 +61,25 @@ struct SelectionStorage {
         return "pendingSelectionHold." + ruleId
     }
 
-    private func load(key: String) -> FamilyActivitySelection? {
-        guard let encoded: Data = defaults?.data(forKey: key) else { return nil }
-        return try? JSONDecoder().decode(FamilyActivitySelection.self, from: encoded)
+    private func load(key: String) -> SelectionLoadResult {
+        guard let encoded: Data = defaults?.data(forKey: key) else { return .absent }
+        do {
+            return .found(try JSONDecoder().decode(FamilyActivitySelection.self, from: encoded))
+        } catch {
+            let reason: String = String(describing: error)
+            AppLogger.selection.error("\(key, privacy: .public) unreadable: \(reason, privacy: .public)")
+            return .unreadable
+        }
     }
 
-    private func save(_ selection: FamilyActivitySelection, key: String) {
-        guard let encoded: Data = try? JSONEncoder().encode(selection) else { return }
-        defaults?.set(encoded, forKey: key)
+    private func save(_ selection: FamilyActivitySelection, key: String) throws {
+        let appGroup: UserDefaults = try SharedDefaults.requireDefaults(defaults)
+        do {
+            appGroup.set(try JSONEncoder().encode(selection), forKey: key)
+        } catch {
+            let reason: String = String(describing: error)
+            AppLogger.selection.error("\(key, privacy: .public) not saved: \(reason, privacy: .public)")
+            throw SharedStorageError.selectionNotSaved
+        }
     }
 }

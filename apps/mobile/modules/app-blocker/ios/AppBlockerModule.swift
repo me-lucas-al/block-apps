@@ -12,38 +12,38 @@ public class AppBlockerModule: Module {
             try await ScreenTimeAuthorization.requestIndividualAuthorization()
         }
 
-        AsyncFunction("presentAppSelectionPicker") { (ruleId: String) async -> String in
-            await ChooseAppsUseCase().chooseApps(forRuleId: ruleId)
+        AsyncFunction("presentAppSelectionPicker") { (ruleId: String, ownerId: String) async -> String in
+            await ChooseAppsUseCase().chooseApps(forRuleId: ruleId, ownerId: ownerId)
         }
 
         Function("hasSelection") { (ruleId: String) -> Bool in
             SelectionStorage().hasNonEmptySelection(ruleId: ruleId)
         }
 
-        Function("hasPendingSelectionRemoval") { (ruleId: String) -> Bool in
-            SelectionStorage().loadPendingSelection(ruleId: ruleId) != nil
-        }
-
-        Function("holdPendingSelection") { (ruleId: String, effectiveAtIso: String) in
-            SelectionStorage().holdPendingSelection(ruleId: ruleId, effectiveAtIso: effectiveAtIso)
-        }
-
-        Function("getPendingSelectionHold") { (ruleId: String) -> String? in
-            SelectionStorage().loadPendingSelectionHold(ruleId: ruleId)
-        }
-
-        Function("commitPendingSelection") { (ruleId: String) in
-            CommitPendingSelectionUseCase().commitPendingSelection(ruleId: ruleId)
-            ShieldApplier().applyShieldsForCurrentMoment()
+        Function("holdPendingSelection") { (ruleId: String, effectiveAtIso: String, ownerId: String) throws in
+            do {
+                try HoldPendingSelectionUseCase().holdPendingSelection(
+                    ruleId: ruleId,
+                    effectiveAtIso: effectiveAtIso,
+                    ownerId: ownerId
+                )
+            } catch InstallRulesError.anotherAccountOwnsTheRules {
+                throw AnotherAccountOwnsRulesException()
+            }
         }
 
         Function("discardPendingSelection") { (ruleId: String) in
             DiscardPendingSelectionUseCase().discardPendingSelection(ruleId: ruleId)
         }
 
-        Function("setRules") { (rulesJson: String, ownerId: String) throws in
+        Function("setRules") { (json: String, ownerId: String, pendingIds: [String], serverNow: String?) throws in
             do {
-                try InstallRulesUseCase().installRules(fromJSON: rulesJson, ownerId: ownerId)
+                try InstallRulesUseCase().installRules(
+                    fromJSON: json,
+                    ownerId: ownerId,
+                    pendingRuleIds: pendingIds,
+                    serverNowIso: serverNow
+                )
             } catch InstallRulesError.anotherAccountOwnsTheRules {
                 throw AnotherAccountOwnsRulesException()
             }

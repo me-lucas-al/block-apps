@@ -47,13 +47,13 @@ apps/mobile/
 
 ## Encolher a seleção é afrouxar
 
-Adicionar apps vale na hora. Remover apps fica guardado como seleção pendente e o app cria um pedido de alteração (`POST /rules/:ruleId/update-requests`) para o servidor aplicar o cooldown. Só depois de o pedido ser criado com sucesso a seleção pendente recebe uma marca com o horário em que o cooldown termina. A seleção guardada vira a ativa apenas quando o pedido deixou de estar pendente **e** esse horário já passou. Se o pedido some antes (cancelado em outro aparelho), a seleção guardada é descartada e os apps atuais seguem bloqueados. Seleção pendente sem a marca nunca é efetivada. Se o pedido falhar (por exemplo, sem rede), o app descarta a seleção pendente e avisa.
+Adicionar apps vale na hora. Remover apps fica guardado como seleção pendente e o app cria um pedido de alteração (`POST /rules/:ruleId/update-requests`) para o servidor aplicar o cooldown. Só depois de o pedido ser criado com sucesso a seleção pendente recebe uma marca com o horário em que o cooldown termina. A decisão é do módulo nativo, em `setRules`, depois da checagem de dono (`HeldRemovalPolicy`): o app manda os ids com pedido pendente e a hora do servidor (cabeçalho `Date` da última resposta). A seleção guardada vira a ativa apenas quando o pedido deixou de estar pendente **e** a hora do servidor passou desse horário; sem hora do servidor nada é efetivado. Se o pedido some antes (cancelado em outro aparelho), a seleção guardada é descartada e os apps atuais seguem bloqueados. Seleção pendente sem a marca nunca é efetivada. Se o pedido falhar (por exemplo, sem rede), o app descarta a seleção pendente e avisa. Se já existe uma alteração de horário pendente com conteúdo diferente da regra atual, o app recusa o pedido de remoção em vez de cancelá-la.
 
 ## Segurança
 
 - Se as regras não puderem ser lidas do App Group, o bloqueio atual é mantido (não limpa nada). O registro das atividades só é refeito quando o plano muda.
 - Autorização conferida a cada volta ao primeiro plano e reportada ao servidor (`PUT /devices/:id/status`, `platform: ios`, `adminActive` igual à autorização ativa).
-- Sair da conta não desbloqueia, e **entrar com outra conta não substitui as regras** enquanto houver regras em vigor: o app grava no App Group o dono das regras (e-mail da conta) e o módulo recusa `setRules` de outra conta (`RulesOwnershipPolicy`). Quando o dono fica sem regras (por exemplo, removeu tudo depois do cooldown), outra conta pode assumir. Hoje isso vale só no iOS; o Android ainda aceita a troca.
+- Sair da conta não desbloqueia, e **entrar com outra conta não substitui as regras** enquanto houver regras em vigor: o app grava no App Group o dono das regras (o `sub` do Cognito, que não muda com o e-mail) e o módulo recusa `setRules`, o seletor de apps (resultado `notOwner`) e o pedido de remoção de outra conta (`RulesOwnershipPolicy`). Quando o dono fica sem regras (por exemplo, removeu tudo depois do cooldown), outra conta pode assumir. Hoje isso vale só no iOS; o Android ainda aceita a troca.
 - Tokens do Cognito ficam no Keychain (`expo-secure-store`).
 - Pedir de novo a remoção de apps do mesmo grupo cancela o pedido anterior e **recomeça o cooldown**; sem isso o novo pedido herdava o prazo do antigo e dava para encurtar a espera. Enquanto o grupo inteiro espera para ser removido, "Editar apps" fica bloqueado.
 - Se as regras no App Group não existem ou não podem ser lidas, o bloqueio atual é mantido (nunca limpa por engano).
@@ -85,7 +85,8 @@ Fazer num iPhone com iOS 16 ou mais, depois da aprovação da Apple. Correções
 - Sair da conta: continua bloqueando.
 - Revogar em Ajustes: o app avisa e o servidor recebe o status.
 - Mudar o relógio: impedido.
-- Remover apps do grupo: só vale depois do cooldown.
+- Remover apps do grupo: só vale depois do cooldown, com a hora do servidor (mudar o relógio do aparelho não adianta).
+- Trocar de conta com regras em vigor: o seletor de apps e o pedido de remoção são recusados.
 - Modo estrito (num aparelho que você possa restaurar): ligar, tentar remover um app (deve ser impedido), pedir para desligar e conferir que só libera depois do cooldown, cancelar o pedido, e desinstalar o Block Apps com o modo desligado para confirmar que a trava não fica presa.
 - Atividade diária que cruza a meia-noite (início 23:50, fim 00:05 sem dia da semana): confirmar que dispara nos dois pontos.
 - Entrar com outra conta com regras ativas é recusado, e voltar à conta original funciona.
@@ -108,7 +109,7 @@ Opcional e **desligado por padrão**. Na tela inicial do iOS há o cartão "Modo
 
 ## Limites conhecidos
 
-- **Relógio do aparelho:** o app só efetiva a remoção de apps depois de o servidor aplicar o pedido **e** de o horário local passar do fim do cooldown. Se o pedido sumir do servidor por cancelamento em outro aparelho, quem tem o relógio adiantado pode efetivar a remoção. `requireAutomaticDateAndTime` só fica ligado com regras de horário.
+- **Relógio:** a remoção de apps usa a hora do servidor, não a do aparelho. `requireAutomaticDateAndTime` só fica ligado com regras de horário.
 - **Reinstalar:** a regra volta do servidor sem a seleção de apps, que fica só no aparelho, e o grupo fica sem bloqueio até escolher os apps de novo (o app avisa). A primeira escolha depois de reinstalar não passa pelo cooldown.
 - **Domínios:** `blockedByFilter` aceita cerca de 50 domínios; o excedente não é tratado nem avisado.
 - **Seleção órfã:** a seleção guardada de uma regra removida ou de um formulário cancelado não é apagada (não há função nativa para isso); se a regra for recriada com o mesmo nome, herda a seleção antiga.

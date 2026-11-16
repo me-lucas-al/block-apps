@@ -61,10 +61,19 @@ export function useBlockRules() {
     groupSelection?.discardPendingRemoval(ruleId)
   }
 
+  const keepOrCancelHold = async (ruleId: string, effectiveAt: string) => {
+    try {
+      await groupSelection?.holdPendingRemoval(ruleId, effectiveAt)
+    } catch (failure) {
+      await pendingRuleChanges.cancelPendingChange(ruleId).catch(() => undefined)
+      throw failure
+    }
+  }
+
   const holdSelectionRemoval = async (rule: BlockRule): Promise<boolean> => {
     try {
       const change = await selectionRemovalHolder.holdRemovalOf(rule)
-      await groupSelection?.holdPendingRemoval(rule.id, change.effectiveAt)
+      await keepOrCancelHold(rule.id, change.effectiveAt)
       await reload()
       return true
     } catch (failure) {

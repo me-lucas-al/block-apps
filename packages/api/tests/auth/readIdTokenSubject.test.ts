@@ -19,4 +19,9 @@ describe('readIdTokenSubject', () => {
     expect(readIdTokenSubject('not-a-token')).toBeNull()
     expect(readIdTokenSubject('a.%%%.c')).toBeNull()
   })
+
+  it('reads tokens whose base64url payload has no padding', () => {
+    const payload = btoa(JSON.stringify({ sub: 'sub-with-padding-x' })).replace(/=+$/, '')
+    expect(readIdTokenSubject(`h.${payload}.s`)).toBe('sub-with-padding-x')
+  })
 })

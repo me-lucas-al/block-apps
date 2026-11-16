@@ -44,7 +44,13 @@ final class BlockedRuleResolverTests: XCTestCase {
         let fillers: [BlockingRule] = (0..<10).map { (index: Int) -> BlockingRule in
             let start: Int = 10 + index * 60
             let window: TimeWindow = TimeWindow(days: allDays, startMinute: start, endMinute: start + 30)
-            return BlockingRule(id: "f\(index)", kind: .iosSelection, target: "f", alwaysBlocked: false, windows: [window])
+            return BlockingRule(
+                id: "f\(index)",
+                kind: .iosSelection,
+                target: "f",
+                alwaysBlocked: false,
+                windows: [window]
+            )
         }
         let overflowing: BlockingRule = BlockingRule(
             id: "overflows",

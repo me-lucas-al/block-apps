@@ -53,6 +53,8 @@ export function buildNativeModule(overrides: Partial<IosNativeModule> = {}): Ios
     hasSelection: () => true,
     holdPendingSelection: vi.fn(),
     discardPendingSelection: vi.fn(),
+    hasAcceptedStrictMode: () => false,
+    acceptStrictMode: vi.fn(),
     reapplyShields: vi.fn(),
     recordAppOpened: vi.fn(),
     getUnscheduledRuleIds: () => [],

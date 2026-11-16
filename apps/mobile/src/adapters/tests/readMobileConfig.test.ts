@@ -21,7 +21,16 @@ describe('readMobileConfig', () => {
       cognitoUserPoolId: 'pool-test',
       cognitoClientId: 'client-test',
       cognitoHostedDomain: 'auth.test',
+      strictModeEnabled: false,
     })
+  })
+
+  it('turns strict mode on only when the build flag is the word true', () => {
+    for (const [name, value] of Object.entries(MOBILE_VARIABLES)) vi.stubEnv(name, value)
+    vi.stubEnv('EXPO_PUBLIC_STRICT_MODE_ENABLED', 'true')
+    expect(readMobileConfig().strictModeEnabled).toBe(true)
+    vi.stubEnv('EXPO_PUBLIC_STRICT_MODE_ENABLED', '1')
+    expect(readMobileConfig().strictModeEnabled).toBe(false)
   })
 
   it('fails naming the variable when one is missing', () => {

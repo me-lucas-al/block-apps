@@ -11,6 +11,8 @@ export interface IosNativeModule {
   hasSelection(ruleId: string): boolean
   holdPendingSelection(ruleId: string, effectiveAtIso: string, ownerId: string): void
   discardPendingSelection(ruleId: string): void
+  hasAcceptedStrictMode(): boolean
+  acceptStrictMode(): void
   reapplyShields(): void
   recordAppOpened(): void
   getUnscheduledRuleIds(): string[]

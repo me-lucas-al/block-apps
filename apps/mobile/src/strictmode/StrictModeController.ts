@@ -1,5 +1,7 @@
 import type { BlockRuleRepository, PendingRuleChangeRepository } from '@block-apps/api'
 import { IOS_DENY_APP_REMOVAL_TARGET, type BlockRule } from '@block-apps/core'
+import type { StrictModeAcceptancePort } from '../ports/strictmode/StrictModeAcceptancePort'
+import { StrictModeAuthorizationRequiredError } from './strictModeErrors'
 import type { StrictModeState } from './StrictModeState'
 
 export type StrictModeDependencies = {
@@ -10,6 +12,7 @@ export type StrictModeDependencies = {
   >
   readonly syncRulesToDevice: () => Promise<void>
   readonly isScreenTimeAuthorized: () => boolean
+  readonly deviceAcceptance: StrictModeAcceptancePort
 }
 
 function isStrictModeRule(rule: BlockRule): boolean {
@@ -19,8 +22,6 @@ function isStrictModeRule(rule: BlockRule): boolean {
     rule.mode === 'always'
   )
 }
-
-const AUTHORIZATION_REQUIRED = 'Autorize o Tempo de Uso antes de ligar o modo estrito.'
 
 export class StrictModeController {
   constructor(private readonly dependencies: StrictModeDependencies) {}
@@ -32,18 +33,17 @@ export class StrictModeController {
     const removal = pendingChanges.find(
       (change) => change.ruleId === rule.id && change.kind === 'delete',
     )
-    return removal ? { status: 'turningOff', removal } : { status: 'on' }
+    if (removal) return { status: 'turningOff', removal }
+    if (!this.dependencies.deviceAcceptance.hasAcceptedOnThisDevice()) {
+      return { status: 'needsAcceptance' }
+    }
+    return { status: 'on' }
   }
 
   async turnOn(): Promise<void> {
-    if (await this.findStrictModeRule()) return
-    if (!this.dependencies.isScreenTimeAuthorized()) throw new Error(AUTHORIZATION_REQUIRED)
-    await this.dependencies.ruleRepository.create({
-      targetType: 'protection',
-      target: IOS_DENY_APP_REMOVAL_TARGET,
-      mode: 'always',
-      windows: [],
-    })
+    if (!this.dependencies.isScreenTimeAuthorized()) throw new StrictModeAuthorizationRequiredError()
+    if (!(await this.findStrictModeRule())) await this.createStrictModeRule()
+    this.dependencies.deviceAcceptance.acceptOnThisDevice()
     await this.dependencies.syncRulesToDevice()
   }
 
@@ -59,6 +59,15 @@ export class StrictModeController {
     if (!rule) return
     await this.dependencies.pendingRuleChanges.cancelPendingChange(rule.id)
     await this.dependencies.syncRulesToDevice()
+  }
+
+  private async createStrictModeRule(): Promise<void> {
+    await this.dependencies.ruleRepository.create({
+      targetType: 'protection',
+      target: IOS_DENY_APP_REMOVAL_TARGET,
+      mode: 'always',
+      windows: [],
+    })
   }
 
   private async findStrictModeRule(): Promise<BlockRule | undefined> {

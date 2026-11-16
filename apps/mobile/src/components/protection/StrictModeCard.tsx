@@ -5,6 +5,7 @@ import { colors } from '../../theme'
 import { Button } from '../ui/Button'
 import {
   STRICT_MODE_DESCRIPTION,
+  STRICT_MODE_NEEDS_ACCEPTANCE,
   STRICT_MODE_TITLE,
   STRICT_MODE_WARNING_MESSAGE,
   STRICT_MODE_WARNING_TITLE,
@@ -27,6 +28,16 @@ export function StrictModeCard() {
       <Text style={styles.description}>{STRICT_MODE_DESCRIPTION}</Text>
       {strictMode.state.status === 'off' && (
         <Button label="Ligar" disabled={strictMode.busy} onPress={askBeforeTurningOn} />
+      )}
+      {strictMode.state.status === 'needsAcceptance' && (
+        <>
+          <Text style={styles.description}>{STRICT_MODE_NEEDS_ACCEPTANCE}</Text>
+          <Button
+            label="Confirmar neste aparelho"
+            disabled={strictMode.busy}
+            onPress={askBeforeTurningOn}
+          />
+        </>
       )}
       {strictMode.state.status === 'on' && (
         <Button

@@ -12,5 +12,6 @@ export function createAndroidAdapters(nativeModule: AndroidNativeModule): Platfo
     protection: new AndroidProtectionAdapter(nativeModule),
     appChoice: new AndroidAppChoiceAdapter(nativeModule),
     groupSelection: null,
+    strictModeAcceptance: null,
   }
 }

@@ -20,6 +20,11 @@ describe('StrictModeController state', () => {
     expect(await buildKit([STRICT_RULE]).controller.readState()).toEqual({ status: 'on' })
   })
 
+  it('reports that this device still has to accept the warning', async () => {
+    const kit = buildKit([STRICT_RULE], [], true, false)
+    expect(await kit.controller.readState()).toEqual({ status: 'needsAcceptance' })
+  })
+
   it('reports turning off with the cooldown end when a removal is pending', async () => {
     const state = await buildKit([STRICT_RULE], [REMOVAL]).controller.readState()
     expect(state).toEqual({ status: 'turningOff', removal: REMOVAL })

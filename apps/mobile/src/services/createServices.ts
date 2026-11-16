@@ -61,6 +61,8 @@ export function createServices(): Services {
     groupSelection: adapters.groupSelection,
     strictMode: createStrictMode({
       platform: adapters.platform,
+      isEnabledByBuild: mobile.config.strictModeEnabled,
+      deviceAcceptance: adapters.strictModeAcceptance,
       ruleRepository: mobile.ruleRepository,
       pendingRuleChanges: mobile.pendingRuleChanges,
       rulesSync,

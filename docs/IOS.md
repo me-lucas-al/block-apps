@@ -90,26 +90,27 @@ Fazer num iPhone com iOS 16 ou mais, depois da aprovação da Apple. Correções
 - Modo estrito (num aparelho que você possa restaurar): ligar, tentar remover um app (deve ser impedido), pedir para desligar e conferir que só libera depois do cooldown, cancelar o pedido, e desinstalar o Block Apps com o modo desligado para confirmar que a trava não fica presa.
 - Atividade diária que cruza a meia-noite (início 23:50, fim 00:05 sem dia da semana): confirmar que dispara nos dois pontos.
 - Entrar com outra conta com regras ativas é recusado, e voltar à conta original funciona.
+- Modo estrito: a atividade `strict-mode-heartbeat` dispara todo dia e a trava libera depois de 14 dias sem abrir o app mesmo sem outra regra de horário; em um segundo aparelho, o aceite é pedido antes de a trava ligar;
 - Modo estrito: sem autorização do Tempo de Uso o app não deixa ligar; e a trava libera depois de 14 dias sem abrir o app.
 - Reinstalar e entrar de novo: as regras voltam e a seleção pede nova escolha.
 - Confiabilidade dos callbacks de `DeviceActivity` e dos tokens depois de atualizar o iOS.
 
 ## Modo estrito (`denyAppRemoval`)
 
-Opcional e **desligado por padrão**. Na tela inicial do iOS há o cartão "Modo estrito".
+Opcional e **escondido por padrão**: o cartão "Modo estrito" só aparece em builds com `EXPO_PUBLIC_STRICT_MODE_ENABLED=true` (lida em `readMobileConfig`). Sem a flag não há cartão, logo não há aceite e o nativo nunca liga a trava. A flag só deve ser ligada depois da validação em aparelho.
 
-- **Ligar** pede confirmação com o aviso de que o iPhone passa a não deixar remover **nenhum** app, de que há relatos de a trava continuar depois de o Block Apps ser desinstalado (a saída seria restaurar o iPhone) e de que desligar espera o cooldown. Ligar cria a regra `protection` / `ios-deny-app-removal` (modo `always`) no servidor; apertar é imediato.
+- **Ligar** pede confirmação com o aviso de que o iPhone passa a não deixar remover **nenhum** app, de que há relatos de a trava continuar depois de o Block Apps ser desinstalado (a saída seria restaurar o iPhone) e de que desligar espera o cooldown. Ligar cria a regra `protection` / `ios-deny-app-removal` (modo `always`) no servidor e grava o **aceite deste aparelho** no App Group; apertar é imediato.
 - **Desligar** é um pedido de remoção dessa regra: só vale quando o cooldown da conta termina, e dá para cancelar o pedido antes disso.
-- Por ser uma regra da conta, vale em todos os iPhones dela e volta depois de reinstalar e entrar de novo.
-- No aparelho, `ShieldApplier` liga `store.application.denyAppRemoval` quando existe uma regra `protection` sempre ligada com esse alvo (`StrictModePolicy`, testada em Linux) e desliga quando ela some. Regra com horário ou outro alvo é ignorada.
+- A regra é da conta, mas a trava só liga num aparelho depois do aceite **naquele** iPhone: em outro aparelho (ou depois de reinstalar) o cartão mostra "Confirmar neste aparelho" com o mesmo aviso. A Apple trata a autorização individual como do próprio aparelho, então a trava não deve ser imposta sem o aviso ali.
+- No aparelho, `ShieldApplier` liga `store.application.denyAppRemoval` quando existe uma regra `protection` sempre ligada com esse alvo **e** o aceite deste aparelho (`StrictModePolicy`, testada em Linux), e desliga quando a regra some. Regra com horário ou outro alvo é ignorada.
 
-**Para não ficar preso:** só dá para ligar com a autorização do Tempo de Uso ativa; e a trava se desliga sozinha se o Block Apps ficar mais de 14 dias sem ser aberto (cada vez que o app volta ao primeiro plano registra a data no App Group; a sincronização em segundo plano não conta), por exemplo se um build de teste do TestFlight expirar. O servidor só aceita a regra `protection` no modo sempre ligado, na criação e em atualizações.
+**Para não ficar preso:** só dá para ligar com a autorização do Tempo de Uso ativa; o planejador mantém uma atividade diária `strict-mode-heartbeat` (reserva 1 das 20 vagas) enquanto a regra existir, para a extensão reavaliar a trava todo dia mesmo sem outras regras de horário; e a trava se desliga sozinha se o Block Apps ficar mais de 14 dias sem ser aberto (cada vez que o app volta ao primeiro plano registra a data no App Group; a sincronização em segundo plano não conta), por exemplo se um build de teste do TestFlight expirar. O servidor só aceita a regra `protection` no modo sempre ligado, na criação e em atualizações.
 
 **Não confirmado em doc oficial:** se `denyAppRemoval` funciona com a autorização `.individual`. Teste em aparelho descartável **antes** de usar no seu iPhone de uso diário.
 
 ## Limites conhecidos
 
-- **Relógio:** a remoção de apps usa a hora do servidor, não a do aparelho. `requireAutomaticDateAndTime` só fica ligado com regras de horário.
+- **Relógio:** a remoção de apps usa a hora do servidor, não a do aparelho. `requireAutomaticDateAndTime` fica ligado com regra de horário **ou** modo estrito ativo (`AutomaticClockPolicy`).
 - **Reinstalar:** a regra volta do servidor sem a seleção de apps, que fica só no aparelho, e o grupo fica sem bloqueio até escolher os apps de novo (o app avisa). A primeira escolha depois de reinstalar não passa pelo cooldown.
 - **Domínios:** `blockedByFilter` aceita cerca de 50 domínios; o excedente não é tratado nem avisado.
 - **Seleção órfã:** a seleção guardada de uma regra removida ou de um formulário cancelado não é apagada (não há função nativa para isso); se a regra for recriada com o mesmo nome, herda a seleção antiga.

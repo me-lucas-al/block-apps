@@ -43,6 +43,9 @@ export function buildKit(
       acceptOnThisDevice: () => {
         calls.push('accept')
       },
+      revokeOnThisDevice: () => {
+        calls.push('revoke')
+      },
     },
   })
   return { controller, calls }

@@ -17,6 +17,7 @@ import type { AppChoicePort } from '../ports/appchoice/AppChoicePort'
 import type { ProtectionPort } from '../ports/protection/ProtectionPort'
 import type { StrictModeController } from '../strictmode/StrictModeController'
 import { createStrictMode } from '../strictmode/createStrictMode'
+import { releaseStrictModeWhenBuildDisablesIt } from '../strictmode/releaseStrictModeWhenBuildDisablesIt'
 import type { AppRulesSync } from '../sync/AppRulesSync'
 import { createRulesSync } from '../sync/createRulesSync'
 import { SelectionRemovalHolder } from '../rules/SelectionRemovalHolder'
@@ -42,6 +43,7 @@ export function createServices(): Services {
   const mobile = createMobileServices()
   const adapters = createDeviceAdapters(() => mobile.session.currentUserId())
   const rulesSync = createRulesSync(mobile, adapters.blocker)
+  releaseStrictModeWhenBuildDisablesIt(mobile.config.strictModeEnabled, adapters.strictModeAcceptance)
   const statusReporter = new MobileStatusReporter({
     deviceRepository: mobile.deviceRepository,
     platform: adapters.platform,

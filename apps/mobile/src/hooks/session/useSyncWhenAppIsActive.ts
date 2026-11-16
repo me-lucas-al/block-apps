@@ -17,13 +17,15 @@ export function useSyncWhenAppIsActive(signedInEmail: string | null): {
     let isStillActive = true
 
     const markOpenedThenSyncRules = async () => {
-      try {
-        await blocker.markAppOpened()
-        await rulesSync.sync()
-        if (isStillActive) setSyncFailure(null)
-      } catch (failure: unknown) {
-        if (isStillActive) setSyncFailure(describeAppFailure(failure))
-      }
+      const markFailure = await blocker.markAppOpened().then(
+        () => null,
+        (failure: unknown) => describeAppFailure(failure),
+      )
+      const syncRulesFailure = await rulesSync.sync().then(
+        () => null,
+        (failure: unknown) => describeAppFailure(failure),
+      )
+      if (isStillActive) setSyncFailure(syncRulesFailure ?? markFailure)
     }
 
     const syncRulesAndReportStatus = () => {

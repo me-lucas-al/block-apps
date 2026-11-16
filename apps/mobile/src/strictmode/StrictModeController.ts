@@ -43,8 +43,8 @@ export class StrictModeController {
   async turnOn(): Promise<void> {
     if (!this.dependencies.isScreenTimeAuthorized()) throw new StrictModeAuthorizationRequiredError()
     if (!(await this.findStrictModeRule())) await this.createStrictModeRule()
-    this.dependencies.deviceAcceptance.acceptOnThisDevice()
     await this.dependencies.syncRulesToDevice()
+    this.dependencies.deviceAcceptance.acceptOnThisDevice()
   }
 
   async requestTurnOff(): Promise<void> {

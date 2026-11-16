@@ -23,6 +23,7 @@ const nativeModule: AndroidNativeModule & IosNativeModule = {
   discardPendingSelection: () => undefined,
   hasAcceptedStrictMode: () => false,
   acceptStrictMode: () => undefined,
+  revokeStrictMode: () => undefined,
   reapplyShields: async () => undefined,
   recordAppOpened: async () => undefined,
 }

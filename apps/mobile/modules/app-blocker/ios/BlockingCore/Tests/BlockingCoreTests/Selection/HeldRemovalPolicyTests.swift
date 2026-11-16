@@ -45,6 +45,14 @@ final class HeldRemovalPolicyTests: XCTestCase {
         XCTAssertEqual(decide(holdEffectiveAt: effectiveAt, serverNow: truncatedServerNow), .commit)
     }
 
+    func testRemovalIsCommittedExactlyAtTheToleranceLimit() {
+        XCTAssertEqual(decide(holdEffectiveAt: effectiveAt, serverNow: effectiveAt.addingTimeInterval(-1)), .commit)
+    }
+
+    func testRemovalIsDiscardedJustBeyondTheTolerance() {
+        XCTAssertEqual(decide(holdEffectiveAt: effectiveAt, serverNow: effectiveAt.addingTimeInterval(-1.1)), .discard)
+    }
+
     func testRemovalIsDiscardedWhenTheChangeVanishedBeforeTheCooldownEnded() {
         let earlier: Date = Date(timeIntervalSince1970: 500)
         XCTAssertEqual(decide(holdEffectiveAt: effectiveAt, serverNow: earlier), .discard)

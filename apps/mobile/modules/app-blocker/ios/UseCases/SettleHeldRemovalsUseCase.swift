@@ -34,7 +34,7 @@ struct SettleHeldRemovalsUseCase {
             try commitPendingSelection.commitPendingSelection(ruleId: ruleId)
         } catch {
             let reason: String = String(describing: error)
-            AppLogger.selection.error("Held removal of \(ruleId, privacy: .public) failed: \(reason, privacy: .private)")
+            AppLogger.selection.error("Held removal \(ruleId, privacy: .public) failed: \(reason, privacy: .private)")
         }
     }
 

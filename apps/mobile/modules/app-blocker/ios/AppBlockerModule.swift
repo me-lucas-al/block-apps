@@ -57,6 +57,10 @@ public class AppBlockerModule: Module {
             AcceptStrictModeUseCase().acceptStrictModeOnThisDevice()
         }
 
+        Function("revokeStrictMode") { () in
+            RevokeStrictModeUseCase().revokeStrictModeOnThisDevice()
+        }
+
         Function("reapplyShields") { () in
             ShieldApplier().applyShieldsForCurrentMoment()
         }

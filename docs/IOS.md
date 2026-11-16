@@ -90,6 +90,7 @@ Fazer num iPhone com iOS 16 ou mais, depois da aprovação da Apple. Correções
 - Modo estrito (num aparelho que você possa restaurar): ligar, tentar remover um app (deve ser impedido), pedir para desligar e conferir que só libera depois do cooldown, cancelar o pedido, e desinstalar o Block Apps com o modo desligado para confirmar que a trava não fica presa.
 - Atividade diária que cruza a meia-noite (início 23:50, fim 00:05 sem dia da semana): confirmar que dispara nos dois pontos.
 - Entrar com outra conta com regras ativas é recusado, e voltar à conta original funciona.
+- Modo estrito: depois de aceitar num build com a flag, instalar um build sem ela e abrir o app: a trava deve cair.
 - Modo estrito: a atividade `strict-mode-heartbeat` dispara todo dia e a trava libera depois de 14 dias sem abrir o app mesmo sem outra regra de horário; em um segundo aparelho, o aceite é pedido antes de a trava ligar;
 - Modo estrito: sem autorização do Tempo de Uso o app não deixa ligar; e a trava libera depois de 14 dias sem abrir o app.
 - Reinstalar e entrar de novo: as regras voltam e a seleção pede nova escolha.
@@ -97,7 +98,7 @@ Fazer num iPhone com iOS 16 ou mais, depois da aprovação da Apple. Correções
 
 ## Modo estrito (`denyAppRemoval`)
 
-Opcional e **escondido por padrão**: o cartão "Modo estrito" só aparece em builds com `EXPO_PUBLIC_STRICT_MODE_ENABLED=true` (lida em `readMobileConfig`). Sem a flag não há cartão, logo não há aceite e o nativo nunca liga a trava. A flag só deve ser ligada depois da validação em aparelho.
+Opcional e **escondido por padrão**: o cartão "Modo estrito" só aparece em builds com `EXPO_PUBLIC_STRICT_MODE_ENABLED=true` (lida em `readMobileConfig`). Sem a flag não há cartão, logo não há aceite e o nativo nunca liga a trava. A flag só deve ser ligada depois da validação em aparelho. Se um build sem a flag for instalado depois de um com ela, o app apaga o aceite deste aparelho na abertura (`revokeStrictMode`) e a trava `denyAppRemoval` cai.
 
 - **Ligar** pede confirmação com o aviso de que o iPhone passa a não deixar remover **nenhum** app, de que há relatos de a trava continuar depois de o Block Apps ser desinstalado (a saída seria restaurar o iPhone) e de que desligar espera o cooldown. Ligar cria a regra `protection` / `ios-deny-app-removal` (modo `always`) no servidor e grava o **aceite deste aparelho** no App Group; apertar é imediato.
 - **Desligar** é um pedido de remoção dessa regra: só vale quando o cooldown da conta termina, e dá para cancelar o pedido antes disso.

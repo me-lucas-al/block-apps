@@ -8,7 +8,11 @@ const sources = {
   pendingRuleChanges: {},
   rulesSync: { sync: async () => undefined },
   isScreenTimeAuthorized: () => true,
-  deviceAcceptance: { hasAcceptedOnThisDevice: () => true, acceptOnThisDevice: () => undefined },
+  deviceAcceptance: {
+    hasAcceptedOnThisDevice: () => true,
+    acceptOnThisDevice: () => undefined,
+    revokeOnThisDevice: () => undefined,
+  },
 }
 
 function build(overrides: Record<string, unknown> = {}) {

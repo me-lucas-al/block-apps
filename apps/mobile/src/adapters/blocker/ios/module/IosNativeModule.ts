@@ -2,6 +2,7 @@ export type NativeGroupStates = {
   chosenRuleIds: string[]
   unreadableRuleIds: string[]
   unscheduledRuleIds: string[]
+  oversizedRuleIds: string[]
 }
 
 export interface IosNativeModule {

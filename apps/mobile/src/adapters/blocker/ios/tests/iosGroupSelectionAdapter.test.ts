@@ -58,7 +58,12 @@ describe('iOS group selection adapter', () => {
   })
 
   it('loads the state of every group with a single native call', async () => {
-    const states = { chosenRuleIds: ['a'], unreadableRuleIds: ['b'], unscheduledRuleIds: ['c'] }
+    const states = {
+      chosenRuleIds: ['a'],
+      unreadableRuleIds: ['b'],
+      unscheduledRuleIds: ['c'],
+      oversizedRuleIds: ['d'],
+    }
     const nativeModule = buildNativeModule({ getGroupStates: vi.fn(async () => states) })
     const { groupSelection } = createIosAdapters(nativeModule, signedInOwner)
     await expect(groupSelection?.loadGroupStates(['a', 'b', 'c'])).resolves.toEqual(states)

@@ -54,6 +54,7 @@ export function buildNativeModule(overrides: Partial<IosNativeModule> = {}): Ios
       chosenRuleIds: [],
       unreadableRuleIds: [],
       unscheduledRuleIds: [],
+      oversizedRuleIds: [],
     })),
     holdPendingSelection: vi.fn(),
     discardPendingSelection: vi.fn(),

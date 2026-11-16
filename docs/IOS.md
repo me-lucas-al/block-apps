@@ -5,9 +5,9 @@ Estado: código escrito e testado onde dá (lógica em CI Linux, compilação em
 ## Como o iOS difere do Android
 
 - Apps são escolhidos no seletor da Apple (`FamilyActivityPicker`) e chegam como **tokens opacos**: o app não sabe nome nem bundle id, e os tokens valem só naquele aparelho. Por isso a regra de app do Android (pacote) não serve no iOS.
-- Sites bloqueiam por domínio em texto (`webContent.blockedByFilter`), então as regras `site` do servidor valem no iOS (limite de cerca de 50 domínios).
+- Sites bloqueiam por domínio em texto (`webContent.blockedByFilter`), então as regras `site` do servidor valem no iOS (limite de cerca de 50 domínios, **relato não confirmado em doc oficial**).
 - Palavras de busca não existem no iOS.
-- `DeviceActivity` aceita cerca de 20 atividades, com intervalo mínimo de 15 minutos, e `intervalDidEnd` nem sempre dispara.
+- `DeviceActivity` aceita cerca de 20 atividades, com intervalo mínimo de 15 minutos, e `intervalDidEnd` nem sempre dispara. Esses limites (20 atividades, 15 minutos) e os de 50 apps e 50 domínios vêm de relatos de desenvolvedores; **não estão confirmados em documentação oficial da Apple** e precisam ser vistos em aparelho.
 - O usuário pode revogar a autorização em Ajustes, e os bloqueios caem na hora.
 
 ## Tipos de regra
@@ -96,6 +96,7 @@ Fazer num iPhone com iOS 16 ou mais, depois da aprovação da Apple. Correções
 - Modo estrito: sem autorização do Tempo de Uso o app não deixa ligar; e a trava libera depois de 14 dias sem abrir o app.
 - Reinstalar e entrar de novo: as regras voltam e a seleção pede nova escolha.
 - Ver no Console.app os logs do módulo e conferir que as falhas chegam ao app com os códigos de `ERR_*` (por exemplo, abrir o seletor sem tela disponível).
+- Grupo com mais de 50 apps: ver se o iOS bloqueia todos ou só parte, e se a lista mostra o aviso.
 - Confiabilidade dos callbacks de `DeviceActivity` e dos tokens depois de atualizar o iOS.
 
 ## Erros e logs
@@ -122,10 +123,11 @@ Opcional e **escondido por padrão**: o cartão "Modo estrito" só aparece em bu
 
 - **Relógio:** a remoção de apps usa a hora do servidor, não a do aparelho. `requireAutomaticDateAndTime` fica ligado com regra de horário **ou** modo estrito ativo (`AutomaticClockPolicy`).
 - **Reinstalar:** a regra volta do servidor sem a seleção de apps, que fica só no aparelho, e o grupo fica sem bloqueio até escolher os apps de novo (o app avisa). A primeira escolha depois de reinstalar não passa pelo cooldown.
-- **Domínios:** `blockedByFilter` aceita cerca de 50 domínios; o excedente não é tratado nem avisado.
+- **Apps por grupo:** relata-se que a Apple só protege cerca de 50 apps por seleção (não confirmado). A lista avisa quando um grupo passa de 50 apps (`SelectionLimits`), mas o módulo não corta a seleção: o corte automático fica para depois do teste em aparelho.
+- **Domínios:** `blockedByFilter` aceita cerca de 50 domínios (relato não confirmado); o excedente não é tratado nem avisado, e a lista de grupos do iOS não mostra regras de site.
 - **Seleção órfã:** a seleção guardada de uma regra removida ou de um formulário cancelado não é apagada (não há função nativa para isso); se a regra for recriada com o mesmo nome, herda a seleção antiga.
 - **Corrida na atualização:** uma atualização da lista logo depois de pedir a remoção pode descartar o pedido guardado; o efeito é seguro (os apps continuam bloqueados) mas o pedido precisa ser refeito.
-- **`_shared`:** o `@bacons/apple-targets` também inclui `targets/_shared` no app principal; não confirmado se isso aumenta o binário. Rodar `pnpm sync:ios-shared` antes de `expo prebuild` (o `expo run:ios`, o EAS e o CI já rodam).
+- **`_shared`:** conferido no código do `@bacons/apple-targets` 5.0.0 (`with-xcode-changes.js`): o grupo `targets/_shared` entra nas extensões **e também no alvo do app principal**. Não se sabe se isso aumenta o binário. Arquivo Swift novo em `Shared/` ou no `BlockingCore` só entra nos alvos depois de `pnpm sync:ios-shared` e de um novo prebuild: use `pnpm prebuild:ios` (sincroniza e roda `expo prebuild --platform ios --clean`). O `expo run:ios`, o EAS e o CI já sincronizam.
 - **Manifesto de privacidade:** o de `app.json` vale só para o app; as extensões usam `UserDefaults` e podem precisar do próprio.
 - **Dono das regras no Android:** ainda não implementado.
 
@@ -140,3 +142,7 @@ Opcional e **escondido por padrão**: o cartão "Modo estrito" só aparece em bu
 
 - Palavras de busca no iOS e modo "filho" (controle parental).
 - O `RulesSyncWorker` do Android só relê o que está salvo; sincronização real só com o app aberto. Vale uma PR separada.
+
+## Ordem de merge da pilha do iOS
+
+As PRs do iOS são empilhadas: cada uma aponta para a anterior. Mesclar **de baixo para cima**, uma por vez, com **merge commit** (sem squash e sem rebase), porque a PR de cima aponta para a branch de baixo e o squash reescreveria os commits dela. Ao mesclar, apague a branch: o GitHub reaponta a PR seguinte para `main`. A ordem é: #72, #73, #74, #75, #76, #77, #78 e depois as PRs de correção, na ordem em que foram abertas.

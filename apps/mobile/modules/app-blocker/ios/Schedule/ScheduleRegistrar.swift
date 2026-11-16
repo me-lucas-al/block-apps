@@ -32,7 +32,7 @@ struct ScheduleRegistrar {
             } catch {
                 failedCount += 1
                 let reason: String = String(describing: error)
-                AppLogger.schedule.error("\(activity.name, privacy: .public) failed: \(reason, privacy: .public)")
+                AppLogger.schedule.error("\(activity.name, privacy: .public) failed: \(reason, privacy: .private)")
             }
         }
         if failedCount > 0 { throw ScheduleRegistrationError.activitiesNotStarted(failedCount: failedCount) }

@@ -15,11 +15,12 @@ struct SaveChosenSelectionUseCase {
             from: SelectionSnapshot(selection: current),
             to: SelectionSnapshot(selection: chosen)
         )
-        try selectionStorage.saveSelection(current.unioned(with: chosen), ruleId: ruleId)
         if change.removesAnything {
             try selectionStorage.savePendingSelection(chosen, ruleId: ruleId)
+            try selectionStorage.saveSelection(current.unioned(with: chosen), ruleId: ruleId)
             return .removalPending
         }
+        try selectionStorage.saveSelection(current.unioned(with: chosen), ruleId: ruleId)
         selectionStorage.clearPendingSelection(ruleId: ruleId)
         return .saved
     }

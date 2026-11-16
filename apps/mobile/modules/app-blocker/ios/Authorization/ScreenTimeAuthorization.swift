@@ -10,7 +10,7 @@ enum ScreenTimeAuthorization {
             try await AuthorizationCenter.shared.requestAuthorization(for: .individual)
         } catch {
             let reason: String = String(describing: error)
-            AppLogger.authorization.error("Authorization failed: \(reason, privacy: .public)")
+            AppLogger.authorization.error("Authorization failed: \(reason, privacy: .private)")
             throw error
         }
         return readStatus()

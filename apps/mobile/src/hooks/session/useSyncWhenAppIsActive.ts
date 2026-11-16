@@ -10,14 +10,18 @@ export function useSyncWhenAppIsActive(signedInEmail: string | null): {
   const [syncFailure, setSyncFailure] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!signedInEmail) return
+    if (!signedInEmail) {
+      setSyncFailure(null)
+      return
+    }
+    let isStillActive = true
 
     const syncRulesAndReportStatus = () => {
       blocker.markAppOpened()
       void rulesSync
         .sync()
-        .then(() => setSyncFailure(null))
-        .catch((failure: unknown) => setSyncFailure(describeAppFailure(failure)))
+        .then(() => isStillActive && setSyncFailure(null))
+        .catch((failure: unknown) => isStillActive && setSyncFailure(describeAppFailure(failure)))
       void statusReporter.reportDeviceStatus().catch(() => {})
     }
 
@@ -25,7 +29,10 @@ export function useSyncWhenAppIsActive(signedInEmail: string | null): {
     const subscription = AppState.addEventListener('change', (state) => {
       if (state === 'active') syncRulesAndReportStatus()
     })
-    return () => subscription.remove()
+    return () => {
+      isStillActive = false
+      subscription.remove()
+    }
   }, [rulesSync, statusReporter, blocker, signedInEmail])
 
   return { syncFailure }

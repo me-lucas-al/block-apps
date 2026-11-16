@@ -17,7 +17,7 @@ extension SelectionSnapshot {
                 return try encoder.encode(token).base64EncodedString()
             } catch {
                 let reason: String = String(describing: error)
-                AppLogger.selection.error("A selection token was not encoded: \(reason, privacy: .public)")
+                AppLogger.selection.error("A selection token was not encoded: \(reason, privacy: .private)")
                 return nil
             }
         }

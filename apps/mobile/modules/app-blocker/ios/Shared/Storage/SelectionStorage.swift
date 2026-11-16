@@ -67,7 +67,7 @@ struct SelectionStorage {
             return .found(try JSONDecoder().decode(FamilyActivitySelection.self, from: encoded))
         } catch {
             let reason: String = String(describing: error)
-            AppLogger.selection.error("\(key, privacy: .public) unreadable: \(reason, privacy: .public)")
+            AppLogger.selection.error("\(key, privacy: .public) unreadable: \(reason, privacy: .private)")
             return .unreadable
         }
     }
@@ -78,7 +78,7 @@ struct SelectionStorage {
             appGroup.set(try JSONEncoder().encode(selection), forKey: key)
         } catch {
             let reason: String = String(describing: error)
-            AppLogger.selection.error("\(key, privacy: .public) not saved: \(reason, privacy: .public)")
+            AppLogger.selection.error("\(key, privacy: .public) not saved: \(reason, privacy: .private)")
             throw SharedStorageError.selectionNotSaved
         }
     }

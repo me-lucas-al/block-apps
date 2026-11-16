@@ -7,6 +7,8 @@ public enum HeldRemovalDecision: Equatable, Sendable {
 }
 
 public enum HeldRemovalPolicy {
+    public static let serverClockToleranceSeconds: TimeInterval = 1
+
     public static func decide(
         holdEffectiveAt: Date?,
         hasPendingServerChange: Bool,
@@ -15,6 +17,7 @@ public enum HeldRemovalPolicy {
         guard let holdEffectiveAt: Date = holdEffectiveAt else { return .keep }
         if hasPendingServerChange { return .keep }
         guard let serverNow: Date = serverNow else { return .keep }
-        return serverNow >= holdEffectiveAt ? .commit : .discard
+        let secondsUntilEffective: TimeInterval = holdEffectiveAt.timeIntervalSince(serverNow)
+        return secondsUntilEffective <= serverClockToleranceSeconds ? .commit : .discard
     }
 }

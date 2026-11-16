@@ -14,3 +14,7 @@ excluded:
 
 line_length:
   ignores_multiline_strings: true
+
+function_body_length:
+  warning: 80
+  error: 120

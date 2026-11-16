@@ -59,6 +59,7 @@ export function buildNativeModule(overrides: Partial<IosNativeModule> = {}): Ios
     discardPendingSelection: vi.fn(),
     hasAcceptedStrictMode: () => false,
     acceptStrictMode: vi.fn(),
+    revokeStrictMode: vi.fn(),
     reapplyShields: vi.fn(async () => undefined),
     recordAppOpened: vi.fn(async () => undefined),
     ...overrides,

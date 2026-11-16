@@ -8,6 +8,8 @@ enum ScreenTimeAuthorization {
     static func requestIndividualAuthorization() async throws -> AuthorizationStatusName {
         do {
             try await AuthorizationCenter.shared.requestAuthorization(for: .individual)
+        } catch FamilyControlsError.authorizationCanceled {
+            AppLogger.authorization.info("The user canceled the authorization prompt")
         } catch {
             let reason: String = String(describing: error)
             AppLogger.authorization.error("Authorization failed: \(reason, privacy: .private)")

@@ -1,12 +1,9 @@
 import type { NewBlockRule } from '@block-apps/api'
-import type { BlockRule, PendingRuleChange, TargetType } from '@block-apps/core'
+import type { BlockRule, PendingRuleChange } from '@block-apps/core'
 import { useCallback, useEffect, useState } from 'react'
 import { describeAppFailure } from '../../errors/describeAppFailure'
+import { keepListedTypes } from '../../rules/keepListedTypes'
 import { useServices } from '../../services/ServicesContext'
-
-function keepListedTypes(rules: BlockRule[], listedTypes: readonly TargetType[]): BlockRule[] {
-  return rules.filter((rule) => listedTypes.includes(rule.targetType))
-}
 
 export function useBlockRules() {
   const {

@@ -3,6 +3,7 @@ import type {
   GroupSelectionPort,
   GroupStates,
 } from '../../../../ports/groupselection/GroupSelectionPort'
+import { SignInRequiredError } from '../../../../errors/SignInRequiredError'
 import type { IosNativeModule } from '../module/IosNativeModule'
 import { parseChooseAppsOutcome } from './parseChooseAppsOutcome'
 
@@ -26,7 +27,7 @@ export class IosGroupSelectionAdapter implements GroupSelectionPort {
 
   async holdPendingRemoval(ruleId: string, effectiveAtIso: string): Promise<void> {
     const ownerId = await this.currentOwnerId()
-    if (!ownerId) throw new Error('Entre na sua conta para pedir a remoção do grupo.')
+    if (!ownerId) throw new SignInRequiredError()
     this.nativeModule.holdPendingSelection(ruleId, effectiveAtIso, ownerId)
   }
 

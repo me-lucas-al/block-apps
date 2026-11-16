@@ -7,8 +7,8 @@ describe('StrictModeController actions', () => {
     await controller.turnOn()
     expect(calls).toEqual([
       'create:protection:ios-deny-app-removal:always',
-      'accept',
       'sync',
+      'accept',
     ])
   })
 
@@ -21,7 +21,7 @@ describe('StrictModeController actions', () => {
   it('does not create a second rule when it only needs the acceptance on this device', async () => {
     const { controller, calls } = buildKit([STRICT_RULE], [], true, false)
     await controller.turnOn()
-    expect(calls).toEqual(['accept', 'sync'])
+    expect(calls).toEqual(['sync', 'accept'])
   })
 
   it('turns off only through a removal request, which waits for the cooldown', async () => {

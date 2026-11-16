@@ -19,6 +19,7 @@ export interface IosNativeModule {
   discardPendingSelection(ruleId: string): void
   hasAcceptedStrictMode(): boolean
   acceptStrictMode(): void
+  revokeStrictMode(): void
   reapplyShields(): Promise<void>
   recordAppOpened(): Promise<void>
 }

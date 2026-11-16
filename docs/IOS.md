@@ -39,7 +39,6 @@ apps/mobile/
 ## Como bloqueia (falha fechado)
 
 - `ShieldSchedulePlanner` transforma as janelas em atividades de `DeviceActivity` que **repetem todo dia**: uma por minuto de borda distinto (início e fim de cada janela), sem repetir, com 15 minutos de intervalo. O dia da semana não entra, então horários iguais em dias diferentes gastam uma só atividade. Cada callback só recalcula.
-- `ShieldSchedulePlanner` transforma as janelas em atividades de `DeviceActivity`: uma em cada borda (início e fim de cada janela, cortada na meia-noite), sem repetir, com 15 minutos de intervalo. Cada callback só recalcula.
 - Regras que estourariam o limite de 20 atividades ficam sempre bloqueadas, e a tela avisa.
 - Se algum `startMonitoring` falha, o registrador marca o agendamento como incompleto no App Group e toda regra com horário fica bloqueada até um novo registro dar certo. `InstallRulesUseCase` aplica os bloqueios mesmo quando o registro falha. O registro é refeito quando o plano muda ou quando o sistema deixou de monitorar alguma atividade (`DeviceActivityCenter.activities`).
 - O recálculo também roda ao voltar ao primeiro plano e numa tarefa em segundo plano (`expo-background-task`, melhor esforço).

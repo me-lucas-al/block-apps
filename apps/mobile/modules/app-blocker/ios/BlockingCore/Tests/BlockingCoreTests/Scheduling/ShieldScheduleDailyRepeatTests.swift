@@ -18,7 +18,7 @@ final class ShieldScheduleDailyRepeatTests: XCTestCase {
         XCTAssertEqual(plan.unscheduledRuleIds, [])
     }
 
-    func testSameTimeOnDifferentDaysIsOneActivity() {
+    func testSameBoundaryMinutesOnDifferentDaysShareActivities() {
         let monday: BlockingRule = scheduledRule("a", days: [1], startMinute: 600, endMinute: 700)
         let friday: BlockingRule = scheduledRule("b", days: [5], startMinute: 600, endMinute: 700)
         XCTAssertEqual(ShieldSchedulePlanner.plan(rules: [monday, friday]).activities.count, 2)

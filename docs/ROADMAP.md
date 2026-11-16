@@ -23,6 +23,7 @@ Roda em toda PR e em todo push para `main`:
 - `check`: validação estrita sem `any` (`pnpm check:no-any`), `pnpm typecheck`, `pnpm test` (378 testes com DynamoDB local via Docker), build da extensão e build do painel administrativo.
 - `android`: gera projeto nativo com `expo prebuild` e compila/testa o módulo Kotlin (`./gradlew :app-blocker:testDebugUnitTest`).
 - `ios-core`: `swift test` do pacote `BlockingCore` num contêiner Swift em Linux.
+- `ios-lint`: SwiftLint em modo estrito sobre o módulo iOS e as extensões; exige tipo explícito em toda declaração (`explicit_type_interface`).
 - `terraform`: formatação estrita (`terraform fmt -check`), lint (`tflint` com plugin `aws`), scanner de segurança (`trivy config`), empacotamento Lambda e `terraform validate` de bootstrap e ambiente `dev`.
 
 ### Build iOS (`.github/workflows/ios-build.yml`)

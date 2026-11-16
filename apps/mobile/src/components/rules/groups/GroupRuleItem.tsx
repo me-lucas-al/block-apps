@@ -7,6 +7,7 @@ import { describeRule } from '../describeRule'
 type GroupRuleItemProps = {
   rule: BlockRule
   appsChosen: boolean
+  selectionUnreadable: boolean
   alwaysBlockedForLackOfSlots: boolean
   pendingChange: PendingRuleChange | undefined
   onChooseApps: (rule: BlockRule) => void
@@ -15,13 +16,16 @@ type GroupRuleItemProps = {
 }
 
 export function GroupRuleItem(props: GroupRuleItemProps) {
-  const { rule, appsChosen, alwaysBlockedForLackOfSlots, pendingChange } = props
+  const { rule, appsChosen, selectionUnreadable, alwaysBlockedForLackOfSlots, pendingChange } = props
   return (
     <View style={styles.row}>
       <View style={styles.texts}>
         <Text style={styles.title}>{rule.target}</Text>
         <Text style={styles.description}>{describeRule(rule)}</Text>
-        {!appsChosen && (
+        {selectionUnreadable && (
+          <Text style={styles.warning}>A escolha de apps guardada não pôde ser lida. Escolha de novo.</Text>
+        )}
+        {!appsChosen && !selectionUnreadable && (
           <Text style={styles.warning}>Escolha os apps de novo neste aparelho.</Text>
         )}
         {alwaysBlockedForLackOfSlots && (

@@ -1,5 +1,6 @@
 import type { BlockRule } from '@block-apps/core'
 import { useCallback, useState } from 'react'
+import { describeAppFailure } from '../../errors/describeAppFailure'
 import type { GroupSelectionPort } from '../../ports/groupselection/GroupSelectionPort'
 
 type GroupAppChoicesDependencies = {
@@ -22,8 +23,9 @@ export function useGroupAppChoices(dependencies: GroupAppChoicesDependencies) {
   const chooseAppsOfRule = useCallback(
     async (rule: BlockRule) => {
       setNotice(null)
-      const outcome = await groupSelection.chooseApps(rule.id).catch(() => 'cancelled' as const)
+      const outcome = await groupSelection.chooseApps(rule.id).catch((failure: unknown) => failure)
       setChoicesVersion((version) => version + 1)
+      if (typeof outcome !== 'string') return setNotice(describeAppFailure(outcome))
       if (outcome === 'notAuthorized') return setNotice(NOT_AUTHORIZED_NOTICE)
       if (outcome === 'notOwner') return setNotice(NOT_OWNER_NOTICE)
       if (outcome !== 'removalPending') return
@@ -40,6 +42,8 @@ export function useGroupAppChoices(dependencies: GroupAppChoicesDependencies) {
     choicesVersion,
     chooseAppsOfRule,
     hasChosenApps: (ruleId: string) => groupSelection.hasChosenApps(ruleId),
+    isSelectionUnreadable: (ruleId: string) =>
+      groupSelection.selectionStatusOf(ruleId) === 'unreadable',
     unscheduledRuleIds: groupSelection.listUnscheduledRuleIds(),
   }
 }

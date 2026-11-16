@@ -56,4 +56,16 @@ describe('iOS group selection adapter', () => {
     const adapters = createIosAdapters(buildNativeModule(), signedInOwner)
     expect(adapters.appChoice.listInstalledApps()).toEqual([])
   })
+
+  it('tells an unreadable stored selection apart from a missing one', () => {
+    const nativeModule = buildNativeModule({ getSelectionStatus: () => 'unreadable' })
+    const { groupSelection } = createIosAdapters(nativeModule, signedInOwner)
+    expect(groupSelection?.selectionStatusOf(groupRule.id)).toBe('unreadable')
+  })
+
+  it('rejects a selection status it does not know', () => {
+    const nativeModule = buildNativeModule({ getSelectionStatus: () => 'weird' })
+    const { groupSelection } = createIosAdapters(nativeModule, signedInOwner)
+    expect(() => groupSelection?.selectionStatusOf(groupRule.id)).toThrow('weird')
+  })
 })

@@ -13,12 +13,12 @@ import { colors } from './src/theme'
 
 function Root() {
   const { email, loading } = useSessionEmail()
-  useSyncWhenAppIsActive(email)
+  const { syncFailure } = useSyncWhenAppIsActive(email)
   useBackgroundRulesSync(email, loading)
 
   if (loading) return <ActivityIndicator style={styles.loading} />
   if (!email) return <LoginScreen />
-  return <HomeScreen email={email} />
+  return <HomeScreen email={email} syncFailure={syncFailure} />
 }
 
 export default function App() {

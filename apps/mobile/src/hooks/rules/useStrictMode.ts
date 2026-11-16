@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { AppState } from 'react-native'
-import { describeApiFailure } from '@block-apps/api'
+import { describeAppFailure } from '../../errors/describeAppFailure'
 import { useServices } from '../../services/ServicesContext'
 import type { StrictModeState } from '../../strictmode/StrictModeState'
 
@@ -15,7 +15,7 @@ export function useStrictMode() {
     try {
       setState(await strictMode.readState())
     } catch (failure) {
-      setError(describeApiFailure(failure))
+      setError(describeAppFailure(failure))
     }
   }, [strictMode])
 
@@ -33,7 +33,7 @@ export function useStrictMode() {
     try {
       await change()
     } catch (failure) {
-      setError(describeApiFailure(failure))
+      setError(describeAppFailure(failure))
     } finally {
       setBusy(false)
       await reloadState()

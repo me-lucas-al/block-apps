@@ -93,7 +93,15 @@ Fazer num iPhone com iOS 16 ou mais, depois da aprovação da Apple. Correções
 - Modo estrito: a atividade `strict-mode-heartbeat` dispara todo dia e a trava libera depois de 14 dias sem abrir o app mesmo sem outra regra de horário; em um segundo aparelho, o aceite é pedido antes de a trava ligar;
 - Modo estrito: sem autorização do Tempo de Uso o app não deixa ligar; e a trava libera depois de 14 dias sem abrir o app.
 - Reinstalar e entrar de novo: as regras voltam e a seleção pede nova escolha.
+- Ver no Console.app os logs do módulo e conferir que as falhas chegam ao app com os códigos de `ERR_*` (por exemplo, abrir o seletor sem tela disponível).
 - Confiabilidade dos callbacks de `DeviceActivity` e dos tokens depois de atualizar o iOS.
+
+## Erros e logs
+
+- O módulo e as extensões registram falhas com `os.Logger` (subsistema `com.blockapps.mobile`, categorias `storage`, `schedule`, `selection`, `authorization`); dá para ver no Console.app com o aparelho conectado.
+- App Group ausente, seleção que não grava, regras ilegíveis, falha de agendamento, outra conta e seletor que não abriu viram exceções com código (`ERR_APP_GROUP_UNAVAILABLE`, `ERR_SELECTION_NOT_SAVED`, `ERR_INVALID_RULES`, `ERR_SCHEDULE_REGISTRATION_FAILED`, `ERR_ANOTHER_ACCOUNT_OWNS_RULES`, `ERR_PICKER_NOT_PRESENTED`). O app traduz o código em `describeAppFailure`. Os códigos são definidos explicitamente nas classes de `Exceptions/`; não confirmado em aparelho que o Expo os entrega com esse valor.
+- Uma seleção guardada que não pode ser lida aparece na lista do grupo como "não pôde ser lida" (`getSelectionStatus`), diferente de "ainda não escolhida".
+- Falha da sincronização aparece como aviso no topo da tela inicial; falha ao pedir a autorização do Tempo de Uso aparece no cartão de proteção.
 
 ## Modo estrito (`denyAppRemoval`)
 

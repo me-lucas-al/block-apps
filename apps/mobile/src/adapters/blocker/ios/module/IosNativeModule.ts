@@ -9,6 +9,7 @@ export interface IosNativeModule {
   requestScreenTimeAuthorization(): Promise<string>
   presentAppSelectionPicker(ruleId: string, ownerId: string): Promise<string>
   hasSelection(ruleId: string): boolean
+  getSelectionStatus(ruleId: string): string
   holdPendingSelection(ruleId: string, effectiveAtIso: string, ownerId: string): void
   discardPendingSelection(ruleId: string): void
   hasAcceptedStrictMode(): boolean

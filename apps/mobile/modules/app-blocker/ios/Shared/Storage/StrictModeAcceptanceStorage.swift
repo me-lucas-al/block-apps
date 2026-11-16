@@ -12,6 +12,10 @@ struct StrictModeAcceptanceStorage {
         defaults?.set(true, forKey: acceptedKey)
     }
 
+    func clearAcceptedOnThisDevice() {
+        defaults?.removeObject(forKey: acceptedKey)
+    }
+
     func loadHasAcceptedOnThisDevice() -> Bool {
         return defaults?.bool(forKey: acceptedKey) ?? false
     }

@@ -37,6 +37,12 @@ export function StrictModeCard() {
             disabled={strictMode.busy}
             onPress={askBeforeTurningOn}
           />
+          <Button
+            label="Pedir para desligar"
+            variant="secondary"
+            disabled={strictMode.busy}
+            onPress={() => void strictMode.requestTurnOff()}
+          />
         </>
       )}
       {strictMode.state.status === 'on' && (

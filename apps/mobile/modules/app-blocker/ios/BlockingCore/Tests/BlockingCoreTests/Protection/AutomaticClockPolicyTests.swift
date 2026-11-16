@@ -7,13 +7,13 @@ final class AutomaticClockPolicyTests: XCTestCase {
     }
 
     func testNoRulesDoNotNeedTheAutomaticClock() {
-        XCTAssertFalse(AutomaticClockPolicy.isAutomaticDateAndTimeRequired(by: []))
+        XCTAssertFalse(AutomaticClockPolicy.isAutomaticDateAndTimeRequired(by: [], hasAcceptedStrictMode: true))
     }
 
     func testRuleWithTimeWindowsNeedsTheAutomaticClock() {
         let window: TimeWindow = TimeWindow(days: [1], startMinute: 600, endMinute: 700)
         let scheduled: BlockingRule = rule(kind: .iosSelection, target: "a", alwaysBlocked: false, windows: [window])
-        XCTAssertTrue(AutomaticClockPolicy.isAutomaticDateAndTimeRequired(by: [scheduled]))
+        XCTAssertTrue(AutomaticClockPolicy.isAutomaticDateAndTimeRequired(by: [scheduled], hasAcceptedStrictMode: true))
     }
 
     func testStrictModeNeedsTheAutomaticClock() {
@@ -23,11 +23,21 @@ final class AutomaticClockPolicyTests: XCTestCase {
             alwaysBlocked: true,
             windows: []
         )
-        XCTAssertTrue(AutomaticClockPolicy.isAutomaticDateAndTimeRequired(by: [strict]))
+        XCTAssertTrue(AutomaticClockPolicy.isAutomaticDateAndTimeRequired(by: [strict], hasAcceptedStrictMode: true))
+    }
+
+    func testStrictModeWithoutAcceptanceDoesNotNeedTheAutomaticClock() {
+        let strict: BlockingRule = rule(
+            kind: .protection,
+            target: StrictModePolicy.denyAppRemovalTarget,
+            alwaysBlocked: true,
+            windows: []
+        )
+        XCTAssertFalse(AutomaticClockPolicy.isAutomaticDateAndTimeRequired(by: [strict], hasAcceptedStrictMode: false))
     }
 
     func testAlwaysBlockedSiteDoesNotNeedTheAutomaticClock() {
         let site: BlockingRule = rule(kind: .site, target: "x.com", alwaysBlocked: true, windows: [])
-        XCTAssertFalse(AutomaticClockPolicy.isAutomaticDateAndTimeRequired(by: [site]))
+        XCTAssertFalse(AutomaticClockPolicy.isAutomaticDateAndTimeRequired(by: [site], hasAcceptedStrictMode: true))
     }
 }

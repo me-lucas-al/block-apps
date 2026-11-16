@@ -40,13 +40,17 @@ struct ShieldApplier {
             isScheduleIncomplete: scheduleStatusStorage.loadIsIncomplete()
         )
         settingsWriter.writeShields(targetsBuilder.buildTargets(for: blockedRules))
-        settingsWriter.requireAutomaticDateAndTime(AutomaticClockPolicy.isAutomaticDateAndTimeRequired(by: rules))
+        if !StrictModePolicy.hasStrictModeRule(in: rules) { acceptanceStorage.clearAcceptedOnThisDevice() }
+        let hasAccepted: Bool = acceptanceStorage.loadHasAcceptedOnThisDevice()
+        settingsWriter.requireAutomaticDateAndTime(
+            AutomaticClockPolicy.isAutomaticDateAndTimeRequired(by: rules, hasAcceptedStrictMode: hasAccepted)
+        )
         settingsWriter.denyAppRemoval(
             StrictModePolicy.isDenyAppRemovalRequired(
                 by: rules,
                 lastAppOpenedAt: activityStorage.loadLastAppOpenedAt(),
                 now: now,
-                hasAcceptedOnThisDevice: acceptanceStorage.loadHasAcceptedOnThisDevice()
+                hasAcceptedOnThisDevice: hasAccepted
             )
         )
     }

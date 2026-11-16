@@ -4,12 +4,18 @@ public enum StrictModePolicy {
     public static let denyAppRemovalTarget: String = "ios-deny-app-removal"
     public static let maximumDaysWithoutOpeningTheApp: Int = 14
 
+    public static func hasStrictModeRule(in rules: [BlockingRule]) -> Bool {
+        return rules.contains(where: isDenyAppRemovalRule)
+    }
+
     public static func isDenyAppRemovalRequired(
         by rules: [BlockingRule],
         lastAppOpenedAt: Date?,
-        now: Date
+        now: Date,
+        hasAcceptedOnThisDevice: Bool
     ) -> Bool {
-        guard rules.contains(where: isDenyAppRemovalRule) else { return false }
+        guard hasAcceptedOnThisDevice else { return false }
+        guard hasStrictModeRule(in: rules) else { return false }
         guard let lastAppOpenedAt: Date = lastAppOpenedAt else { return true }
         return now.timeIntervalSince(lastAppOpenedAt) <= maximumTimeWithoutOpeningTheApp
     }

@@ -1,9 +1,6 @@
 import ExpoModulesCore
-import Foundation
 
 public class AppBlockerModule: Module {
-    private static let stateQueue: DispatchQueue = DispatchQueue(label: "com.blockapps.mobile.module-state")
-
     public func definition() -> ModuleDefinition {
         Name("AppBlocker")
 
@@ -41,14 +38,16 @@ public class AppBlockerModule: Module {
 
         AsyncFunction("setRules") { (json: String, ownerId: String, pendingIds: [String], serverNow: String?) throws in
             try NativeExceptionMapper.run {
-                try InstallRulesUseCase().installRules(
-                    fromJSON: json,
-                    ownerId: ownerId,
-                    pendingRuleIds: pendingIds,
-                    serverNowIso: serverNow
-                )
+                try ModuleStateQueue.run {
+                    try InstallRulesUseCase().installRules(
+                        fromJSON: json,
+                        ownerId: ownerId,
+                        pendingRuleIds: pendingIds,
+                        serverNowIso: serverNow
+                    )
+                }
             }
-        }.runOnQueue(Self.stateQueue)
+        }
 
         Function("hasAcceptedStrictMode") { () -> Bool in
             StrictModeAcceptanceStorage().loadHasAcceptedOnThisDevice()
@@ -59,11 +58,11 @@ public class AppBlockerModule: Module {
         }
 
         AsyncFunction("reapplyShields") { () in
-            ShieldApplier().applyShieldsForCurrentMoment()
-        }.runOnQueue(Self.stateQueue)
+            ModuleStateQueue.run { ShieldApplier().applyShieldsForCurrentMoment() }
+        }
 
         AsyncFunction("recordAppOpened") { () in
-            RecordAppOpenedUseCase().recordAppOpened()
-        }.runOnQueue(Self.stateQueue)
+            ModuleStateQueue.run { RecordAppOpenedUseCase().recordAppOpened() }
+        }
     }
 }

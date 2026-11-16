@@ -21,6 +21,7 @@ export function GroupHomeScreen({ email, groupSelection }: GroupHomeScreenProps)
   const choices = useGroupAppChoices({
     groupSelection,
     ruleIds: rulesState.rules.map((rule) => rule.id),
+    appliedVersion: rulesState.appliedVersion,
     holdSelectionRemovalUntilCooldownEnds: rulesState.holdSelectionRemovalUntilCooldownEnds,
   })
   const [adding, setAdding] = useState(false)

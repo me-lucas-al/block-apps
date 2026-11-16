@@ -21,6 +21,7 @@ export function useBlockRules() {
   const [rules, setRules] = useState<BlockRule[]>([])
   const [pendingChanges, setPendingChanges] = useState<PendingRuleChange[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [appliedVersion, setAppliedVersion] = useState(0)
 
   const reload = useCallback(async () => {
     await pendingRuleChanges.applyDueChanges().catch(() => undefined)
@@ -34,6 +35,7 @@ export function useBlockRules() {
     } catch (failure) {
       setError(describeAppFailure(failure))
     }
+    setAppliedVersion((version) => version + 1)
   }, [ruleRepository, pendingRuleChanges, rulesSync, listedTargetTypes, userSession])
 
   const runAndReloadRules = useCallback(
@@ -87,6 +89,7 @@ export function useBlockRules() {
     rules,
     pendingChanges,
     error,
+    appliedVersion,
     create: (rule: NewBlockRule) => runAndReloadRules(() => ruleRepository.create(rule)),
     requestRemoval: (ruleId: string) =>
       runAndReloadRules(() => pendingRuleChanges.requestRemoval(ruleId)).catch(() => undefined),

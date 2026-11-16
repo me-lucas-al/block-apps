@@ -9,6 +9,7 @@ import type {
 type GroupAppChoicesDependencies = {
   groupSelection: GroupSelectionPort
   ruleIds: readonly string[]
+  appliedVersion: number
   holdSelectionRemovalUntilCooldownEnds: (rule: BlockRule) => Promise<boolean>
 }
 
@@ -20,22 +21,22 @@ const NOT_AUTHORIZED_NOTICE = 'Autorize o Tempo de Uso antes de escolher os apps
 const NOT_OWNER_NOTICE = 'Este aparelho está protegido por outra conta. Entre com a conta original.'
 
 export function useGroupAppChoices(dependencies: GroupAppChoicesDependencies) {
-  const { groupSelection, ruleIds, holdSelectionRemovalUntilCooldownEnds } = dependencies
+  const { groupSelection, ruleIds, appliedVersion, holdSelectionRemovalUntilCooldownEnds } = dependencies
   const [notice, setNotice] = useState<string | null>(null)
   const [groupStates, setGroupStates] = useState<GroupStates | null>(null)
   const [choicesVersion, setChoicesVersion] = useState(0)
-  const ruleIdsKey = ruleIds.join('|')
+  const ruleIdsKey = JSON.stringify(ruleIds)
 
   useEffect(() => {
     let isStillMounted = true
     groupSelection
-      .loadGroupStates(ruleIdsKey ? ruleIdsKey.split('|') : [])
+      .loadGroupStates(JSON.parse(ruleIdsKey) as string[])
       .then((states) => isStillMounted && setGroupStates(states))
       .catch((failure: unknown) => isStillMounted && setNotice(describeAppFailure(failure)))
     return () => {
       isStillMounted = false
     }
-  }, [groupSelection, ruleIdsKey, choicesVersion])
+  }, [groupSelection, ruleIdsKey, choicesVersion, appliedVersion])
 
   const chooseAppsOfRule = useCallback(
     async (rule: BlockRule) => {

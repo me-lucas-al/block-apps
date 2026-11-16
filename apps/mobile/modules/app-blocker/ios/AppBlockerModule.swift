@@ -1,6 +1,9 @@
 import ExpoModulesCore
+import Foundation
 
 public class AppBlockerModule: Module {
+    private static let stateQueue: DispatchQueue = DispatchQueue(label: "com.blockapps.mobile.module-state")
+
     public func definition() -> ModuleDefinition {
         Name("AppBlocker")
 
@@ -45,7 +48,7 @@ public class AppBlockerModule: Module {
                     serverNowIso: serverNow
                 )
             }
-        }
+        }.runOnQueue(Self.stateQueue)
 
         Function("hasAcceptedStrictMode") { () -> Bool in
             StrictModeAcceptanceStorage().loadHasAcceptedOnThisDevice()
@@ -57,10 +60,10 @@ public class AppBlockerModule: Module {
 
         AsyncFunction("reapplyShields") { () in
             ShieldApplier().applyShieldsForCurrentMoment()
-        }
+        }.runOnQueue(Self.stateQueue)
 
         AsyncFunction("recordAppOpened") { () in
             RecordAppOpenedUseCase().recordAppOpened()
-        }
+        }.runOnQueue(Self.stateQueue)
     }
 }

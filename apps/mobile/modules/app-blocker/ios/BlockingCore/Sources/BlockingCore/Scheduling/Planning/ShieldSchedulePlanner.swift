@@ -20,26 +20,19 @@ public enum ShieldSchedulePlanner {
         }
 
         let activities: [PlannedActivity] = scheduledTriggers
-            .sorted(by: isEarlierInWeek)
+            .sorted { (first: ActivityTrigger, second: ActivityTrigger) -> Bool in
+                first.minuteOfDay < second.minuteOfDay
+            }
             .map(makeActivity)
         return ShieldSchedulePlan(activities: activities, unscheduledRuleIds: unscheduledRuleIds)
     }
 
-    private static func isEarlierInWeek(_ first: ActivityTrigger, _ second: ActivityTrigger) -> Bool {
-        if first.dayOfWeek != second.dayOfWeek { return first.dayOfWeek < second.dayOfWeek }
-        return first.minuteOfDay < second.minuteOfDay
-    }
-
     private static func makeActivity(from trigger: ActivityTrigger) -> PlannedActivity {
-        let unwrappedEndMinute: Int = trigger.minuteOfDay + minimumIntervalMinutes
-        let endsOnNextDay: Bool = unwrappedEndMinute >= WindowPieceSplitter.minutesPerDay
-        let weekday: Int = trigger.dayOfWeek + 1
+        let endMinute: Int = (trigger.minuteOfDay + minimumIntervalMinutes) % RuleTriggerCollector.minutesPerDay
         return PlannedActivity(
-            name: "tick-\(trigger.dayOfWeek)-\(trigger.minuteOfDay)",
-            weekday: weekday,
+            name: "tick-\(trigger.minuteOfDay)",
             startMinute: trigger.minuteOfDay,
-            endMinute: unwrappedEndMinute % WindowPieceSplitter.minutesPerDay,
-            endWeekday: endsOnNextDay ? weekday % 7 + 1 : weekday
+            endMinute: endMinute
         )
     }
 }

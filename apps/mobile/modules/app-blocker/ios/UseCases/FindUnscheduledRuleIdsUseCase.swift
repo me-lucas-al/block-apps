@@ -6,7 +6,7 @@ struct FindUnscheduledRuleIdsUseCase {
     }
 
     func findUnscheduledRuleIds() -> [String] {
-        let rules = rulesStorage.loadRules() ?? []
+        let rules: [BlockingRule] = rulesStorage.loadRules() ?? []
         return Array(ShieldSchedulePlanner.plan(rules: rules).unscheduledRuleIds)
     }
 }

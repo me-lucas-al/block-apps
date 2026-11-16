@@ -1,17 +1,17 @@
 public enum ShieldSchedulePlanner {
-    public static let maxActivities = 20
-    public static let minimumIntervalMinutes = 15
+    public static let maxActivities: Int = 20
+    public static let minimumIntervalMinutes: Int = 15
 
     public static func plan(
         rules: [BlockingRule],
         maxActivities: Int = ShieldSchedulePlanner.maxActivities
     ) -> ShieldSchedulePlan {
-        var scheduledTriggers = Set<ActivityTrigger>()
-        var unscheduledRuleIds = Set<String>()
+        var scheduledTriggers: Set<ActivityTrigger> = []
+        var unscheduledRuleIds: Set<String> = []
 
-        for rule in rules where rule.kind.isEnforcedOnIos {
-            let ruleTriggers = RuleTriggerCollector.collectTriggers(for: rule)
-            let combinedTriggers = scheduledTriggers.union(ruleTriggers)
+        for rule: BlockingRule in rules where rule.kind.isEnforcedOnIos {
+            let ruleTriggers: Set<ActivityTrigger> = RuleTriggerCollector.collectTriggers(for: rule)
+            let combinedTriggers: Set<ActivityTrigger> = scheduledTriggers.union(ruleTriggers)
             if combinedTriggers.count > maxActivities {
                 unscheduledRuleIds.insert(rule.id)
                 continue
@@ -19,7 +19,7 @@ public enum ShieldSchedulePlanner {
             scheduledTriggers = combinedTriggers
         }
 
-        let activities = scheduledTriggers
+        let activities: [PlannedActivity] = scheduledTriggers
             .sorted(by: isEarlierInWeek)
             .map(makeActivity)
         return ShieldSchedulePlan(activities: activities, unscheduledRuleIds: unscheduledRuleIds)
@@ -31,9 +31,9 @@ public enum ShieldSchedulePlanner {
     }
 
     private static func makeActivity(from trigger: ActivityTrigger) -> PlannedActivity {
-        let unwrappedEndMinute = trigger.minuteOfDay + minimumIntervalMinutes
-        let endsOnNextDay = unwrappedEndMinute >= WindowPieceSplitter.minutesPerDay
-        let weekday = trigger.dayOfWeek + 1
+        let unwrappedEndMinute: Int = trigger.minuteOfDay + minimumIntervalMinutes
+        let endsOnNextDay: Bool = unwrappedEndMinute >= WindowPieceSplitter.minutesPerDay
+        let weekday: Int = trigger.dayOfWeek + 1
         return PlannedActivity(
             name: "tick-\(trigger.dayOfWeek)-\(trigger.minuteOfDay)",
             weekday: weekday,

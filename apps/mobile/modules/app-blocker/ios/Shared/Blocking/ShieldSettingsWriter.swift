@@ -8,7 +8,7 @@ struct ShieldSettingsWriter {
     }
 
     func writeShields(_ targets: ShieldTargets) {
-        let categories = targets.categoryTokens
+        let categories: Set<ActivityCategoryToken> = targets.categoryTokens
         store.shield.applications = targets.applicationTokens.isEmpty ? nil : targets.applicationTokens
         store.shield.applicationCategories = categories.isEmpty ? nil : .specific(categories)
         store.shield.webDomains = targets.webDomainTokens.isEmpty ? nil : targets.webDomainTokens

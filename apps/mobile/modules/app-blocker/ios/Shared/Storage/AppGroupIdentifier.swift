@@ -1,3 +1,3 @@
 enum AppGroupIdentifier {
-    static let shared = "group.com.blockapps.mobile"
+    static let shared: String = "group.com.blockapps.mobile"
 }

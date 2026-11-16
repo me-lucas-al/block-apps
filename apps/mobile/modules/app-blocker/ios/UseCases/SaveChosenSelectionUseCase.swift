@@ -8,10 +8,10 @@ struct SaveChosenSelectionUseCase {
     }
 
     func saveChosenSelection(_ chosen: FamilyActivitySelection, ruleId: String) -> String {
-        guard let current = selectionStorage.loadSelection(ruleId: ruleId) else {
+        guard let current: FamilyActivitySelection = selectionStorage.loadSelection(ruleId: ruleId) else {
             return saveFirstSelection(chosen, ruleId: ruleId)
         }
-        let change = SelectionChange(
+        let change: SelectionChange = SelectionChange(
             from: SelectionSnapshot(selection: current),
             to: SelectionSnapshot(selection: chosen)
         )

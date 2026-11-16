@@ -26,9 +26,9 @@ struct ShieldApplier {
     }
 
     func applyShieldsForCurrentMoment() {
-        guard let rules = rulesStorage.loadRules() else { return }
-        let now = currentDate()
-        let blockedRules = BlockedRuleResolver.resolveBlockedRules(
+        guard let rules: [BlockingRule] = rulesStorage.loadRules() else { return }
+        let now: Date = currentDate()
+        let blockedRules: [BlockingRule] = BlockedRuleResolver.resolveBlockedRules(
             rules,
             at: WeekMoment(date: now, calendar: calendar)
         )

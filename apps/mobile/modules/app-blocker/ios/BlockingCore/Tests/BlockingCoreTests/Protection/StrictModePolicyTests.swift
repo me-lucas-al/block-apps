@@ -2,7 +2,7 @@ import XCTest
 @testable import BlockingCore
 
 final class StrictModePolicyTests: XCTestCase {
-    private let now = Date(timeIntervalSince1970: 1_800_000_000)
+    private let now: Date = Date(timeIntervalSince1970: 1_800_000_000)
     private let oneDay: TimeInterval = 24 * 60 * 60
 
     private func protectionRule(
@@ -14,7 +14,7 @@ final class StrictModePolicyTests: XCTestCase {
     }
 
     private func isRequired(_ rules: [BlockingRule], lastOpenedDaysAgo: Double? = 0) -> Bool {
-        let lastOpened = lastOpenedDaysAgo.map { now.addingTimeInterval(-$0 * oneDay) }
+        let lastOpened: Date? = lastOpenedDaysAgo.map { now.addingTimeInterval(-$0 * oneDay) }
         return StrictModePolicy.isDenyAppRemovalRequired(by: rules, lastAppOpenedAt: lastOpened, now: now)
     }
 
@@ -39,9 +39,10 @@ final class StrictModePolicyTests: XCTestCase {
     }
 
     func testProtectionRulesAreNotShieldedAsContent() {
-        let rule = protectionRule()
+        let rule: BlockingRule = protectionRule()
         XCTAssertFalse(rule.kind.isEnforcedOnIos)
-        XCTAssertTrue(BlockedRuleResolver.resolveBlockedRules([rule], at: WeekMoment(dayOfWeek: 1, minuteOfDay: 0)).isEmpty)
+        let mondayMidnight: WeekMoment = WeekMoment(dayOfWeek: 1, minuteOfDay: 0)
+        XCTAssertTrue(BlockedRuleResolver.resolveBlockedRules([rule], at: mondayMidnight).isEmpty)
     }
 
     func testTheLockHoldsWhileTheAppWasOpenedRecently() {

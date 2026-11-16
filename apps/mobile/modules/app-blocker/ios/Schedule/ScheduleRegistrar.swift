@@ -2,9 +2,9 @@ import DeviceActivity
 import Foundation
 
 struct ScheduleRegistrar {
-    private static let layoutVersion = 2
-    private let layoutVersionKey = "schedule.layoutVersion"
-    private let activityCenter = DeviceActivityCenter()
+    private static let layoutVersion: Int = 2
+    private let layoutVersionKey: String = "schedule.layoutVersion"
+    private let activityCenter: DeviceActivityCenter = DeviceActivityCenter()
     private let defaults: UserDefaults?
 
     init(defaults: UserDefaults? = SharedDefaults.makeAppGroupDefaults()) {
@@ -17,7 +17,7 @@ struct ScheduleRegistrar {
         defaults?.removeObject(forKey: layoutVersionKey)
         activityCenter.stopMonitoring()
         var firstFailure: Error?
-        for activity in plan.activities {
+        for activity: PlannedActivity in plan.activities {
             do {
                 try activityCenter.startMonitoring(
                     DeviceActivityName(activity.name),
@@ -27,13 +27,13 @@ struct ScheduleRegistrar {
                 firstFailure = firstFailure ?? error
             }
         }
-        if let firstFailure = firstFailure { throw firstFailure }
+        if let firstFailure: Error = firstFailure { throw firstFailure }
         defaults?.set(Self.layoutVersion, forKey: layoutVersionKey)
     }
 
     private func isAlreadyMonitoring(_ plan: ShieldSchedulePlan) -> Bool {
         if defaults?.integer(forKey: layoutVersionKey) != Self.layoutVersion { return false }
-        let monitoredNames = Set(activityCenter.activities.map { $0.rawValue })
+        let monitoredNames: Set<String> = Set(activityCenter.activities.map { $0.rawValue })
         return monitoredNames == Set(plan.activities.map { $0.name })
     }
 

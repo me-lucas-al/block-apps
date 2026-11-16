@@ -20,7 +20,7 @@ struct InstallRulesUseCase {
     }
 
     func installRules(fromJSON rulesJson: String, ownerId: String) throws {
-        let rules = try RuleParser.parseRules(fromJSON: rulesJson)
+        let rules: [BlockingRule] = try RuleParser.parseRules(fromJSON: rulesJson)
         try requireRulesCanBeReplaced(byOwnerId: ownerId)
         rulesStorage.saveOwnerId(ownerId)
         rulesStorage.saveRulesJSON(rulesJson)
@@ -29,8 +29,8 @@ struct InstallRulesUseCase {
     }
 
     private func requireRulesCanBeReplaced(byOwnerId ownerId: String) throws {
-        let storedRules = rulesStorage.loadRules()
-        let decision = RulesOwnershipPolicy.decide(
+        let storedRules: [BlockingRule]? = rulesStorage.loadRules()
+        let decision: RulesOwnershipDecision = RulesOwnershipPolicy.decide(
             storedOwnerId: rulesStorage.loadOwnerId(),
             incomingOwnerId: ownerId,
             hasStoredRules: (storedRules?.isEmpty ?? false) == false

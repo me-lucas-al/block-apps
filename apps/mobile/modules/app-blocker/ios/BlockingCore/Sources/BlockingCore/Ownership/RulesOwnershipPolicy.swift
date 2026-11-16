@@ -9,7 +9,7 @@ public enum RulesOwnershipPolicy {
         incomingOwnerId: String,
         hasStoredRules: Bool
     ) -> RulesOwnershipDecision {
-        guard let storedOwnerId = storedOwnerId else { return .accept }
+        guard let storedOwnerId: String = storedOwnerId else { return .accept }
         if storedOwnerId == incomingOwnerId { return .accept }
         return hasStoredRules ? .rejectBecauseAnotherAccountOwnsTheRules : .accept
     }

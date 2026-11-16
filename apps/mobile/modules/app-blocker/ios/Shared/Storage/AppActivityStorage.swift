@@ -1,7 +1,7 @@
 import Foundation
 
 struct AppActivityStorage {
-    private let lastOpenedKey = "app.lastOpenedAt"
+    private let lastOpenedKey: String = "app.lastOpenedAt"
     private let defaults: UserDefaults?
 
     init(defaults: UserDefaults? = SharedDefaults.makeAppGroupDefaults()) {
@@ -13,7 +13,7 @@ struct AppActivityStorage {
     }
 
     func loadLastAppOpenedAt() -> Date? {
-        guard let seconds = defaults?.object(forKey: lastOpenedKey) as? Double else { return nil }
+        guard let seconds: Double = defaults?.object(forKey: lastOpenedKey) as? Double else { return nil }
         return Date(timeIntervalSince1970: seconds)
     }
 }

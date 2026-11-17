@@ -51,6 +51,7 @@ export function buildNativeModule(overrides: Partial<IosNativeModule> = {}): Ios
     requestScreenTimeAuthorization: vi.fn(async () => 'approved'),
     presentAppSelectionPicker: vi.fn(async () => 'saved'),
     hasSelection: () => true,
+    getSelectionStatus: () => 'found',
     holdPendingSelection: vi.fn(),
     discardPendingSelection: vi.fn(),
     hasAcceptedStrictMode: () => false,

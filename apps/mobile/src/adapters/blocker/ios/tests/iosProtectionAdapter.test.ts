@@ -20,4 +20,15 @@ describe('iOS protection adapter', () => {
     authorizationCheck?.performAction()
     expect(nativeModule.requestScreenTimeAuthorization).toHaveBeenCalledOnce()
   })
+
+  it('lets an authorization failure reach the caller instead of swallowing it', async () => {
+    const nativeModule = buildNativeModule({
+      getAuthorizationStatus: () => 'notDetermined',
+      requestScreenTimeAuthorization: async () => {
+        throw new Error('authorization failed')
+      },
+    })
+    const [authorizationCheck] = createIosAdapters(nativeModule, signedInOwner).protection.listChecks()
+    await expect(authorizationCheck?.performAction()).rejects.toThrow('authorization failed')
+  })
 })

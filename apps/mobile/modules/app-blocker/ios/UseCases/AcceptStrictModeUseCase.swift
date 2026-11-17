@@ -10,8 +10,8 @@ struct AcceptStrictModeUseCase {
         self.shieldApplier = shieldApplier
     }
 
-    func acceptStrictModeOnThisDevice() {
-        acceptanceStorage.saveAcceptedOnThisDevice()
+    func acceptStrictModeOnThisDevice() throws {
+        try acceptanceStorage.saveAcceptedOnThisDevice()
         shieldApplier.applyShieldsForCurrentMoment()
     }
 }

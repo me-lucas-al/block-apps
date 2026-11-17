@@ -5,30 +5,34 @@ public class AppBlockerModule: Module {
         Name("AppBlocker")
 
         Function("getAuthorizationStatus") { () -> String in
-            ScreenTimeAuthorization.readStatusName()
+            ScreenTimeAuthorization.readStatus().rawValue
         }
 
         AsyncFunction("requestScreenTimeAuthorization") { () async throws -> String in
-            try await ScreenTimeAuthorization.requestIndividualAuthorization()
+            try await ScreenTimeAuthorization.requestIndividualAuthorization().rawValue
         }
 
-        AsyncFunction("presentAppSelectionPicker") { (ruleId: String, ownerId: String) async -> String in
-            await ChooseAppsUseCase().chooseApps(forRuleId: ruleId, ownerId: ownerId)
+        AsyncFunction("presentAppSelectionPicker") { (ruleId: String, ownerId: String) async throws -> String in
+            try await NativeExceptionMapper.runAsync {
+                try await ChooseAppsUseCase().chooseApps(forRuleId: ruleId, ownerId: ownerId).rawValue
+            }
         }
 
         Function("hasSelection") { (ruleId: String) -> Bool in
             SelectionStorage().hasNonEmptySelection(ruleId: ruleId)
         }
 
+        Function("getSelectionStatus") { (ruleId: String) -> String in
+            SelectionStorage().loadSelectionResult(ruleId: ruleId).statusName
+        }
+
         Function("holdPendingSelection") { (ruleId: String, effectiveAtIso: String, ownerId: String) throws in
-            do {
+            try NativeExceptionMapper.run {
                 try HoldPendingSelectionUseCase().holdPendingSelection(
                     ruleId: ruleId,
                     effectiveAtIso: effectiveAtIso,
                     ownerId: ownerId
                 )
-            } catch InstallRulesError.anotherAccountOwnsTheRules {
-                throw AnotherAccountOwnsRulesException()
             }
         }
 
@@ -37,15 +41,13 @@ public class AppBlockerModule: Module {
         }
 
         Function("setRules") { (json: String, ownerId: String, pendingIds: [String], serverNow: String?) throws in
-            do {
+            try NativeExceptionMapper.run {
                 try InstallRulesUseCase().installRules(
                     fromJSON: json,
                     ownerId: ownerId,
                     pendingRuleIds: pendingIds,
                     serverNowIso: serverNow
                 )
-            } catch InstallRulesError.anotherAccountOwnsTheRules {
-                throw AnotherAccountOwnsRulesException()
             }
         }
 
@@ -53,8 +55,8 @@ public class AppBlockerModule: Module {
             StrictModeAcceptanceStorage().loadHasAcceptedOnThisDevice()
         }
 
-        Function("acceptStrictMode") { () in
-            AcceptStrictModeUseCase().acceptStrictModeOnThisDevice()
+        Function("acceptStrictMode") { () throws in
+            try NativeExceptionMapper.run { try AcceptStrictModeUseCase().acceptStrictModeOnThisDevice() }
         }
 
         Function("revokeStrictMode") { () in

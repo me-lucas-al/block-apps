@@ -14,6 +14,7 @@ const nativeModule: AndroidNativeModule & IosNativeModule = {
   requestScreenTimeAuthorization: async () => 'approved',
   presentAppSelectionPicker: async () => 'saved',
   hasSelection: () => true,
+  getSelectionStatus: () => 'found',
   holdPendingSelection: () => undefined,
   discardPendingSelection: () => undefined,
   hasAcceptedStrictMode: () => false,

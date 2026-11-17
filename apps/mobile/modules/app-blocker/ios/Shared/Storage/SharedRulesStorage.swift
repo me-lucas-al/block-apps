@@ -9,12 +9,12 @@ struct SharedRulesStorage {
         self.defaults = defaults
     }
 
-    func saveRulesJSON(_ json: String) {
-        defaults?.set(json, forKey: rulesKey)
+    func saveRulesJSON(_ json: String) throws {
+        try SharedDefaults.requireDefaults(defaults).set(json, forKey: rulesKey)
     }
 
-    func saveOwnerId(_ ownerId: String) {
-        defaults?.set(ownerId, forKey: ownerKey)
+    func saveOwnerId(_ ownerId: String) throws {
+        try SharedDefaults.requireDefaults(defaults).set(ownerId, forKey: ownerKey)
     }
 
     func loadOwnerId() -> String? {
@@ -23,6 +23,11 @@ struct SharedRulesStorage {
 
     func loadRules() -> [BlockingRule]? {
         guard let json: String = defaults?.string(forKey: rulesKey) else { return nil }
-        return try? RuleParser.parseRules(fromJSON: json)
+        do {
+            return try RuleParser.parseRules(fromJSON: json)
+        } catch {
+            AppLogger.storage.error("Stored rules are unreadable: \(String(describing: error), privacy: .public)")
+            return nil
+        }
     }
 }

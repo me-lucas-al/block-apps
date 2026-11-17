@@ -29,9 +29,18 @@ struct SettleHeldRemovalsUseCase {
         }
     }
 
+    private func commitHeldRemoval(ruleId: String) {
+        do {
+            try commitPendingSelection.commitPendingSelection(ruleId: ruleId)
+        } catch {
+            let reason: String = String(describing: error)
+            AppLogger.selection.error("Held removal \(ruleId, privacy: .public) failed: \(reason, privacy: .private)")
+        }
+    }
+
     private func apply(_ decision: HeldRemovalDecision, ruleId: String) {
         switch decision {
-        case .commit: commitPendingSelection.commitPendingSelection(ruleId: ruleId)
+        case .commit: commitHeldRemoval(ruleId: ruleId)
         case .discard: discardPendingSelection.discardPendingSelection(ruleId: ruleId)
         case .keep: break
         }

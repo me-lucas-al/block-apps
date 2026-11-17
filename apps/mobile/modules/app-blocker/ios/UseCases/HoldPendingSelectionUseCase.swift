@@ -12,6 +12,6 @@ struct HoldPendingSelectionUseCase {
 
     func holdPendingSelection(ruleId: String, effectiveAtIso: String, ownerId: String) throws {
         try ownershipGuard.requireOwnership(byOwnerId: ownerId)
-        selectionStorage.holdPendingSelection(ruleId: ruleId, effectiveAtIso: effectiveAtIso)
+        try selectionStorage.holdPendingSelection(ruleId: ruleId, effectiveAtIso: effectiveAtIso)
     }
 }

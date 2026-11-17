@@ -17,8 +17,8 @@ export class IosProtectionAdapter implements ProtectionPort {
         description: 'Necessária para bloquear apps e sites. Sem ela nada é bloqueado.',
         active: this.isDeviceProtected(),
         actionLabel: 'Autorizar',
-        performAction: () => {
-          void this.nativeModule.requestScreenTimeAuthorization().catch(() => undefined)
+        performAction: async () => {
+          await this.nativeModule.requestScreenTimeAuthorization()
         },
       },
     ]

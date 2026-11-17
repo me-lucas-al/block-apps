@@ -1,6 +1,7 @@
-import { describeApiFailure, type NewBlockRule } from '@block-apps/api'
+import type { NewBlockRule } from '@block-apps/api'
 import type { BlockRule, PendingRuleChange, TargetType } from '@block-apps/core'
 import { useCallback, useEffect, useState } from 'react'
+import { describeAppFailure } from '../../errors/describeAppFailure'
 import { useServices } from '../../services/ServicesContext'
 
 function keepListedTypes(rules: BlockRule[], listedTypes: readonly TargetType[]): BlockRule[] {
@@ -31,7 +32,7 @@ export function useBlockRules() {
       const accountId = await userSession.currentUserId()
       if (accountId) rulesSync.push(allRules, currentPendingChanges, accountId)
     } catch (failure) {
-      setError(describeApiFailure(failure))
+      setError(describeAppFailure(failure))
     }
   }, [ruleRepository, pendingRuleChanges, rulesSync, listedTargetTypes, userSession])
 
@@ -42,7 +43,7 @@ export function useBlockRules() {
         await change()
         await reload()
       } catch (failure: unknown) {
-        setError(describeApiFailure(failure))
+        setError(describeAppFailure(failure))
         throw failure
       }
     },
@@ -51,7 +52,7 @@ export function useBlockRules() {
 
   useEffect(() => {
     const refresh = () =>
-      void reload().catch((failure: unknown) => setError(describeApiFailure(failure)))
+      void reload().catch((failure: unknown) => setError(describeAppFailure(failure)))
     refresh()
     return ruleRepository.subscribeToRuleChanges(refresh)
   }, [reload, ruleRepository])
@@ -77,7 +78,7 @@ export function useBlockRules() {
       await reload()
       return true
     } catch (failure) {
-      setError(describeApiFailure(failure))
+      setError(describeAppFailure(failure))
       return false
     }
   }

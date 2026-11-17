@@ -22,7 +22,7 @@ struct ScheduleRegistrar {
         defaults?.removeObject(forKey: layoutVersionKey)
         statusStorage.saveIsIncomplete(true)
         activityCenter.stopMonitoring()
-        var firstFailure: Error?
+        var failedCount: Int = 0
         for activity: PlannedActivity in plan.activities {
             do {
                 try activityCenter.startMonitoring(
@@ -30,10 +30,12 @@ struct ScheduleRegistrar {
                     during: makeSchedule(for: activity)
                 )
             } catch {
-                firstFailure = firstFailure ?? error
+                failedCount += 1
+                let reason: String = String(describing: error)
+                AppLogger.schedule.error("\(activity.name, privacy: .public) failed: \(reason, privacy: .private)")
             }
         }
-        if let firstFailure: Error = firstFailure { throw firstFailure }
+        if failedCount > 0 { throw ScheduleRegistrationError.activitiesNotStarted(failedCount: failedCount) }
         statusStorage.saveIsIncomplete(false)
         defaults?.set(Self.layoutVersion, forKey: layoutVersionKey)
     }

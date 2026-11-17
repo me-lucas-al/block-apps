@@ -19,15 +19,26 @@ struct ChooseAppsUseCase {
         self.ownershipGuard = ownershipGuard
     }
 
-    func chooseApps(forRuleId ruleId: String, ownerId: String) async -> String {
-        if (try? ownershipGuard.requireOwnership(byOwnerId: ownerId)) == nil { return "notOwner" }
-        if ScreenTimeAuthorization.readStatusName() != "approved" { return "notAuthorized" }
+    func chooseApps(forRuleId ruleId: String, ownerId: String) async throws -> ChooseAppsOutcome {
+        if !canActOnBehalf(of: ownerId) { return .notOwner }
+        if ScreenTimeAuthorization.readStatus() != .approved { return .notAuthorized }
         let storedSelection: FamilyActivitySelection? = selectionStorage.loadSelection(ruleId: ruleId)
         let initial: FamilyActivitySelection = storedSelection ?? FamilyActivitySelection()
-        let pickedSelection: FamilyActivitySelection? = await AppSelectionPresenter.presentPicker(startingFrom: initial)
-        guard let chosen: FamilyActivitySelection = pickedSelection else { return "cancelled" }
-        let outcome: String = saveChosenSelection.saveChosenSelection(chosen, ruleId: ruleId)
+        let pickedSelection: FamilyActivitySelection? = try await AppSelectionPresenter.presentPicker(
+            startingFrom: initial
+        )
+        guard let chosen: FamilyActivitySelection = pickedSelection else { return .cancelled }
+        let outcome: ChooseAppsOutcome = try saveChosenSelection.saveChosenSelection(chosen, ruleId: ruleId)
         shieldApplier.applyShieldsForCurrentMoment()
         return outcome
+    }
+
+    private func canActOnBehalf(of ownerId: String) -> Bool {
+        do {
+            try ownershipGuard.requireOwnership(byOwnerId: ownerId)
+            return true
+        } catch {
+            return false
+        }
     }
 }

@@ -24,7 +24,7 @@ struct InstallRulesUseCase {
         try requireRulesCanBeReplaced(byOwnerId: ownerId)
         rulesStorage.saveOwnerId(ownerId)
         rulesStorage.saveRulesJSON(rulesJson)
-        shieldApplier.applyShieldsForCurrentMoment()
+        defer { shieldApplier.applyShieldsForCurrentMoment() }
         try scheduleRegistrar.registerActivities(of: ShieldSchedulePlanner.plan(rules: rules))
     }
 

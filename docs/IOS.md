@@ -38,10 +38,9 @@ apps/mobile/
 
 ## Como bloqueia (falha fechado)
 
-- O padrão é bloqueado. `ShieldApplier` recalcula tudo a partir das regras salvas e da hora atual e grava no `ManagedSettingsStore`.
-- `ShieldSchedulePlanner` transforma as janelas em atividades de `DeviceActivity`: uma em cada borda (início e fim de cada janela, cortada na meia-noite), sem repetir, com 15 minutos de intervalo. Cada callback só recalcula.
+- `ShieldSchedulePlanner` transforma as janelas em atividades de `DeviceActivity` que **repetem todo dia**: uma por minuto de borda distinto (início e fim de cada janela), sem repetir, com 15 minutos de intervalo. O dia da semana não entra, então horários iguais em dias diferentes gastam uma só atividade. Cada callback só recalcula.
 - Regras que estourariam o limite de 20 atividades ficam sempre bloqueadas, e a tela avisa.
-- Cada atividade tem início e fim com dia da semana explícito (a que cruza a meia-noite termina no dia seguinte). O registro é refeito quando o plano muda ou quando o sistema deixou de monitorar alguma atividade (`DeviceActivityCenter.activities`).
+- Se algum `startMonitoring` falha, o registrador marca o agendamento como incompleto no App Group e toda regra com horário fica bloqueada até um novo registro dar certo. `InstallRulesUseCase` aplica os bloqueios mesmo quando o registro falha. O registro é refeito quando o plano muda ou quando o sistema deixou de monitorar alguma atividade (`DeviceActivityCenter.activities`).
 - O recálculo também roda ao voltar ao primeiro plano e numa tarefa em segundo plano (`expo-background-task`, melhor esforço).
 - `requireAutomaticDateAndTime` fica ligado enquanto houver regra com horário, para o relógio não ser adiantado.
 - A extensão de ação só fecha a tela de bloqueio, nunca libera.
@@ -88,7 +87,7 @@ Fazer num iPhone com iOS 16 ou mais, depois da aprovação da Apple. Correções
 - Mudar o relógio: impedido.
 - Remover apps do grupo: só vale depois do cooldown.
 - Modo estrito (num aparelho que você possa restaurar): ligar, tentar remover um app (deve ser impedido), pedir para desligar e conferir que só libera depois do cooldown, cancelar o pedido, e desinstalar o Block Apps com o modo desligado para confirmar que a trava não fica presa.
-- Atividades de horário perto da meia-noite e no sábado para domingo.
+- Atividade diária que cruza a meia-noite (início 23:50, fim 00:05 sem dia da semana): confirmar que dispara nos dois pontos.
 - Entrar com outra conta com regras ativas é recusado, e voltar à conta original funciona.
 - Modo estrito: sem autorização do Tempo de Uso o app não deixa ligar; e a trava libera depois de 14 dias sem abrir o app.
 - Reinstalar e entrar de novo: as regras voltam e a seleção pede nova escolha.

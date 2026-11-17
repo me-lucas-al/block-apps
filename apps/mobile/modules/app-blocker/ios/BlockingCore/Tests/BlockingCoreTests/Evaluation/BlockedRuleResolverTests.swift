@@ -41,9 +41,18 @@ final class BlockedRuleResolverTests: XCTestCase {
 
     func testRuleBeyondTheActivityLimitStaysBlockedInsideItsWindow() {
         let allDays: Set<Int> = [0, 1, 2, 3, 4, 5, 6]
-        let fitting: BlockingRule = scheduledRule("fits", days: allDays)
-        let overflowing: BlockingRule = scheduledRule("overflows", days: allDays)
-        let shifted: BlockingRule = BlockingRule(
+        let fillers: [BlockingRule] = (0..<10).map { (index: Int) -> BlockingRule in
+            let start: Int = 10 + index * 60
+            let window: TimeWindow = TimeWindow(days: allDays, startMinute: start, endMinute: start + 30)
+            return BlockingRule(
+                id: "f\(index)",
+                kind: .iosSelection,
+                target: "f",
+                alwaysBlocked: false,
+                windows: [window]
+            )
+        }
+        let overflowing: BlockingRule = BlockingRule(
             id: "overflows",
             kind: .iosSelection,
             target: "overflows",
@@ -51,7 +60,6 @@ final class BlockedRuleResolverTests: XCTestCase {
             windows: [TimeWindow(days: allDays, startMinute: 8 * 60, endMinute: 9 * 60 + 30)]
         )
         let mondayMorning: WeekMoment = WeekMoment(dayOfWeek: 1, minuteOfDay: 8 * 60 + 30)
-        XCTAssertEqual(blockedIds([fitting, shifted], at: mondayMorning), ["fits", "overflows"])
-        XCTAssertEqual(blockedIds([fitting, overflowing], at: mondayEvening), [])
+        XCTAssertEqual(blockedIds(fillers + [overflowing], at: mondayMorning).last, "overflows")
     }
 }

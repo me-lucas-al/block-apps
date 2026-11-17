@@ -6,8 +6,8 @@ import { toNativeRulesJson } from './rules/toNativeRulesJson'
 export class AndroidBlockerAdapter implements BlockerPort {
   constructor(private readonly nativeModule: Pick<AndroidNativeModule, 'setRules'>) {}
 
-  async applyRules({ rules }: RulesSnapshot): Promise<void> {
-    this.nativeModule.setRules(toNativeRulesJson(rules))
+  async applyRules({ rules, accountId, legacyAccountId }: RulesSnapshot): Promise<void> {
+    this.nativeModule.setRules(toNativeRulesJson(rules), accountId, legacyAccountId)
   }
 
   async refreshEnforcement(): Promise<void> {

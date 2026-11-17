@@ -20,7 +20,11 @@ export function useBlockRules() {
     const currentPendingChanges = await pendingRuleChanges.listPendingChanges()
     setRules(keepListedTypes(allRules, listedTargetTypes))
     setPendingChanges(currentPendingChanges)
-    rulesSync.push(allRules, currentPendingChanges)
+    try {
+      rulesSync.push(allRules, currentPendingChanges)
+    } catch (failure) {
+      setError(describeApiFailure(failure))
+    }
   }, [ruleRepository, pendingRuleChanges, rulesSync, listedTargetTypes])
 
   const runAndReloadRules = useCallback(
@@ -49,8 +53,19 @@ export function useBlockRules() {
     groupSelection?.discardPendingRemoval(ruleId)
   }
 
-  const requestUpdateHoldingSelectionRemoval = async (rule: BlockRule) => {
-    await ruleRepository.requestUpdate(rule.id, { mode: rule.mode, windows: rule.windows })
+  const holdSelectionRemoval = async (rule: BlockRule): Promise<boolean> => {
+    try {
+      const change = await ruleRepository.requestUpdate(rule.id, {
+        mode: rule.mode,
+        windows: rule.windows,
+      })
+      groupSelection?.holdPendingRemoval(rule.id, change.effectiveAt)
+      await reload()
+      return true
+    } catch (failure) {
+      setError(describeApiFailure(failure))
+      return false
+    }
   }
 
   return {
@@ -64,7 +79,6 @@ export function useBlockRules() {
       runAndReloadRules(() => cancelPendingChangeAndSelectionRemoval(ruleId)).catch(
         () => undefined,
       ),
-    holdSelectionRemovalUntilCooldownEnds: (rule: BlockRule) =>
-      runAndReloadRules(() => requestUpdateHoldingSelectionRemoval(rule)).catch(() => undefined),
+    holdSelectionRemovalUntilCooldownEnds: holdSelectionRemoval,
   }
 }

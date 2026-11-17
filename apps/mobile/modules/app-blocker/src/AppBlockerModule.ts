@@ -15,6 +15,8 @@ declare class AppBlockerModule extends NativeModule {
   presentAppSelectionPicker(ruleId: string): Promise<string>
   hasSelection(ruleId: string): boolean
   hasPendingSelectionRemoval(ruleId: string): boolean
+  holdPendingSelection(ruleId: string, effectiveAtIso: string): void
+  getPendingSelectionHold(ruleId: string): string | null
   commitPendingSelection(ruleId: string): void
   discardPendingSelection(ruleId: string): void
   reapplyShields(): void

@@ -21,9 +21,4 @@ struct InstallRulesUseCase {
         shieldApplier.applyShieldsForCurrentMoment()
         try scheduleRegistrar.registerActivities(of: ShieldSchedulePlanner.plan(rules: rules))
     }
-
-    func findUnscheduledRuleIds() -> [String] {
-        let plan = ShieldSchedulePlanner.plan(rules: rulesStorage.loadRules())
-        return Array(plan.unscheduledRuleIds)
-    }
 }

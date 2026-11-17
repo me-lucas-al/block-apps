@@ -17,20 +17,28 @@ public class AppBlockerModule: Module {
         }
 
         Function("hasSelection") { (ruleId: String) -> Bool in
-            SelectionStorage().loadSelection(ruleId: ruleId) != nil
+            SelectionStorage().hasNonEmptySelection(ruleId: ruleId)
         }
 
         Function("hasPendingSelectionRemoval") { (ruleId: String) -> Bool in
-            ResolvePendingSelectionUseCase().hasPendingSelection(ruleId: ruleId)
+            SelectionStorage().loadPendingSelection(ruleId: ruleId) != nil
+        }
+
+        Function("holdPendingSelection") { (ruleId: String, effectiveAtIso: String) in
+            SelectionStorage().holdPendingSelection(ruleId: ruleId, effectiveAtIso: effectiveAtIso)
+        }
+
+        Function("getPendingSelectionHold") { (ruleId: String) -> String? in
+            SelectionStorage().loadPendingSelectionHold(ruleId: ruleId)
         }
 
         Function("commitPendingSelection") { (ruleId: String) in
-            ResolvePendingSelectionUseCase().commitPendingSelection(ruleId: ruleId)
+            CommitPendingSelectionUseCase().commitPendingSelection(ruleId: ruleId)
             ShieldApplier().applyShieldsForCurrentMoment()
         }
 
         Function("discardPendingSelection") { (ruleId: String) in
-            ResolvePendingSelectionUseCase().discardPendingSelection(ruleId: ruleId)
+            DiscardPendingSelectionUseCase().discardPendingSelection(ruleId: ruleId)
         }
 
         Function("setRules") { (rulesJson: String) throws in
@@ -42,7 +50,7 @@ public class AppBlockerModule: Module {
         }
 
         Function("getUnscheduledRuleIds") { () -> [String] in
-            InstallRulesUseCase().findUnscheduledRuleIds()
+            FindUnscheduledRuleIdsUseCase().findUnscheduledRuleIds()
         }
     }
 }

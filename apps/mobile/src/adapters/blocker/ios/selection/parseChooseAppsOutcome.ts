@@ -1,8 +1,14 @@
 import type { ChooseAppsOutcome } from '../../../../ports/groupselection/GroupSelectionPort'
 
+const KNOWN_OUTCOMES: readonly ChooseAppsOutcome[] = [
+  'saved',
+  'removalPending',
+  'cancelled',
+  'notAuthorized',
+]
+
 export function parseChooseAppsOutcome(nativeOutcome: string): ChooseAppsOutcome {
-  if (nativeOutcome === 'saved') return nativeOutcome
-  if (nativeOutcome === 'removalPending') return nativeOutcome
-  if (nativeOutcome === 'cancelled') return nativeOutcome
+  const knownOutcome = KNOWN_OUTCOMES.find((outcome) => outcome === nativeOutcome)
+  if (knownOutcome) return knownOutcome
   throw new Error(`Unexpected app selection outcome: ${nativeOutcome}`)
 }

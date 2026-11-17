@@ -43,6 +43,8 @@ export function buildNativeModule(overrides: Partial<IosNativeModule> = {}): Ios
     presentAppSelectionPicker: vi.fn(async () => 'saved'),
     hasSelection: () => true,
     hasPendingSelectionRemoval: () => false,
+    holdPendingSelection: vi.fn(),
+    getPendingSelectionHold: () => null,
     commitPendingSelection: vi.fn(),
     discardPendingSelection: vi.fn(),
     reapplyShields: vi.fn(),

@@ -53,7 +53,7 @@ flowchart TD
 | **App Android (`apps/mobile`)** | ✅ Pronto | React Native + Módulo Kotlin, sincronização em segundo plano (`expo-background-task`), Device Admin; palavras de busca só cadastradas (aplicação nativa pendente, veja `docs/ROADMAP.md`) |
 | **Painel Web (`apps/admin`)** | ✅ Pronto | Gestão de usuários, MFA TOTP obrigatório para admins |
 | **CI/CD (`.github/workflows`)** | ✅ Pronto | GitHub Actions com testes, typecheck, validação Terraform e release |
-| **App iOS** | ⏸️ Pausado | Aguarda conta Apple Developer e entitlement Family Controls |
+| **App iOS** | 🚧 Em validação | Módulo Swift e extensões escritos; falta entitlement Family Controls e teste em aparelho ([docs/IOS.md](docs/IOS.md)) |
 | **Extensão Firefox** | 🟡 Implementado, falta publicar | `pnpm --filter @block-apps/extension build:firefox`; sem polyfill, o Firefox aceita `chrome.*` com Promises |
 
 ---

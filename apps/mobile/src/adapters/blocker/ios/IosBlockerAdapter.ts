@@ -4,16 +4,22 @@ import type { GroupSelectionPort } from '../../../ports/groupselection/GroupSele
 import type { IosNativeModule } from './module/IosNativeModule'
 import { toIosRulesJson } from './rules/toIosRulesJson'
 
+type HeldRemovalPort = Pick<
+  GroupSelectionPort,
+  'hasPendingRemoval' | 'readPendingRemovalHold' | 'commitPendingRemoval' | 'discardPendingRemoval'
+>
+
 type IosBlockerDependencies = {
   readonly nativeModule: Pick<IosNativeModule, 'setRules' | 'reapplyShields'>
-  readonly groupSelection: Pick<GroupSelectionPort, 'hasPendingRemoval' | 'commitPendingRemoval'>
+  readonly groupSelection: HeldRemovalPort
+  readonly currentTimeMillis?: () => number
 }
 
 export class IosBlockerAdapter implements BlockerPort {
   constructor(private readonly dependencies: IosBlockerDependencies) {}
 
   applyRules(rules: readonly BlockRule[], pendingChanges: readonly PendingRuleChange[]): void {
-    this.commitSelectionRemovalsWhoseCooldownEnded(rules, pendingChanges)
+    this.settleHeldSelectionRemovals(rules, pendingChanges)
     this.dependencies.nativeModule.setRules(toIosRulesJson(rules))
   }
 
@@ -21,7 +27,7 @@ export class IosBlockerAdapter implements BlockerPort {
     this.dependencies.nativeModule.reapplyShields()
   }
 
-  private commitSelectionRemovalsWhoseCooldownEnded(
+  private settleHeldSelectionRemovals(
     rules: readonly BlockRule[],
     pendingChanges: readonly PendingRuleChange[],
   ): void {
@@ -29,8 +35,16 @@ export class IosBlockerAdapter implements BlockerPort {
     for (const rule of rules) {
       if (rule.targetType !== 'iosSelection') continue
       if (!groupSelection.hasPendingRemoval(rule.id)) continue
+      const effectiveAtIso = groupSelection.readPendingRemovalHold(rule.id)
+      if (!effectiveAtIso) continue
       if (pendingChanges.some((change) => change.ruleId === rule.id)) continue
-      groupSelection.commitPendingRemoval(rule.id)
+      if (this.hasCooldownEnded(effectiveAtIso)) groupSelection.commitPendingRemoval(rule.id)
+      else groupSelection.discardPendingRemoval(rule.id)
     }
+  }
+
+  private hasCooldownEnded(effectiveAtIso: string): boolean {
+    const currentTimeMillis = this.dependencies.currentTimeMillis ?? Date.now
+    return currentTimeMillis() >= Date.parse(effectiveAtIso)
   }
 }

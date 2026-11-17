@@ -25,11 +25,12 @@ apps/
   extension/src/   ports/{browser,data}/, adapters/{browser,chrome,firefox}/, shared/browser/, blocking/{,keywords/}, device/, popup/, background/
   admin/src/       ports/, adapters/, components/, screens/, services/, users/
   mobile/
-    src/           ports/, adapters/, sync/, background/, hooks/, screens/, components/, device/
+    src/           ports/{blocker,protection,appchoice,groupselection,device}/, adapters/blocker/{android,ios}/, sync/, hooks/, screens/, components/, device/, background/
     modules/app-blocker/
       src/                   ponte TypeScript
       android/.../appblocker/  Kotlin: admin/, service/, system/, ui/, rules/{model,evaluation,storage}/
-      ios/                   Swift (fase iOS pausada)
+      ios/                   Swift: BlockingCore/ (pacote puro), Shared/, Authorization/, Schedule/, Picker/, UseCases/
+    targets/                 extensões iOS (device-activity-monitor, shield-config, shield-action)
 ```
 
 Código nativo de cada plataforma fica dentro do módulo (`android/`, `ios/`). A UI é uma só, em React Native.

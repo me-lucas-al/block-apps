@@ -2,9 +2,20 @@ import DeviceActivity
 import Foundation
 
 struct ScheduleRegistrar {
+    private let registeredNamesKey = "schedule.registeredActivityNames"
     private let activityCenter = DeviceActivityCenter()
+    private let defaults: UserDefaults?
+
+    init(defaults: UserDefaults? = SharedDefaults.makeAppGroupDefaults()) {
+        self.defaults = defaults
+    }
 
     func registerActivities(of plan: ShieldSchedulePlan) throws {
+        let plannedNames = plan.activities.map { $0.name }
+        let registeredNames = defaults?.stringArray(forKey: registeredNamesKey)
+        if registeredNames == plannedNames { return }
+
+        defaults?.removeObject(forKey: registeredNamesKey)
         activityCenter.stopMonitoring()
         var firstFailure: Error?
         for activity in plan.activities {
@@ -18,6 +29,7 @@ struct ScheduleRegistrar {
             }
         }
         if let firstFailure = firstFailure { throw firstFailure }
+        defaults?.set(plannedNames, forKey: registeredNamesKey)
     }
 
     private func makeSchedule(for activity: PlannedActivity) -> DeviceActivitySchedule {

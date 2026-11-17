@@ -7,11 +7,7 @@ const KIND_LABELS: Readonly<Record<PendingChangeKind, string>> = {
   selectionRemoval: 'Remoção de apps',
 }
 
-function describeKind(kind: PendingChangeKind): string {
-  return KIND_LABELS[kind]
-}
-
 export function describePendingChange(change: PendingRuleChange, now: Date): string {
-  const label = describeKind(change.kind)
+  const label = KIND_LABELS[change.kind]
   return `${label} em ${formatRemaining(change.effectiveAt, now)}`
 }

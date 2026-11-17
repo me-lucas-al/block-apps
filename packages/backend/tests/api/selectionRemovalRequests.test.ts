@@ -58,7 +58,7 @@ describe.each(backendFactories)('selection removal requests ($name)', (factory) 
     expect(reply.status).toBe(404)
   })
 
-  it('replaces a pending schedule update, restarting the cooldown', async () => {
+  it('refuses to replace a pending schedule update or a pending rule removal', async () => {
     await postRule(backend(), SELECTION_BODY)
     await callApi(backend().app, {
       method: 'POST',
@@ -66,8 +66,12 @@ describe.each(backendFactories)('selection removal requests ($name)', (factory) 
       body: { mode: 'schedule', windows: [{ days: [1], start: '09:00', end: '17:00' }] },
       userId: 'user-1',
     })
-    backend().clock.advanceHours(10)
-    const reply = await requestSelectionRemoval(backend(), SELECTION_RULE_ID)
-    expect(reply.json).toMatchObject({ kind: 'selectionRemoval', effectiveAt: '2026-11-12T22:00:00.000Z' })
+    expect((await requestSelectionRemoval(backend(), SELECTION_RULE_ID)).status).toBe(409)
+    await callApi(backend().app, {
+      method: 'POST',
+      path: `/rules/${SELECTION_RULE_ID}/removal-requests`,
+      userId: 'user-1',
+    })
+    expect((await requestSelectionRemoval(backend(), SELECTION_RULE_ID)).status).toBe(409)
   })
 })

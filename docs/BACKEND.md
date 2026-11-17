@@ -23,7 +23,7 @@ Uma única tabela DynamoDB (`<prefixo>-data`), cobrança por demanda, com recupe
 | Item | `pk` | `sk` | Atributos |
 | --- | --- | --- | --- |
 | Regra | `USER#<userId>` | `RULE#<ruleId>` | `id`, `targetType` (`app`, `site` ou `keyword`), `target`, `mode`, `windows` |
-| Mudança pendente | `USER#<userId>` | `CHANGE#<ruleId>` | `ruleId`, `kind` (`update` ou `delete`), `mode`, `windows`, `effectiveAt`, `dueBucket` (sempre `DUE`) |
+| Mudança pendente | `USER#<userId>` | `CHANGE#<ruleId>` | `ruleId`, `kind` (`update`, `delete` ou `selectionRemoval`), `mode`, `windows` (nulos em `delete` e `selectionRemoval`), `effectiveAt`, `dueBucket` (sempre `DUE`) |
 | Configuração | `USER#<userId>` | `SETTINGS` | `cooldownHours` |
 | Dispositivo | `USER#<userId>` | `DEVICE#<deviceId>` | `deviceId`, `platform`, `incognitoAllowed`, `adminActive`, `lastSeen` |
 

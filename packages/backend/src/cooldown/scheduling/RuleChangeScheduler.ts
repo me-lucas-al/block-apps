@@ -1,4 +1,5 @@
 import type { PendingRuleChange } from '@block-apps/core'
+import { ConflictError } from '../../domain/errors/ConflictError'
 import { NotFoundError } from '../../domain/errors/NotFoundError'
 import { requireAlwaysOnProtection } from '../../domain/rules/requireAlwaysOnProtection'
 import { requireSelectionRule } from '../../domain/rules/requireSelectionRule'
@@ -32,6 +33,9 @@ export class RuleChangeScheduler {
 
     const pending = await this.pendingChangeStore.findByRuleId(userId, ruleId)
     if (pending && isSameChange(pending, draft)) return pending
+    if (draft.kind === 'selectionRemoval' && pending && pending.kind !== 'selectionRemoval') {
+      throw new ConflictError('another change is already pending for this rule')
+    }
 
     const cooldownHours = await this.cooldownSettingsStore.readCooldownHours(userId)
     const change: PendingRuleChange = {

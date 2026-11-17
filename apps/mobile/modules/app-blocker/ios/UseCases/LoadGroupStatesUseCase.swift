@@ -1,9 +1,11 @@
 import ExpoModulesCore
+import FamilyControls
 
 struct GroupStatesRecord: Record {
     @Field var chosenRuleIds: [String] = []
     @Field var unreadableRuleIds: [String] = []
     @Field var unscheduledRuleIds: [String] = []
+    @Field var oversizedRuleIds: [String] = []
 }
 
 struct LoadGroupStatesUseCase {
@@ -27,6 +29,16 @@ struct LoadGroupStatesUseCase {
             selectionStorage.loadSelectionResult(ruleId: ruleId).statusName == "unreadable"
         }
         record.unscheduledRuleIds = findUnscheduledRuleIds.findUnscheduledRuleIds()
+        record.oversizedRuleIds = ruleIds.filter { (ruleId: String) -> Bool in
+            hasTooManyApplications(ruleId: ruleId)
+        }
         return record
+    }
+
+    private func hasTooManyApplications(ruleId: String) -> Bool {
+        guard let selection: FamilyActivitySelection = selectionStorage.loadSelection(ruleId: ruleId) else {
+            return false
+        }
+        return SelectionLimits.exceedsReportedApplicationLimit(applicationCount: selection.applicationTokens.count)
     }
 }

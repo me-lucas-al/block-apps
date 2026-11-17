@@ -8,6 +8,7 @@ type GroupRuleItemProps = {
   rule: BlockRule
   appsChosen: boolean
   selectionUnreadable: boolean
+  overAppLimit: boolean
   alwaysBlockedForLackOfSlots: boolean
   pendingChange: PendingRuleChange | undefined
   onChooseApps: (rule: BlockRule) => void
@@ -16,7 +17,8 @@ type GroupRuleItemProps = {
 }
 
 export function GroupRuleItem(props: GroupRuleItemProps) {
-  const { rule, appsChosen, selectionUnreadable, alwaysBlockedForLackOfSlots, pendingChange } = props
+  const { rule, appsChosen, selectionUnreadable, overAppLimit } = props
+  const { alwaysBlockedForLackOfSlots, pendingChange } = props
   return (
     <View style={styles.row}>
       <View style={styles.texts}>
@@ -27,6 +29,11 @@ export function GroupRuleItem(props: GroupRuleItemProps) {
         )}
         {!appsChosen && !selectionUnreadable && (
           <Text style={styles.warning}>Escolha os apps de novo neste aparelho.</Text>
+        )}
+        {overAppLimit && (
+          <Text style={styles.warning}>
+            Este grupo tem mais de 50 apps. O iOS pode não bloquear todos; divida em grupos menores.
+          </Text>
         )}
         {alwaysBlockedForLackOfSlots && (
           <Text style={styles.warning}>

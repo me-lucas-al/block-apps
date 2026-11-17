@@ -13,7 +13,12 @@ const nativeModule: AndroidNativeModule & IosNativeModule = {
   getAuthorizationStatus: () => 'approved',
   requestScreenTimeAuthorization: async () => 'approved',
   presentAppSelectionPicker: async () => 'saved',
-  getGroupStates: async () => ({ chosenRuleIds: [], unreadableRuleIds: [], unscheduledRuleIds: [] }),
+  getGroupStates: async () => ({
+    chosenRuleIds: [],
+    unreadableRuleIds: [],
+    unscheduledRuleIds: [],
+    oversizedRuleIds: [],
+  }),
   holdPendingSelection: () => undefined,
   discardPendingSelection: () => undefined,
   hasAcceptedStrictMode: () => false,

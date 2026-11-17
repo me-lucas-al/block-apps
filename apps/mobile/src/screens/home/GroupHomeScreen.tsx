@@ -52,6 +52,7 @@ export function GroupHomeScreen({ email, groupSelection }: GroupHomeScreenProps)
             rule={item}
             appsChosen={choices.hasChosenApps(item.id)}
             selectionUnreadable={choices.isSelectionUnreadable(item.id)}
+            overAppLimit={choices.isOverAppLimit(item.id)}
             alwaysBlockedForLackOfSlots={choices.isBlockedForLackOfSlots(item.id)}
             pendingChange={rulesState.pendingChanges.find((change) => change.ruleId === item.id)}
             onChooseApps={(rule) => void choices.chooseAppsOfRule(rule)}

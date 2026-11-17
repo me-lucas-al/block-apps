@@ -9,6 +9,7 @@ export type GroupStates = {
   readonly chosenRuleIds: readonly string[]
   readonly unreadableRuleIds: readonly string[]
   readonly unscheduledRuleIds: readonly string[]
+  readonly oversizedRuleIds: readonly string[]
 }
 
 export interface GroupSelectionPort {

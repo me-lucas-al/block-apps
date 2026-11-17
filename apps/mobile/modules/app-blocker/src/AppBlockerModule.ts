@@ -22,6 +22,7 @@ declare class AppBlockerModule extends NativeModule {
     chosenRuleIds: string[]
     unreadableRuleIds: string[]
     unscheduledRuleIds: string[]
+    oversizedRuleIds: string[]
   }>
   holdPendingSelection(ruleId: string, effectiveAtIso: string, ownerId: string): void
   discardPendingSelection(ruleId: string): void

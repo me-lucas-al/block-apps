@@ -61,6 +61,7 @@ export function useGroupAppChoices(dependencies: GroupAppChoicesDependencies) {
     hasChosenApps: (ruleId: string) => !groupStates || groupStates.chosenRuleIds.includes(ruleId),
     isSelectionUnreadable: (ruleId: string) =>
       groupStates?.unreadableRuleIds.includes(ruleId) ?? false,
+    isOverAppLimit: (ruleId: string) => groupStates?.oversizedRuleIds.includes(ruleId) ?? false,
     isBlockedForLackOfSlots: (ruleId: string) =>
       groupStates?.unscheduledRuleIds.includes(ruleId) ?? false,
   }

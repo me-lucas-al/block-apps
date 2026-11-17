@@ -52,6 +52,25 @@ class RulesInstallerTest {
   }
 
   @Test
+  fun anEmptyListWithSpacesCountsAsNoRulesLeft() {
+    val storage = FakeRulesStorage("[ ]", "sub-1")
+    RulesInstaller(storage).install(otherRules, "sub-2", null)
+    assertEquals("sub-2", storage.ownerId)
+  }
+
+  @Test(expected = RulesOwnedByAnotherAccountException::class)
+  fun unreadableStoredRulesCountAsRulesInForce() {
+    RulesInstaller(FakeRulesStorage("garbage", "sub-1")).install(otherRules, "sub-2", null)
+  }
+
+  @Test
+  fun rulesStoredBeforeTheOwnerExistedAreAdoptedByTheFirstAccountToSync() {
+    val storage = FakeRulesStorage(rules, null)
+    RulesInstaller(storage).install(otherRules, "sub-1", null)
+    assertEquals("sub-1", storage.ownerId)
+  }
+
+  @Test
   fun anOwnerStoredAsTheEmailMigratesToTheSub() {
     val storage = FakeRulesStorage(rules, "a@b.c")
     RulesInstaller(storage).install(otherRules, "sub-1", "a@b.c")

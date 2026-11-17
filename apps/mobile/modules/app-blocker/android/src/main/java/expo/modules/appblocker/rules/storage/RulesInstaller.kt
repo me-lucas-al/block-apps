@@ -6,10 +6,6 @@ import expo.modules.appblocker.rules.ownership.RulesOwnershipDecision
 import expo.modules.appblocker.rules.ownership.RulesOwnershipPolicy
 
 class RulesInstaller(private val storage: RulesStorage) {
-  private companion object {
-    const val EMPTY_RULES_JSON = "[]"
-  }
-
   fun install(rulesJson: String, ownerId: String, legacyOwnerId: String?) {
     RuleParser.parse(rulesJson)
     migrateLegacyOwner(ownerId, legacyOwnerId)
@@ -23,9 +19,12 @@ class RulesInstaller(private val storage: RulesStorage) {
     if (shouldMigrate) storage.saveOwnerId(ownerId)
   }
 
+  private fun hasAnyRule(rulesJson: String): Boolean =
+    runCatching { RuleParser.parse(rulesJson).isNotEmpty() }.getOrDefault(true)
+
   private fun requireOwnership(ownerId: String) {
     val storedRulesJson = storage.readRulesJson()
-    val hasStoredRules = storedRulesJson != null && storedRulesJson.trim() != EMPTY_RULES_JSON
+    val hasStoredRules = storedRulesJson != null && hasAnyRule(storedRulesJson)
     val decision = RulesOwnershipPolicy.decide(storage.readOwnerId(), ownerId, hasStoredRules)
     if (decision == RulesOwnershipDecision.REJECT_BECAUSE_ANOTHER_ACCOUNT_OWNS_THE_RULES) {
       throw RulesOwnedByAnotherAccountException()

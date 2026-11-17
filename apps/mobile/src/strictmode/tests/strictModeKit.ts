@@ -9,7 +9,11 @@ export const STRICT_RULE: BlockRule = {
   windows: [],
 }
 
-export function buildKit(rules: BlockRule[], pendingChanges: PendingRuleChange[] = []) {
+export function buildKit(
+  rules: BlockRule[],
+  pendingChanges: PendingRuleChange[] = [],
+  isScreenTimeAuthorized = true,
+) {
   const calls: string[] = []
   const controller = new StrictModeController({
     ruleRepository: {
@@ -32,6 +36,7 @@ export function buildKit(rules: BlockRule[], pendingChanges: PendingRuleChange[]
     syncRulesToDevice: async () => {
       calls.push('sync')
     },
+    isScreenTimeAuthorized: () => isScreenTimeAuthorized,
   })
   return { controller, calls }
 }

@@ -1,6 +1,7 @@
-import type { BlockRule, PendingRuleChange } from '@block-apps/core'
+import type { RulesSnapshot } from './RulesSnapshot'
 
 export interface BlockerPort {
-  applyRules(rules: readonly BlockRule[], pendingChanges: readonly PendingRuleChange[]): void
+  applyRules(snapshot: RulesSnapshot): void
   refreshEnforcement(): void
+  markAppOpened(): void
 }

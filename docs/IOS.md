@@ -54,7 +54,10 @@ Adicionar apps vale na hora. Remover apps fica guardado como seleção pendente 
 
 - Se as regras não puderem ser lidas do App Group, o bloqueio atual é mantido (não limpa nada). O registro das atividades só é refeito quando o plano muda.
 - Autorização conferida a cada volta ao primeiro plano e reportada ao servidor (`PUT /devices/:id/status`, `platform: ios`, `adminActive` igual à autorização ativa).
-- Sair da conta não desbloqueia. Tokens do Cognito ficam no Keychain (`expo-secure-store`).
+- Sair da conta não desbloqueia, e **entrar com outra conta não substitui as regras** enquanto houver regras em vigor: o app grava no App Group o dono das regras (e-mail da conta) e o módulo recusa `setRules` de outra conta (`RulesOwnershipPolicy`). Quando o dono fica sem regras (por exemplo, removeu tudo depois do cooldown), outra conta pode assumir. Hoje isso vale só no iOS; o Android ainda aceita a troca.
+- Tokens do Cognito ficam no Keychain (`expo-secure-store`).
+- Pedir de novo a remoção de apps do mesmo grupo cancela o pedido anterior e **recomeça o cooldown**; sem isso o novo pedido herdava o prazo do antigo e dava para encurtar a espera. Enquanto o grupo inteiro espera para ser removido, "Editar apps" fica bloqueado.
+- Se as regras no App Group não existem ou não podem ser lidas, o bloqueio atual é mantido (nunca limpa por engano).
 - Nenhum dado de uso sai do aparelho. Há manifesto de privacidade em `app.json`.
 
 ## Pré-requisitos (feitos por você)
@@ -86,6 +89,8 @@ Fazer num iPhone com iOS 16 ou mais, depois da aprovação da Apple. Correções
 - Remover apps do grupo: só vale depois do cooldown.
 - Modo estrito (num aparelho que você possa restaurar): ligar, tentar remover um app (deve ser impedido), pedir para desligar e conferir que só libera depois do cooldown, cancelar o pedido, e desinstalar o Block Apps com o modo desligado para confirmar que a trava não fica presa.
 - Atividades de horário perto da meia-noite e no sábado para domingo.
+- Entrar com outra conta com regras ativas é recusado, e voltar à conta original funciona.
+- Modo estrito: sem autorização do Tempo de Uso o app não deixa ligar; e a trava libera depois de 14 dias sem abrir o app.
 - Reinstalar e entrar de novo: as regras voltam e a seleção pede nova escolha.
 - Confiabilidade dos callbacks de `DeviceActivity` e dos tokens depois de atualizar o iOS.
 
@@ -98,7 +103,20 @@ Opcional e **desligado por padrão**. Na tela inicial do iOS há o cartão "Modo
 - Por ser uma regra da conta, vale em todos os iPhones dela e volta depois de reinstalar e entrar de novo.
 - No aparelho, `ShieldApplier` liga `store.application.denyAppRemoval` quando existe uma regra `protection` sempre ligada com esse alvo (`StrictModePolicy`, testada em Linux) e desliga quando ela some. Regra com horário ou outro alvo é ignorada.
 
+**Para não ficar preso:** só dá para ligar com a autorização do Tempo de Uso ativa; e a trava se desliga sozinha se o Block Apps ficar mais de 14 dias sem ser aberto (cada vez que o app volta ao primeiro plano registra a data no App Group; a sincronização em segundo plano não conta), por exemplo se um build de teste do TestFlight expirar. O servidor só aceita a regra `protection` no modo sempre ligado, na criação e em atualizações.
+
 **Não confirmado em doc oficial:** se `denyAppRemoval` funciona com a autorização `.individual`. Teste em aparelho descartável **antes** de usar no seu iPhone de uso diário.
+
+## Limites conhecidos
+
+- **Relógio do aparelho:** o app só efetiva a remoção de apps depois de o servidor aplicar o pedido **e** de o horário local passar do fim do cooldown. Se o pedido sumir do servidor por cancelamento em outro aparelho, quem tem o relógio adiantado pode efetivar a remoção. `requireAutomaticDateAndTime` só fica ligado com regras de horário.
+- **Reinstalar:** a regra volta do servidor sem a seleção de apps, que fica só no aparelho, e o grupo fica sem bloqueio até escolher os apps de novo (o app avisa). A primeira escolha depois de reinstalar não passa pelo cooldown.
+- **Domínios:** `blockedByFilter` aceita cerca de 50 domínios; o excedente não é tratado nem avisado.
+- **Seleção órfã:** a seleção guardada de uma regra removida ou de um formulário cancelado não é apagada (não há função nativa para isso); se a regra for recriada com o mesmo nome, herda a seleção antiga.
+- **Corrida na atualização:** uma atualização da lista logo depois de pedir a remoção pode descartar o pedido guardado; o efeito é seguro (os apps continuam bloqueados) mas o pedido precisa ser refeito.
+- **`_shared`:** o `@bacons/apple-targets` também inclui `targets/_shared` no app principal; não confirmado se isso aumenta o binário. Rodar `pnpm sync:ios-shared` antes de `expo prebuild` (o `expo run:ios`, o EAS e o CI já rodam).
+- **Manifesto de privacidade:** o de `app.json` vale só para o app; as extensões usam `UserDefaults` e podem precisar do próprio.
+- **Dono das regras no Android:** ainda não implementado.
 
 ## Riscos
 

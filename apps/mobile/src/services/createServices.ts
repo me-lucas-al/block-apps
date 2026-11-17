@@ -11,6 +11,7 @@ import { MobileDeviceIdStore } from '../device/MobileDeviceIdStore'
 import { MobileStatusReporter } from '../device/MobileStatusReporter'
 import { ExpoBackgroundTaskPort } from '../background/ExpoBackgroundTaskPort'
 import { RulesSyncScheduler } from '../background/RulesSyncScheduler'
+import type { BlockerPort } from '../ports/blocker/BlockerPort'
 import type { GroupSelectionPort } from '../ports/groupselection/GroupSelectionPort'
 import type { AppChoicePort } from '../ports/appchoice/AppChoicePort'
 import type { ProtectionPort } from '../ports/protection/ProtectionPort'
@@ -24,6 +25,7 @@ export type Services = {
   readonly authenticator: Authenticator
   readonly ruleRepository: BlockRuleRepository
   readonly pendingRuleChanges: PendingRuleChangeRepository
+  readonly blocker: BlockerPort
   readonly protection: ProtectionPort
   readonly appChoice: AppChoicePort
   readonly groupSelection: GroupSelectionPort | null
@@ -51,6 +53,7 @@ export function createServices(): Services {
     authenticator: mobile.authenticator,
     ruleRepository: mobile.ruleRepository,
     pendingRuleChanges: mobile.pendingRuleChanges,
+    blocker: adapters.blocker,
     protection: adapters.protection,
     appChoice: adapters.appChoice,
     groupSelection: adapters.groupSelection,
@@ -59,6 +62,7 @@ export function createServices(): Services {
       ruleRepository: mobile.ruleRepository,
       pendingRuleChanges: mobile.pendingRuleChanges,
       rulesSync,
+      isScreenTimeAuthorized: () => adapters.protection.isDeviceProtected(),
     }),
     listedTargetTypes: adapters.listedTargetTypes,
     rulesSync,

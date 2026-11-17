@@ -20,6 +20,7 @@ const nativeModule: AndroidNativeModule & IosNativeModule = {
   commitPendingSelection: () => undefined,
   discardPendingSelection: () => undefined,
   reapplyShields: () => undefined,
+  recordAppOpened: () => undefined,
   getUnscheduledRuleIds: () => [],
 }
 

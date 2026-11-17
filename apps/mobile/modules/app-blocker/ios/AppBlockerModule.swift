@@ -41,12 +41,20 @@ public class AppBlockerModule: Module {
             DiscardPendingSelectionUseCase().discardPendingSelection(ruleId: ruleId)
         }
 
-        Function("setRules") { (rulesJson: String) throws in
-            try InstallRulesUseCase().installRules(fromJSON: rulesJson)
+        Function("setRules") { (rulesJson: String, ownerId: String) throws in
+            do {
+                try InstallRulesUseCase().installRules(fromJSON: rulesJson, ownerId: ownerId)
+            } catch InstallRulesError.anotherAccountOwnsTheRules {
+                throw AnotherAccountOwnsRulesException()
+            }
         }
 
         Function("reapplyShields") { () in
             ShieldApplier().applyShieldsForCurrentMoment()
+        }
+
+        Function("recordAppOpened") { () in
+            RecordAppOpenedUseCase().recordAppOpened()
         }
 
         Function("getUnscheduledRuleIds") { () -> [String] in

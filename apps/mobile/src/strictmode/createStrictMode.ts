@@ -7,6 +7,7 @@ type StrictModeSources = {
   readonly ruleRepository: BlockRuleRepository
   readonly pendingRuleChanges: PendingRuleChangeRepository
   readonly rulesSync: AppRulesSync
+  readonly isScreenTimeAuthorized: () => boolean
 }
 
 export function createStrictMode(sources: StrictModeSources): StrictModeController | null {
@@ -15,5 +16,6 @@ export function createStrictMode(sources: StrictModeSources): StrictModeControll
     ruleRepository: sources.ruleRepository,
     pendingRuleChanges: sources.pendingRuleChanges,
     syncRulesToDevice: () => sources.rulesSync.sync(),
+    isScreenTimeAuthorized: sources.isScreenTimeAuthorized,
   })
 }

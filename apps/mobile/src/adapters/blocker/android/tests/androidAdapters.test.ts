@@ -26,7 +26,11 @@ function buildNativeModule(overrides: Partial<AndroidNativeModule> = {}): Androi
 describe('createAndroidAdapters', () => {
   it('serializes app rules to the native module', () => {
     const nativeModule = buildNativeModule()
-    createAndroidAdapters(nativeModule).blocker.applyRules([appRule], [])
+    createAndroidAdapters(nativeModule).blocker.applyRules({
+      rules: [appRule],
+      pendingChanges: [],
+      accountId: 'user@example.com',
+    })
     expect(nativeModule.setRules).toHaveBeenCalledWith(
       '[{"target":"com.instagram.android","mode":"always","windows":[]}]',
     )

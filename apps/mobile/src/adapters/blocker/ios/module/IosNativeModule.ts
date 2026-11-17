@@ -1,5 +1,5 @@
 export interface IosNativeModule {
-  setRules(rulesJson: string): void
+  setRules(rulesJson: string, ownerId: string): void
   getAuthorizationStatus(): string
   requestScreenTimeAuthorization(): Promise<string>
   presentAppSelectionPicker(ruleId: string): Promise<string>
@@ -10,5 +10,6 @@ export interface IosNativeModule {
   commitPendingSelection(ruleId: string): void
   discardPendingSelection(ruleId: string): void
   reapplyShields(): void
+  recordAppOpened(): void
   getUnscheduledRuleIds(): string[]
 }

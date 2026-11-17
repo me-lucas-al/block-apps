@@ -1,6 +1,7 @@
 import { describeApiFailure, type NewBlockRule } from '@block-apps/api'
 import type { BlockRule, PendingRuleChange, TargetType } from '@block-apps/core'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { SelectionRemovalHolder } from '../../rules/SelectionRemovalHolder'
 import { useServices } from '../../services/ServicesContext'
 
 function keepListedTypes(rules: BlockRule[], listedTypes: readonly TargetType[]): BlockRule[] {
@@ -8,8 +9,18 @@ function keepListedTypes(rules: BlockRule[], listedTypes: readonly TargetType[])
 }
 
 export function useBlockRules() {
-  const { ruleRepository, pendingRuleChanges, rulesSync, groupSelection, listedTargetTypes } =
-    useServices()
+  const {
+    ruleRepository,
+    pendingRuleChanges,
+    rulesSync,
+    groupSelection,
+    listedTargetTypes,
+    userSession,
+  } = useServices()
+  const removalHolder = useMemo(
+    () => new SelectionRemovalHolder({ ruleRepository, pendingRuleChanges }),
+    [ruleRepository, pendingRuleChanges],
+  )
   const [rules, setRules] = useState<BlockRule[]>([])
   const [pendingChanges, setPendingChanges] = useState<PendingRuleChange[]>([])
   const [error, setError] = useState<string | null>(null)
@@ -21,11 +32,12 @@ export function useBlockRules() {
     setRules(keepListedTypes(allRules, listedTargetTypes))
     setPendingChanges(currentPendingChanges)
     try {
-      rulesSync.push(allRules, currentPendingChanges)
+      const accountEmail = await userSession.currentUserEmail()
+      if (accountEmail) rulesSync.push(allRules, currentPendingChanges, accountEmail)
     } catch (failure) {
       setError(describeApiFailure(failure))
     }
-  }, [ruleRepository, pendingRuleChanges, rulesSync, listedTargetTypes])
+  }, [ruleRepository, pendingRuleChanges, rulesSync, listedTargetTypes, userSession])
 
   const runAndReloadRules = useCallback(
     async (change: () => Promise<unknown>) => {
@@ -55,10 +67,7 @@ export function useBlockRules() {
 
   const holdSelectionRemoval = async (rule: BlockRule): Promise<boolean> => {
     try {
-      const change = await ruleRepository.requestUpdate(rule.id, {
-        mode: rule.mode,
-        windows: rule.windows,
-      })
+      const change = await removalHolder.holdRemovalOf(rule)
       groupSelection?.holdPendingRemoval(rule.id, change.effectiveAt)
       await reload()
       return true

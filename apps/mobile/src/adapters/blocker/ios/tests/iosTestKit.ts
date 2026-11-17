@@ -35,6 +35,14 @@ export const pendingUpdate: PendingRuleChange = {
   effectiveAt: '2026-11-14T00:00:00.000Z',
 }
 
+export function snapshotOf(
+  rules: BlockRule[],
+  pendingChanges: PendingRuleChange[] = [],
+  accountId = 'user@example.com',
+) {
+  return { rules, pendingChanges, accountId }
+}
+
 export function buildNativeModule(overrides: Partial<IosNativeModule> = {}): IosNativeModule {
   return {
     setRules: vi.fn(),
@@ -48,6 +56,7 @@ export function buildNativeModule(overrides: Partial<IosNativeModule> = {}): Ios
     commitPendingSelection: vi.fn(),
     discardPendingSelection: vi.fn(),
     reapplyShields: vi.fn(),
+    recordAppOpened: vi.fn(),
     getUnscheduledRuleIds: () => [],
     ...overrides,
   }

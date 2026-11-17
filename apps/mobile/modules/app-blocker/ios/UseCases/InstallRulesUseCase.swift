@@ -1,5 +1,9 @@
 import Foundation
 
+enum InstallRulesError: Error {
+    case anotherAccountOwnsTheRules
+}
+
 struct InstallRulesUseCase {
     private let rulesStorage: SharedRulesStorage
     private let scheduleRegistrar: ScheduleRegistrar
@@ -15,10 +19,24 @@ struct InstallRulesUseCase {
         self.shieldApplier = shieldApplier
     }
 
-    func installRules(fromJSON rulesJson: String) throws {
+    func installRules(fromJSON rulesJson: String, ownerId: String) throws {
         let rules = try RuleParser.parseRules(fromJSON: rulesJson)
+        try requireRulesCanBeReplaced(byOwnerId: ownerId)
+        rulesStorage.saveOwnerId(ownerId)
         rulesStorage.saveRulesJSON(rulesJson)
         shieldApplier.applyShieldsForCurrentMoment()
         try scheduleRegistrar.registerActivities(of: ShieldSchedulePlanner.plan(rules: rules))
+    }
+
+    private func requireRulesCanBeReplaced(byOwnerId ownerId: String) throws {
+        let storedRules = rulesStorage.loadRules()
+        let decision = RulesOwnershipPolicy.decide(
+            storedOwnerId: rulesStorage.loadOwnerId(),
+            incomingOwnerId: ownerId,
+            hasStoredRules: (storedRules?.isEmpty ?? false) == false
+        )
+        if decision == .rejectBecauseAnotherAccountOwnsTheRules {
+            throw InstallRulesError.anotherAccountOwnsTheRules
+        }
     }
 }

@@ -1,4 +1,4 @@
-import type { NewBlockRule } from '@block-apps/api'
+import { describeApiFailure, type NewBlockRule } from '@block-apps/api'
 import type { BlockMode, TimeWindow } from '@block-apps/core'
 import { useState } from 'react'
 import { buildIosGroupRule } from '../../rules/buildIosGroupRule'
@@ -9,10 +9,6 @@ type IosGroupRuleFormDependencies = {
   groupSelection: GroupSelectionPort
   createGroupRule: (rule: NewBlockRule) => Promise<void>
   closeForm: () => void
-}
-
-function messageOf(failure: unknown): string {
-  return failure instanceof Error ? failure.message : 'Erro inesperado'
 }
 
 export function useIosGroupRuleForm(dependencies: IosGroupRuleFormDependencies) {
@@ -35,7 +31,7 @@ export function useIosGroupRuleForm(dependencies: IosGroupRuleFormDependencies) 
       if (outcome === 'notAuthorized') setError(ruleErrorMessage('not-authorized'))
       setAppsChosen(groupSelection.hasChosenApps(draft.ruleId))
     } catch (failure) {
-      setError(messageOf(failure))
+      setError(describeApiFailure(failure))
     }
   }
 
@@ -48,7 +44,7 @@ export function useIosGroupRuleForm(dependencies: IosGroupRuleFormDependencies) 
       await createGroupRule(draft.rule)
       closeForm()
     } catch (failure) {
-      setError(messageOf(failure))
+      setError(describeApiFailure(failure))
     }
   }
 

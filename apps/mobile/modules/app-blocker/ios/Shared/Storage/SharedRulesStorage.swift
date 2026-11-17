@@ -2,6 +2,7 @@ import Foundation
 
 struct SharedRulesStorage {
     private let rulesKey = "rules.json"
+    private let ownerKey = "rules.ownerId"
     private let defaults: UserDefaults?
 
     init(defaults: UserDefaults? = SharedDefaults.makeAppGroupDefaults()) {
@@ -12,9 +13,16 @@ struct SharedRulesStorage {
         defaults?.set(json, forKey: rulesKey)
     }
 
+    func saveOwnerId(_ ownerId: String) {
+        defaults?.set(ownerId, forKey: ownerKey)
+    }
+
+    func loadOwnerId() -> String? {
+        return defaults?.string(forKey: ownerKey)
+    }
+
     func loadRules() -> [BlockingRule]? {
-        guard let defaults = defaults else { return nil }
-        guard let json = defaults.string(forKey: rulesKey) else { return [] }
+        guard let json = defaults?.string(forKey: rulesKey) else { return nil }
         return try? RuleParser.parseRules(fromJSON: json)
     }
 }

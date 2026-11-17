@@ -3,12 +3,13 @@ import { AppState } from 'react-native'
 import { useServices } from '../../services/ServicesContext'
 
 export function useSyncWhenAppIsActive(signedInEmail: string | null): void {
-  const { rulesSync, statusReporter } = useServices()
+  const { rulesSync, statusReporter, blocker } = useServices()
 
   useEffect(() => {
     if (!signedInEmail) return
 
     const syncRulesAndReportStatus = () => {
+      blocker.markAppOpened()
       void rulesSync.sync().catch(() => {})
       void statusReporter.reportDeviceStatus().catch(() => {})
     }
@@ -18,5 +19,5 @@ export function useSyncWhenAppIsActive(signedInEmail: string | null): void {
       if (state === 'active') syncRulesAndReportStatus()
     })
     return () => subscription.remove()
-  }, [rulesSync, statusReporter, signedInEmail])
+  }, [rulesSync, statusReporter, blocker, signedInEmail])
 }

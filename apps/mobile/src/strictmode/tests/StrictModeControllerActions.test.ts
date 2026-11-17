@@ -8,6 +8,12 @@ describe('StrictModeController actions', () => {
     expect(calls).toEqual(['create:protection:ios-deny-app-removal:always', 'sync'])
   })
 
+  it('refuses to turn on while the Screen Time authorization is missing', async () => {
+    const { controller, calls } = buildKit([], [], false)
+    await expect(controller.turnOn()).rejects.toThrow('Autorize o Tempo de Uso')
+    expect(calls).toEqual([])
+  })
+
   it('does not create a second rule when it is already on', async () => {
     const { controller, calls } = buildKit([STRICT_RULE])
     await controller.turnOn()

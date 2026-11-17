@@ -1,5 +1,6 @@
 import type { BlockRule, PendingRuleChange } from '@block-apps/core'
 import type { BlockerPort } from '../../../ports/blocker/BlockerPort'
+import type { RulesSnapshot } from '../../../ports/blocker/RulesSnapshot'
 import type { GroupSelectionPort } from '../../../ports/groupselection/GroupSelectionPort'
 import type { IosNativeModule } from './module/IosNativeModule'
 import { toIosRulesJson } from './rules/toIosRulesJson'
@@ -10,7 +11,7 @@ type HeldRemovalPort = Pick<
 >
 
 type IosBlockerDependencies = {
-  readonly nativeModule: Pick<IosNativeModule, 'setRules' | 'reapplyShields'>
+  readonly nativeModule: Pick<IosNativeModule, 'setRules' | 'reapplyShields' | 'recordAppOpened'>
   readonly groupSelection: HeldRemovalPort
   readonly currentTimeMillis?: () => number
 }
@@ -18,13 +19,17 @@ type IosBlockerDependencies = {
 export class IosBlockerAdapter implements BlockerPort {
   constructor(private readonly dependencies: IosBlockerDependencies) {}
 
-  applyRules(rules: readonly BlockRule[], pendingChanges: readonly PendingRuleChange[]): void {
+  applyRules({ rules, pendingChanges, accountId }: RulesSnapshot): void {
     this.settleHeldSelectionRemovals(rules, pendingChanges)
-    this.dependencies.nativeModule.setRules(toIosRulesJson(rules))
+    this.dependencies.nativeModule.setRules(toIosRulesJson(rules), accountId)
   }
 
   refreshEnforcement(): void {
     this.dependencies.nativeModule.reapplyShields()
+  }
+
+  markAppOpened(): void {
+    this.dependencies.nativeModule.recordAppOpened()
   }
 
   private settleHeldSelectionRemovals(

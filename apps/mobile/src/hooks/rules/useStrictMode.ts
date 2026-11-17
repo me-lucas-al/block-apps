@@ -1,11 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { AppState } from 'react-native'
+import { describeApiFailure } from '@block-apps/api'
 import { useServices } from '../../services/ServicesContext'
 import type { StrictModeState } from '../../strictmode/StrictModeState'
-
-function messageOf(failure: unknown): string {
-  return failure instanceof Error ? failure.message : 'Erro inesperado'
-}
 
 export function useStrictMode() {
   const { strictMode } = useServices()
@@ -18,7 +15,7 @@ export function useStrictMode() {
     try {
       setState(await strictMode.readState())
     } catch (failure) {
-      setError(messageOf(failure))
+      setError(describeApiFailure(failure))
     }
   }, [strictMode])
 
@@ -36,7 +33,7 @@ export function useStrictMode() {
     try {
       await change()
     } catch (failure) {
-      setError(messageOf(failure))
+      setError(describeApiFailure(failure))
     } finally {
       setBusy(false)
       await reloadState()

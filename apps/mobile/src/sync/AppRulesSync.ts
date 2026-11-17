@@ -27,7 +27,7 @@ export class AppRulesSync {
     accountId: string,
   ): Promise<void> {
     const { blocker, serverClock, userSession } = this.dependencies
-    const accountEmail = await userSession.currentUserEmail()
+    const accountEmail = await userSession.currentUserEmail().catch(() => null)
     await blocker.applyRules({
       rules,
       pendingChanges,

@@ -40,6 +40,7 @@ export function useGroupAppChoices(dependencies: GroupAppChoicesDependencies) {
       .catch((failure: unknown) => {
         if (!isStillMounted) return
         setStatesLoadFailed(true)
+        setGroupStates(null)
         setNotice(describeAppFailure(failure))
       })
     return () => {

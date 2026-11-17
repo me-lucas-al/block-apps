@@ -1,3 +1,5 @@
+import FamilyControls
+
 struct CommitPendingSelectionUseCase {
     private let selectionStorage: SelectionStorage
 
@@ -6,7 +8,8 @@ struct CommitPendingSelectionUseCase {
     }
 
     func commitPendingSelection(ruleId: String) {
-        guard let pending = selectionStorage.loadPendingSelection(ruleId: ruleId) else { return }
+        let pendingSelection: FamilyActivitySelection? = selectionStorage.loadPendingSelection(ruleId: ruleId)
+        guard let pending: FamilyActivitySelection = pendingSelection else { return }
         selectionStorage.saveSelection(pending, ruleId: ruleId)
         selectionStorage.clearPendingSelection(ruleId: ruleId)
     }

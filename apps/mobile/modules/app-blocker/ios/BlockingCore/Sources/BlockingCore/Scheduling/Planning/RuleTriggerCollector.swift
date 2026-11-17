@@ -1,14 +1,14 @@
 enum RuleTriggerCollector {
     static func collectTriggers(for rule: BlockingRule) -> Set<ActivityTrigger> {
         if rule.alwaysBlocked { return [] }
-        let pieces = rule.windows.flatMap(WindowPieceSplitter.splitAtMidnight)
+        let pieces: [WindowPiece] = rule.windows.flatMap(WindowPieceSplitter.splitAtMidnight)
         return Set(pieces.flatMap(triggers(of:)))
     }
 
     private static func triggers(of piece: WindowPiece) -> [ActivityTrigger] {
         return [
             ActivityTrigger(dayOfWeek: piece.dayOfWeek, minuteOfDay: piece.startMinute),
-            endTrigger(of: piece),
+            endTrigger(of: piece)
         ]
     }
 

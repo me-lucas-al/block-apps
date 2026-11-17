@@ -4,19 +4,25 @@ import UIKit
 
 @MainActor
 enum AppSelectionPresenter {
-    static func presentPicker(startingFrom initialSelection: FamilyActivitySelection) async -> FamilyActivitySelection? {
-        guard let presenter = TopViewControllerFinder.findTopViewController() else { return nil }
-        return await withCheckedContinuation { continuation in
+    typealias SelectionContinuation = CheckedContinuation<FamilyActivitySelection?, Never>
+
+    static func presentPicker(
+        startingFrom initialSelection: FamilyActivitySelection
+    ) async -> FamilyActivitySelection? {
+        guard let presenter: UIViewController = TopViewControllerFinder.findTopViewController() else { return nil }
+        return await withCheckedContinuation { (continuation: SelectionContinuation) in
             var hostingController: UIViewController?
-            var alreadyFinished = false
-            let pickerView = AppSelectionPickerView(initialSelection: initialSelection) { chosenSelection in
+            var alreadyFinished: Bool = false
+            let pickerView: AppSelectionPickerView = AppSelectionPickerView(
+                initialSelection: initialSelection
+            ) { (chosenSelection: FamilyActivitySelection?) in
                 if alreadyFinished { return }
                 alreadyFinished = true
                 hostingController?.dismiss(animated: true) {
                     continuation.resume(returning: chosenSelection)
                 }
             }
-            let controller = UIHostingController(rootView: pickerView)
+            let controller: UIHostingController<AppSelectionPickerView> = UIHostingController(rootView: pickerView)
             controller.isModalInPresentation = true
             hostingController = controller
             presenter.present(controller, animated: true)

@@ -13,7 +13,7 @@ struct SelectionStorage {
     }
 
     func hasNonEmptySelection(ruleId: String) -> Bool {
-        guard let selection = loadSelection(ruleId: ruleId) else { return false }
+        guard let selection: FamilyActivitySelection = loadSelection(ruleId: ruleId) else { return false }
         return !SelectionSnapshot(selection: selection).isEmpty
     }
 
@@ -57,12 +57,12 @@ struct SelectionStorage {
     }
 
     private func load(key: String) -> FamilyActivitySelection? {
-        guard let encoded = defaults?.data(forKey: key) else { return nil }
+        guard let encoded: Data = defaults?.data(forKey: key) else { return nil }
         return try? JSONDecoder().decode(FamilyActivitySelection.self, from: encoded)
     }
 
     private func save(_ selection: FamilyActivitySelection, key: String) {
-        guard let encoded = try? JSONEncoder().encode(selection) else { return }
+        guard let encoded: Data = try? JSONEncoder().encode(selection) else { return }
         defaults?.set(encoded, forKey: key)
     }
 }

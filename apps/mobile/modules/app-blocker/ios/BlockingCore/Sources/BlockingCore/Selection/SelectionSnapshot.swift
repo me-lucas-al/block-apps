@@ -3,7 +3,7 @@ public struct SelectionSnapshot: Equatable, Sendable {
     public let categories: Set<String>
     public let webDomains: Set<String>
 
-    public static let empty = SelectionSnapshot(applications: [], categories: [], webDomains: [])
+    public static let empty: SelectionSnapshot = SelectionSnapshot(applications: [], categories: [], webDomains: [])
 
     public init(applications: Set<String>, categories: Set<String>, webDomains: Set<String>) {
         self.applications = applications

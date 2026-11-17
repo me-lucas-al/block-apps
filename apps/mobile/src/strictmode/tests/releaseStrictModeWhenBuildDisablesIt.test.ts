@@ -22,6 +22,17 @@ describe('releaseStrictModeWhenBuildDisablesIt', () => {
     expect(acceptance.revokeOnThisDevice).not.toHaveBeenCalled()
   })
 
+  it('logs instead of crashing the app when the native release fails', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    const acceptance = buildAcceptance(true)
+    acceptance.revokeOnThisDevice.mockImplementation(() => {
+      throw new Error('native failed')
+    })
+    expect(() => releaseStrictModeWhenBuildDisablesIt(false, acceptance)).not.toThrow()
+    expect(warn).toHaveBeenCalledOnce()
+    warn.mockRestore()
+  })
+
   it('does nothing when nothing was accepted or the platform has no acceptance', () => {
     const acceptance = buildAcceptance(false)
     releaseStrictModeWhenBuildDisablesIt(false, acceptance)

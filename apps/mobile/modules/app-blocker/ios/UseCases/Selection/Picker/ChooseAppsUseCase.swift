@@ -28,9 +28,11 @@ struct ChooseAppsUseCase {
             startingFrom: initial
         )
         guard let chosen: FamilyActivitySelection = pickedSelection else { return .cancelled }
-        let outcome: ChooseAppsOutcome = try saveChosenSelection.saveChosenSelection(chosen, ruleId: ruleId)
-        shieldApplier.applyShieldsForCurrentMoment()
-        return outcome
+        return try ModuleStateQueue.run {
+            let outcome: ChooseAppsOutcome = try saveChosenSelection.saveChosenSelection(chosen, ruleId: ruleId)
+            shieldApplier.applyShieldsForCurrentMoment()
+            return outcome
+        }
     }
 
     private func canActOnBehalf(of ownerId: String) -> Bool {

@@ -26,7 +26,7 @@ apps/mobile/
   modules/app-blocker/ios/
     BlockingCore/        pacote Swift puro (Foundation), testado com `swift test` em Linux
     Shared/              Storage/, Blocking/, Selection/, Messages/ (compilado no módulo e nas extensões)
-    Authorization/ Schedule/ Picker/ UseCases/   só no módulo
+    Authorization/ Schedule/ Picker/ UseCases/ Exceptions/ Module/   só no módulo
     AppBlockerModule.swift   API para o JavaScript
   targets/               extensões geradas por @bacons/apple-targets
     device-activity-monitor/  shield-config/  shield-action/

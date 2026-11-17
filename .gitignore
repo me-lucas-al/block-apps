@@ -30,3 +30,4 @@ override.tf.json
 .claude/worktrees/
 .build/
 *.xcodeproj/xcuserdata/
+apps/mobile/targets/_shared/

@@ -1,0 +1,53 @@
+name: iOS build
+
+on:
+  pull_request:
+    paths:
+      - 'apps/mobile/modules/app-blocker/ios/**'
+      - 'apps/mobile/targets/**'
+      - 'apps/mobile/app.json'
+      - 'apps/mobile/app.config.js'
+      - 'apps/mobile/scripts/syncIosSharedSources.mjs'
+      - '.github/workflows/ios-build.yml'
+
+concurrency:
+  group: ios-build-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  compile:
+    name: Compile iOS app and extensions for the simulator
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Sync shared Swift sources into the extension targets
+        run: pnpm sync:ios-shared
+        working-directory: apps/mobile
+      - name: Generate native iOS project
+        run: pnpm exec expo prebuild --platform ios --no-install
+        working-directory: apps/mobile
+        env:
+          APPLE_TEAM_ID: ABCDE12345
+      - name: Install pods
+        run: pod install
+        working-directory: apps/mobile/ios
+      - name: Build for the simulator without signing
+        run: |
+          xcodebuild build \
+            -workspace BlockApps.xcworkspace \
+            -scheme BlockApps \
+            -sdk iphonesimulator \
+            -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO
+        working-directory: apps/mobile/ios

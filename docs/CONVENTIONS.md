@@ -29,7 +29,7 @@ apps/
     modules/app-blocker/
       src/                   ponte TypeScript
       android/.../appblocker/  Kotlin: admin/, service/, system/, ui/, rules/{model,evaluation,storage}/
-      ios/                   Swift: BlockingCore/ (pacote puro), Shared/, Authorization/, Schedule/, Picker/, UseCases/
+      ios/                   Swift: BlockingCore/ (pacote puro), Shared/, Authorization/, Schedule/, Picker/, UseCases/, Exceptions/, Module/
     targets/                 extensões iOS (device-activity-monitor, shield-config, shield-action)
 ```
 

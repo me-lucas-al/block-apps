@@ -25,8 +25,10 @@ Em outro iPhone ou depois de reinstalar, a regra volta do servidor e o app pede 
 apps/mobile/
   modules/app-blocker/ios/
     BlockingCore/        pacote Swift puro (Foundation), testado com `swift test` em Linux
-    Shared/              Storage/, Blocking/, Selection/, Messages/ (compilado no módulo e nas extensões)
-    Authorization/ Schedule/ Picker/ UseCases/   só no módulo
+    Shared/              Storage/{AppGroup,Rules,Selection,Device}, Blocking/, Selection/, Logging/, Messages/ (compilado no módulo e nas extensões)
+    UseCases/            Rules/, Selection/{Picker,Pending}, StrictMode/, Activity/
+    Exceptions/          Rules/, Storage/, Platform/ (mensagens conferidas contra `describeAppFailure` por teste)
+    Authorization/ Schedule/ Picker/ Module/   só no módulo (Module/ guarda a fila serial de estado)
     AppBlockerModule.swift   API para o JavaScript
   targets/               extensões geradas por @bacons/apple-targets
     device-activity-monitor/  shield-config/  shield-action/

@@ -6,5 +6,9 @@ export function releaseStrictModeWhenBuildDisablesIt(
 ): void {
   if (isEnabledByBuild) return
   if (!deviceAcceptance?.hasAcceptedOnThisDevice()) return
-  deviceAcceptance.revokeOnThisDevice()
+  try {
+    deviceAcceptance.revokeOnThisDevice()
+  } catch (failure: unknown) {
+    console.warn('Strict mode could not be released at startup', failure)
+  }
 }

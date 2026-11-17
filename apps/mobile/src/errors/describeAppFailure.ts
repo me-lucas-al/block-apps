@@ -1,6 +1,6 @@
 import { describeApiFailure } from '@block-apps/api'
 
-const NATIVE_FAILURE_MESSAGES: Readonly<Record<string, string>> = {
+export const NATIVE_FAILURE_MESSAGES: Readonly<Record<string, string>> = {
   ERR_ANOTHER_ACCOUNT_OWNS_RULES:
     'Este aparelho está protegido por outra conta. Entre com a conta original para mudar os bloqueios.',
   ERR_INVALID_RULES: 'As regras recebidas do servidor não puderam ser lidas. Tente sincronizar de novo.',

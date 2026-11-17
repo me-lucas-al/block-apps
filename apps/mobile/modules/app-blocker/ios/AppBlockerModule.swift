@@ -24,16 +24,18 @@ public class AppBlockerModule: Module {
 
         Function("holdPendingSelection") { (ruleId: String, effectiveAtIso: String, ownerId: String) throws in
             try NativeExceptionMapper.run {
-                try HoldPendingSelectionUseCase().holdPendingSelection(
-                    ruleId: ruleId,
-                    effectiveAtIso: effectiveAtIso,
-                    ownerId: ownerId
-                )
+                try ModuleStateQueue.run {
+                    try HoldPendingSelectionUseCase().holdPendingSelection(
+                        ruleId: ruleId,
+                        effectiveAtIso: effectiveAtIso,
+                        ownerId: ownerId
+                    )
+                }
             }
         }
 
         Function("discardPendingSelection") { (ruleId: String) in
-            DiscardPendingSelectionUseCase().discardPendingSelection(ruleId: ruleId)
+            ModuleStateQueue.run { DiscardPendingSelectionUseCase().discardPendingSelection(ruleId: ruleId) }
         }
 
         AsyncFunction("setRules") { (json: String, ownerId: String, pendingIds: [String], serverNow: String?) throws in
@@ -54,7 +56,9 @@ public class AppBlockerModule: Module {
         }
 
         Function("acceptStrictMode") { () throws in
-            try NativeExceptionMapper.run { try AcceptStrictModeUseCase().acceptStrictModeOnThisDevice() }
+            try NativeExceptionMapper.run {
+                try ModuleStateQueue.run { try AcceptStrictModeUseCase().acceptStrictModeOnThisDevice() }
+            }
         }
 
         Function("revokeStrictMode") { () in

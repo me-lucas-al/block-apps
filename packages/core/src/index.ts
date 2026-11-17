@@ -4,6 +4,7 @@ export type {
   DayOfWeek,
   TimeWindow,
 } from './rules/blockRule'
+export { buildRuleId } from './rules/buildRuleId'
 export { TARGET_TYPES, isTargetType } from './rules/targetTypes'
 export type { TargetType } from './rules/targetTypes'
 export type { PendingChangeKind, PendingRuleChange } from './rules/pendingRuleChange'

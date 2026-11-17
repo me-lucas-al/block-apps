@@ -1,5 +1,4 @@
-import type { BlockRule, TargetType } from '@block-apps/core'
-import { buildRuleId } from '../../domain/rules/buildRuleId'
+import { buildRuleId, type BlockRule, type TargetType } from '@block-apps/core'
 import { ensureValidRuleContent, type RuleChangeContent } from '../../domain/rules/ensureValidRuleContent'
 import { normalizeRuleTarget } from '../../domain/rules/normalizeRuleTarget'
 import type { BlockRuleStore } from '../contracts/BlockRuleStore'

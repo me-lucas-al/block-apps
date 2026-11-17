@@ -22,9 +22,9 @@ function createSync(email: string | null) {
   })
   const sync = new AppRulesSync({
     ruleRepository: { list },
-    pendingRuleChanges: { applyDueChanges },
+    pendingRuleChanges: { applyDueChanges, listPendingChanges: async () => [] },
     userSession: { currentUserEmail: async () => email },
-    blocker: { applyRules },
+    blocker: { applyRules, refreshEnforcement: vi.fn() },
   })
   return { sync, applyRules, list, applyDueChanges, calls }
 }
@@ -34,7 +34,7 @@ describe('AppRulesSync', () => {
     const { sync, applyRules, calls } = createSync('user@example.com')
     await sync.sync()
     expect(calls).toEqual(['apply', 'list'])
-    expect(applyRules).toHaveBeenCalledWith([appRule])
+    expect(applyRules).toHaveBeenCalledWith([appRule], [])
   })
 
   it('keeps blocker rules untouched when signed out', async () => {
@@ -47,8 +47,8 @@ describe('AppRulesSync', () => {
 
   it('pushes rules that were already loaded without reading them again', () => {
     const { sync, applyRules, list } = createSync('user@example.com')
-    sync.push([appRule])
-    expect(applyRules).toHaveBeenCalledWith([appRule])
+    sync.push([appRule], [])
+    expect(applyRules).toHaveBeenCalledWith([appRule], [])
     expect(list).not.toHaveBeenCalled()
   })
 })

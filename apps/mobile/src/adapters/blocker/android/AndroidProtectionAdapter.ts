@@ -1,5 +1,5 @@
 import type { ProtectionCheck, ProtectionPort } from '../../../ports/protection/ProtectionPort'
-import type { AndroidNativeModule } from './AndroidNativeModule'
+import type { AndroidNativeModule } from './module/AndroidNativeModule'
 
 type ProtectionNativeModule = Pick<
   AndroidNativeModule,

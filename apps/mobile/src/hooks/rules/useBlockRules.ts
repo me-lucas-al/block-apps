@@ -1,14 +1,15 @@
 import { describeApiFailure, type NewBlockRule } from '@block-apps/api'
-import type { BlockRule, PendingRuleChange } from '@block-apps/core'
+import type { BlockRule, PendingRuleChange, TargetType } from '@block-apps/core'
 import { useCallback, useEffect, useState } from 'react'
 import { useServices } from '../../services/ServicesContext'
 
-function keepAppAndKeywordRules(rules: BlockRule[]): BlockRule[] {
-  return rules.filter((rule) => rule.targetType === 'app' || rule.targetType === 'keyword')
+function keepListedTypes(rules: BlockRule[], listedTypes: readonly TargetType[]): BlockRule[] {
+  return rules.filter((rule) => listedTypes.includes(rule.targetType))
 }
 
 export function useBlockRules() {
-  const { ruleRepository, pendingRuleChanges, rulesSync } = useServices()
+  const { ruleRepository, pendingRuleChanges, rulesSync, groupSelection, listedTargetTypes } =
+    useServices()
   const [rules, setRules] = useState<BlockRule[]>([])
   const [pendingChanges, setPendingChanges] = useState<PendingRuleChange[]>([])
   const [error, setError] = useState<string | null>(null)
@@ -16,10 +17,11 @@ export function useBlockRules() {
   const reload = useCallback(async () => {
     await pendingRuleChanges.applyDueChanges().catch(() => undefined)
     const allRules = await ruleRepository.list()
-    setRules(keepAppAndKeywordRules(allRules))
-    setPendingChanges(await pendingRuleChanges.listPendingChanges())
-    rulesSync.push(allRules)
-  }, [ruleRepository, pendingRuleChanges, rulesSync])
+    const currentPendingChanges = await pendingRuleChanges.listPendingChanges()
+    setRules(keepListedTypes(allRules, listedTargetTypes))
+    setPendingChanges(currentPendingChanges)
+    rulesSync.push(allRules, currentPendingChanges)
+  }, [ruleRepository, pendingRuleChanges, rulesSync, listedTargetTypes])
 
   const runAndReloadRules = useCallback(
     async (change: () => Promise<unknown>) => {
@@ -42,6 +44,15 @@ export function useBlockRules() {
     return ruleRepository.subscribeToRuleChanges(refresh)
   }, [reload, ruleRepository])
 
+  const cancelPendingChangeAndSelectionRemoval = async (ruleId: string) => {
+    await pendingRuleChanges.cancelPendingChange(ruleId)
+    groupSelection?.discardPendingRemoval(ruleId)
+  }
+
+  const requestUpdateHoldingSelectionRemoval = async (rule: BlockRule) => {
+    await ruleRepository.requestUpdate(rule.id, { mode: rule.mode, windows: rule.windows })
+  }
+
   return {
     rules,
     pendingChanges,
@@ -50,8 +61,10 @@ export function useBlockRules() {
     requestRemoval: (ruleId: string) =>
       runAndReloadRules(() => pendingRuleChanges.requestRemoval(ruleId)).catch(() => undefined),
     cancelChange: (ruleId: string) =>
-      runAndReloadRules(() => pendingRuleChanges.cancelPendingChange(ruleId)).catch(
+      runAndReloadRules(() => cancelPendingChangeAndSelectionRemoval(ruleId)).catch(
         () => undefined,
       ),
+    holdSelectionRemovalUntilCooldownEnds: (rule: BlockRule) =>
+      runAndReloadRules(() => requestUpdateHoldingSelectionRemoval(rule)).catch(() => undefined),
   }
 }

@@ -4,14 +4,14 @@ import type {
   PendingRuleChangeRepository,
   UserSession,
 } from '@block-apps/api'
-import { Platform } from 'react-native'
-import { AppBlocker } from '../../modules/app-blocker'
-import { createPlatformAdapters } from '../adapters/blocker/createPlatformAdapters'
+import type { TargetType } from '@block-apps/core'
+import { createDeviceAdapters } from '../adapters/blocker/createDeviceAdapters'
 import { createMobileServices } from '../adapters/createMobileServices'
 import { MobileDeviceIdStore } from '../device/MobileDeviceIdStore'
 import { MobileStatusReporter } from '../device/MobileStatusReporter'
 import { ExpoBackgroundTaskPort } from '../background/ExpoBackgroundTaskPort'
 import { RulesSyncScheduler } from '../background/RulesSyncScheduler'
+import type { GroupSelectionPort } from '../ports/groupselection/GroupSelectionPort'
 import type { AppChoicePort } from '../ports/appchoice/AppChoicePort'
 import type { ProtectionPort } from '../ports/protection/ProtectionPort'
 import type { AppRulesSync } from '../sync/AppRulesSync'
@@ -24,6 +24,8 @@ export type Services = {
   readonly pendingRuleChanges: PendingRuleChangeRepository
   readonly protection: ProtectionPort
   readonly appChoice: AppChoicePort
+  readonly groupSelection: GroupSelectionPort | null
+  readonly listedTargetTypes: readonly TargetType[]
   readonly rulesSync: AppRulesSync
   readonly rulesSyncScheduler: RulesSyncScheduler
   readonly statusReporter: MobileStatusReporter
@@ -31,7 +33,7 @@ export type Services = {
 
 export function createServices(): Services {
   const mobile = createMobileServices()
-  const adapters = createPlatformAdapters({ platformOs: Platform.OS, androidModule: AppBlocker })
+  const adapters = createDeviceAdapters()
   const rulesSync = createRulesSync(mobile, adapters.blocker)
   const statusReporter = new MobileStatusReporter({
     deviceRepository: mobile.deviceRepository,
@@ -48,6 +50,8 @@ export function createServices(): Services {
     pendingRuleChanges: mobile.pendingRuleChanges,
     protection: adapters.protection,
     appChoice: adapters.appChoice,
+    groupSelection: adapters.groupSelection,
+    listedTargetTypes: adapters.listedTargetTypes,
     rulesSync,
     rulesSyncScheduler: new RulesSyncScheduler(new ExpoBackgroundTaskPort()),
     statusReporter,

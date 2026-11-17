@@ -30,11 +30,13 @@ describe('createAndroidAdapters', () => {
       rules: [appRule],
       pendingChanges: [],
       serverNowIso: null,
-      legacyAccountId: null,
-      accountId: 'user@example.com',
+      legacyAccountId: 'user@example.com',
+      accountId: 'user-sub-1',
     })
     expect(nativeModule.setRules).toHaveBeenCalledWith(
       '[{"target":"com.instagram.android","mode":"always","windows":[]}]',
+      'user-sub-1',
+      'user@example.com',
     )
   })
 

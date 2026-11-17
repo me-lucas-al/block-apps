@@ -1,4 +1,6 @@
 import { ApiError } from './ApiError'
+import { parseJsonSafe } from './parseJsonSafe'
+import { ServerClockRecorder, type ServerClock } from './ServerClockRecorder'
 
 export type HttpApiConfig = {
   readonly baseUrl: string
@@ -9,9 +11,14 @@ export type HttpApiConfig = {
 export class HttpApiClient {
   private readonly baseUrl: string
   private refreshInProgress: Promise<string | null> | null = null
+  private readonly serverClockRecorder = new ServerClockRecorder()
 
   constructor(private readonly config: HttpApiConfig) {
     this.baseUrl = config.baseUrl.replace(/\/+$/, '')
+  }
+
+  get serverClock(): ServerClock {
+    return this.serverClockRecorder
   }
 
   get<T>(path: string): Promise<T> {
@@ -65,17 +72,19 @@ export class HttpApiClient {
     if (token) headers['authorization'] = `Bearer ${token}`
     if (body !== undefined) headers['content-type'] = 'application/json'
 
-    return fetch(`${this.baseUrl}${path}`, {
+    const response = await fetch(`${this.baseUrl}${path}`, {
       method,
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
     })
+    this.serverClockRecorder.recordFrom(response)
+    return response
   }
 
   private async handleResponse<T>(response: Response): Promise<T> {
     if (response.status === 204) return undefined as T
     const text = await response.text()
-    const parsed = this.parseJsonSafe(text)
+    const parsed = parseJsonSafe(text)
     if (!response.ok) {
       const message = typeof parsed === 'object' && parsed && 'error' in parsed
         ? String(parsed.error)
@@ -83,14 +92,5 @@ export class HttpApiClient {
       throw new ApiError(response.status, message, parsed)
     }
     return parsed as T
-  }
-
-  private parseJsonSafe(text: string): unknown {
-    if (!text) return undefined
-    try {
-      return JSON.parse(text)
-    } catch {
-      return text
-    }
   }
 }

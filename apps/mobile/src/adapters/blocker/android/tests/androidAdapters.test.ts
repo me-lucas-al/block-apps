@@ -29,6 +29,7 @@ describe('createAndroidAdapters', () => {
     createAndroidAdapters(nativeModule).blocker.applyRules({
       rules: [appRule],
       pendingChanges: [],
+      serverNowIso: null,
       accountId: 'user@example.com',
     })
     expect(nativeModule.setRules).toHaveBeenCalledWith(

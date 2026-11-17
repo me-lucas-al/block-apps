@@ -4,7 +4,7 @@ import { AppRulesSync } from './AppRulesSync'
 
 type RulesSyncServices = Pick<
   ReturnType<typeof createMobileServices>,
-  'ruleRepository' | 'pendingRuleChanges' | 'session'
+  'ruleRepository' | 'pendingRuleChanges' | 'session' | 'http'
 >
 
 export function createRulesSync(
@@ -15,6 +15,7 @@ export function createRulesSync(
     ruleRepository: mobile.ruleRepository,
     pendingRuleChanges: mobile.pendingRuleChanges,
     userSession: mobile.session,
+    serverClock: mobile.http.serverClock,
     blocker,
   })
 }

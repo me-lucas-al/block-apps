@@ -23,6 +23,7 @@ export { requireConfigValue } from './config/requireConfigValue'
 export { ApiError } from './http/client/ApiError'
 export { describeApiFailure } from './http/describeApiFailure'
 export { HttpApiClient, type HttpApiConfig } from './http/client/HttpApiClient'
+export type { ServerClock } from './http/client/ServerClockRecorder'
 export type {
   BlockRuleRepository,
   NewBlockRule,

@@ -9,6 +9,7 @@ export type RuleFormError =
   | IosGroupRuleError
   | 'no-apps'
   | 'not-authorized'
+  | 'not-owner'
 
 const MESSAGES: Record<RuleFormError, string> = {
   'no-app': 'Escolha um app.',
@@ -18,6 +19,7 @@ const MESSAGES: Record<RuleFormError, string> = {
   'invalid-name': 'Use letras ou números no nome do grupo, com até 50 caracteres.',
   'no-apps': 'Escolha os apps do grupo.',
   'not-authorized': 'Autorize o Tempo de Uso antes de escolher os apps.',
+  'not-owner': 'Este aparelho está protegido por outra conta. Entre com a conta original.',
   'no-windows': 'Adicione ao menos um horário permitido.',
   'no-days': 'Selecione ao menos um dia em cada horário.',
   'invalid-time': 'Use o formato HH:mm, por exemplo 18:30.',

@@ -5,6 +5,7 @@ const KNOWN_OUTCOMES: readonly ChooseAppsOutcome[] = [
   'removalPending',
   'cancelled',
   'notAuthorized',
+  'notOwner',
 ]
 
 export function parseChooseAppsOutcome(nativeOutcome: string): ChooseAppsOutcome {

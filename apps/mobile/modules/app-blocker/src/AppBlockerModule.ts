@@ -2,7 +2,12 @@ import { NativeModule, requireNativeModule } from 'expo'
 import type { InstalledApp } from './types'
 
 declare class AppBlockerModule extends NativeModule {
-  setRules(rulesJson: string, ownerId?: string): void
+  setRules(
+    rulesJson: string,
+    ownerId?: string,
+    pendingRuleIds?: string[],
+    serverNowIso?: string | null,
+  ): void
 
   isAccessibilityEnabled(): boolean
   openAccessibilitySettings(): void
@@ -12,12 +17,9 @@ declare class AppBlockerModule extends NativeModule {
 
   getAuthorizationStatus(): string
   requestScreenTimeAuthorization(): Promise<string>
-  presentAppSelectionPicker(ruleId: string): Promise<string>
+  presentAppSelectionPicker(ruleId: string, ownerId: string): Promise<string>
   hasSelection(ruleId: string): boolean
-  hasPendingSelectionRemoval(ruleId: string): boolean
-  holdPendingSelection(ruleId: string, effectiveAtIso: string): void
-  getPendingSelectionHold(ruleId: string): string | null
-  commitPendingSelection(ruleId: string): void
+  holdPendingSelection(ruleId: string, effectiveAtIso: string, ownerId: string): void
   discardPendingSelection(ruleId: string): void
   reapplyShields(): void
   recordAppOpened(): void

@@ -5,31 +5,28 @@ import type {
 import type { IosNativeModule } from '../module/IosNativeModule'
 import { parseChooseAppsOutcome } from './parseChooseAppsOutcome'
 
+export type CurrentOwnerId = () => Promise<string | null>
+
 export class IosGroupSelectionAdapter implements GroupSelectionPort {
-  constructor(private readonly nativeModule: IosNativeModule) {}
+  constructor(
+    private readonly nativeModule: IosNativeModule,
+    private readonly currentOwnerId: CurrentOwnerId,
+  ) {}
 
   hasChosenApps(ruleId: string): boolean {
     return this.nativeModule.hasSelection(ruleId)
   }
 
   async chooseApps(ruleId: string): Promise<ChooseAppsOutcome> {
-    return parseChooseAppsOutcome(await this.nativeModule.presentAppSelectionPicker(ruleId))
+    const ownerId = await this.currentOwnerId()
+    if (!ownerId) return 'notOwner'
+    return parseChooseAppsOutcome(await this.nativeModule.presentAppSelectionPicker(ruleId, ownerId))
   }
 
-  hasPendingRemoval(ruleId: string): boolean {
-    return this.nativeModule.hasPendingSelectionRemoval(ruleId)
-  }
-
-  holdPendingRemoval(ruleId: string, effectiveAtIso: string): void {
-    this.nativeModule.holdPendingSelection(ruleId, effectiveAtIso)
-  }
-
-  readPendingRemovalHold(ruleId: string): string | null {
-    return this.nativeModule.getPendingSelectionHold(ruleId)
-  }
-
-  commitPendingRemoval(ruleId: string): void {
-    this.nativeModule.commitPendingSelection(ruleId)
+  async holdPendingRemoval(ruleId: string, effectiveAtIso: string): Promise<void> {
+    const ownerId = await this.currentOwnerId()
+    if (!ownerId) throw new Error('Entre na sua conta para pedir a remoção do grupo.')
+    this.nativeModule.holdPendingSelection(ruleId, effectiveAtIso, ownerId)
   }
 
   discardPendingRemoval(ruleId: string): void {

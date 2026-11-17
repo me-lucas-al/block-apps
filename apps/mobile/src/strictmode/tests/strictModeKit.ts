@@ -13,6 +13,7 @@ export function buildKit(
   rules: BlockRule[],
   pendingChanges: PendingRuleChange[] = [],
   isScreenTimeAuthorized = true,
+  acceptedOnThisDevice = true,
 ) {
   const calls: string[] = []
   const controller = new StrictModeController({
@@ -37,6 +38,15 @@ export function buildKit(
       calls.push('sync')
     },
     isScreenTimeAuthorized: () => isScreenTimeAuthorized,
+    deviceAcceptance: {
+      hasAcceptedOnThisDevice: () => acceptedOnThisDevice,
+      acceptOnThisDevice: () => {
+        calls.push('accept')
+      },
+      revokeOnThisDevice: () => {
+        calls.push('revoke')
+      },
+    },
   })
   return { controller, calls }
 }

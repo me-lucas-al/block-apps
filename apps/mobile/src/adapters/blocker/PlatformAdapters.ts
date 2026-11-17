@@ -3,6 +3,7 @@ import type { TargetType } from '@block-apps/core'
 import type { AppChoicePort } from '../../ports/appchoice/AppChoicePort'
 import type { BlockerPort } from '../../ports/blocker/BlockerPort'
 import type { GroupSelectionPort } from '../../ports/groupselection/GroupSelectionPort'
+import type { StrictModeAcceptancePort } from '../../ports/strictmode/StrictModeAcceptancePort'
 import type { ProtectionPort } from '../../ports/protection/ProtectionPort'
 
 export type PlatformAdapters = {
@@ -12,4 +13,5 @@ export type PlatformAdapters = {
   readonly protection: ProtectionPort
   readonly appChoice: AppChoicePort
   readonly groupSelection: GroupSelectionPort | null
+  readonly strictModeAcceptance: StrictModeAcceptancePort | null
 }

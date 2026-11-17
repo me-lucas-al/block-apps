@@ -5,6 +5,7 @@ struct ShieldApplier {
     private let rulesStorage: SharedRulesStorage
     private let activityStorage: AppActivityStorage
     private let scheduleStatusStorage: ScheduleStatusStorage
+    private let acceptanceStorage: StrictModeAcceptanceStorage
     private let targetsBuilder: ShieldTargetsBuilder
     private let settingsWriter: ShieldSettingsWriter
     private let currentDate: () -> Date
@@ -15,6 +16,7 @@ struct ShieldApplier {
         selectionStorage: SelectionStorage = SelectionStorage(),
         activityStorage: AppActivityStorage = AppActivityStorage(),
         scheduleStatusStorage: ScheduleStatusStorage = ScheduleStatusStorage(),
+        acceptanceStorage: StrictModeAcceptanceStorage = StrictModeAcceptanceStorage(),
         store: ManagedSettingsStore = ManagedSettingsStore(),
         currentDate: @escaping () -> Date = { Date() },
         calendar: Calendar = Calendar.current
@@ -22,6 +24,7 @@ struct ShieldApplier {
         self.rulesStorage = rulesStorage
         self.activityStorage = activityStorage
         self.scheduleStatusStorage = scheduleStatusStorage
+        self.acceptanceStorage = acceptanceStorage
         self.targetsBuilder = ShieldTargetsBuilder(selectionStorage: selectionStorage)
         self.settingsWriter = ShieldSettingsWriter(store: store)
         self.currentDate = currentDate
@@ -37,12 +40,17 @@ struct ShieldApplier {
             isScheduleIncomplete: scheduleStatusStorage.loadIsIncomplete()
         )
         settingsWriter.writeShields(targetsBuilder.buildTargets(for: blockedRules))
-        settingsWriter.requireAutomaticDateAndTime(rules.contains { $0.followsTimeWindows })
+        if !StrictModePolicy.hasStrictModeRule(in: rules) { acceptanceStorage.clearAcceptedOnThisDevice() }
+        let hasAccepted: Bool = acceptanceStorage.loadHasAcceptedOnThisDevice()
+        settingsWriter.requireAutomaticDateAndTime(
+            AutomaticClockPolicy.isAutomaticDateAndTimeRequired(by: rules, hasAcceptedStrictMode: hasAccepted)
+        )
         settingsWriter.denyAppRemoval(
             StrictModePolicy.isDenyAppRemovalRequired(
                 by: rules,
                 lastAppOpenedAt: activityStorage.loadLastAppOpenedAt(),
-                now: now
+                now: now,
+                hasAcceptedOnThisDevice: hasAccepted
             )
         )
     }

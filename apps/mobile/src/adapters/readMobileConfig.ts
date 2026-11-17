@@ -5,6 +5,7 @@ export type MobileConfig = {
   readonly cognitoUserPoolId: string
   readonly cognitoClientId: string
   readonly cognitoHostedDomain: string
+  readonly strictModeEnabled: boolean
 }
 
 export function readMobileConfig(): MobileConfig {
@@ -22,5 +23,6 @@ export function readMobileConfig(): MobileConfig {
       'EXPO_PUBLIC_COGNITO_HOSTED_DOMAIN',
       process.env.EXPO_PUBLIC_COGNITO_HOSTED_DOMAIN,
     ),
+    strictModeEnabled: process.env.EXPO_PUBLIC_STRICT_MODE_ENABLED === 'true',
   }
 }

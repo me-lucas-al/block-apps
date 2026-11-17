@@ -3,6 +3,9 @@ export const STRICT_MODE_TITLE = 'Modo estrito'
 export const STRICT_MODE_DESCRIPTION =
   'Impede remover apps deste iPhone, o que dificulta desinstalar o Block Apps.'
 
+export const STRICT_MODE_NEEDS_ACCEPTANCE =
+  'O modo estrito está ligado na sua conta, mas ainda não vale neste aparelho. Leia o aviso e confirme para ativar.'
+
 export const STRICT_MODE_WARNING_TITLE = 'Ligar o modo estrito?'
 
 export const STRICT_MODE_WARNING_MESSAGE =

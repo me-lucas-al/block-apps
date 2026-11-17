@@ -28,7 +28,7 @@ describe('describeGroupChoices', () => {
     expect(choices.isTotalOverLimit).toBe(false)
   })
 
-  it('marks every group unreadable instead of chosen when loading the states failed', () => {
+  it('marks every group unreadable and does not ask for a new choice when loading the states failed', () => {
     const choices = describeGroupChoices(null, true)
     expect(choices.isSelectionUnreadable('any')).toBe(true)
     expect(choices.hasChosenApps('any')).toBe(true)

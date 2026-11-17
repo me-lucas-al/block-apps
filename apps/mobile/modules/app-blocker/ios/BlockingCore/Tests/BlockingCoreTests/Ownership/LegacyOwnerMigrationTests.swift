@@ -41,6 +41,13 @@ final class LegacyOwnerMigrationTests: XCTestCase {
         XCTAssertTrue(storage.savedOwnerIds.isEmpty)
     }
 
+    func testNothingIsWrittenWhenThereIsNoLegacyOwnerId() throws {
+        let storage: FakeOwnerStorage = FakeOwnerStorage(ownerId: "a@b.c")
+        try LegacyOwnerMigration.migrate(storage: storage, legacyOwnerId: nil, incomingOwnerId: "sub-1")
+        XCTAssertEqual(storage.ownerId, "a@b.c")
+        XCTAssertTrue(storage.savedOwnerIds.isEmpty)
+    }
+
     func testAFailureToSaveIsReportedInsteadOfSwallowed() {
         let storage: FakeOwnerStorage = FakeOwnerStorage(ownerId: "a@b.c")
         storage.failsToSave = true

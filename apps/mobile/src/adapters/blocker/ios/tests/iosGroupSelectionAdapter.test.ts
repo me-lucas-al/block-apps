@@ -63,6 +63,7 @@ describe('iOS group selection adapter', () => {
       unreadableRuleIds: ['b'],
       unscheduledRuleIds: ['c'],
       oversizedRuleIds: ['d'],
+      isTotalOverLimit: true,
     }
     const nativeModule = buildNativeModule({ getGroupStates: vi.fn(async () => states) })
     const { groupSelection } = createIosAdapters(nativeModule, signedInOwner)

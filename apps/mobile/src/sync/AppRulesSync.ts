@@ -13,7 +13,7 @@ export type AppRulesSyncDependencies = {
     PendingRuleChangeRepository,
     'applyDueChanges' | 'listPendingChanges'
   >
-  readonly userSession: Pick<UserSession, 'currentUserId'>
+  readonly userSession: Pick<UserSession, 'currentUserId' | 'currentUserEmail'>
   readonly serverClock: ServerClock
   readonly blocker: BlockerPort
 }
@@ -21,16 +21,18 @@ export type AppRulesSyncDependencies = {
 export class AppRulesSync {
   constructor(private readonly dependencies: AppRulesSyncDependencies) {}
 
-  push(
+  async push(
     rules: readonly BlockRule[],
     pendingChanges: readonly PendingRuleChange[],
     accountId: string,
   ): Promise<void> {
-    const { blocker, serverClock } = this.dependencies
-    return blocker.applyRules({
+    const { blocker, serverClock, userSession } = this.dependencies
+    const accountEmail = await userSession.currentUserEmail().catch(() => null)
+    await blocker.applyRules({
       rules,
       pendingChanges,
       accountId,
+      legacyAccountId: accountEmail?.trim().toLowerCase() ?? null,
       serverNowIso: serverClock.lastServerTimeIso(),
     })
   }

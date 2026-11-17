@@ -15,7 +15,9 @@ describe('iOS blocker adapter', () => {
     const nativeModule = buildNativeModule()
     const snapshot = snapshotOf([groupRule, siteRule, androidRule])
     createIosAdapters(nativeModule, signedInOwner).blocker.applyRules(snapshot)
-    const sentRules: unknown = JSON.parse(vi.mocked(nativeModule.setRules).mock.calls[0]?.[0] ?? '')
+    const sentRules: unknown = JSON.parse(
+      vi.mocked(nativeModule.setRules).mock.calls[0]?.[0].rulesJson ?? '',
+    )
     expect(sentRules).toEqual([
       { id: groupRule.id, targetType: 'iosSelection', target: 'social', mode: 'always', windows: [] },
       { id: siteRule.id, targetType: 'site', target: 'x.com', mode: 'always', windows: [] },
@@ -26,7 +28,7 @@ describe('iOS blocker adapter', () => {
     const nativeModule = buildNativeModule()
     const snapshot = snapshotOf([groupRule], [], 'owner-sub-9')
     createIosAdapters(nativeModule, signedInOwner).blocker.applyRules(snapshot)
-    expect(vi.mocked(nativeModule.setRules).mock.calls[0]?.[1]).toBe('owner-sub-9')
+    expect(vi.mocked(nativeModule.setRules).mock.calls[0]?.[0].ownerId).toBe('owner-sub-9')
   })
 
   it('hands the pending rule ids and the server time to the native module', () => {
@@ -34,10 +36,11 @@ describe('iOS blocker adapter', () => {
     const snapshot = snapshotOf([groupRule], [pendingUpdate], 'owner', '2026-11-16T12:00:00.000Z')
     createIosAdapters(nativeModule, signedInOwner).blocker.applyRules(snapshot)
     expect(nativeModule.setRules).toHaveBeenCalledWith(
-      expect.any(String),
-      'owner',
-      [groupRule.id],
-      '2026-11-16T12:00:00.000Z',
+      expect.objectContaining({
+        ownerId: 'owner',
+        pendingRuleIds: [groupRule.id],
+        serverNowIso: '2026-11-16T12:00:00.000Z',
+      }),
     )
   })
 
@@ -46,7 +49,7 @@ describe('iOS blocker adapter', () => {
     createIosAdapters(nativeModule, signedInOwner).blocker.applyRules(
       snapshotOf([groupRule], [], 'owner', null),
     )
-    expect(vi.mocked(nativeModule.setRules).mock.calls[0]?.[3]).toBeNull()
+    expect(vi.mocked(nativeModule.setRules).mock.calls[0]?.[0].serverNowIso).toBeNull()
   })
 
   it('records an app opening natively, which background syncs must not do', () => {

@@ -10,36 +10,38 @@ struct InstallRulesUseCase {
     private let shieldApplier: ShieldApplier
     private let ownershipGuard: RulesOwnershipGuard
     private let settleHeldRemovals: SettleHeldRemovalsUseCase
+    private let migrateLegacyOwner: MigrateLegacyOwnerUseCase
 
     init(
         rulesStorage: SharedRulesStorage = SharedRulesStorage(),
         scheduleRegistrar: ScheduleRegistrar = ScheduleRegistrar(),
         shieldApplier: ShieldApplier = ShieldApplier(),
         ownershipGuard: RulesOwnershipGuard = RulesOwnershipGuard(),
-        settleHeldRemovals: SettleHeldRemovalsUseCase = SettleHeldRemovalsUseCase()
+        settleHeldRemovals: SettleHeldRemovalsUseCase = SettleHeldRemovalsUseCase(),
+        migrateLegacyOwner: MigrateLegacyOwnerUseCase = MigrateLegacyOwnerUseCase()
     ) {
         self.rulesStorage = rulesStorage
         self.scheduleRegistrar = scheduleRegistrar
         self.shieldApplier = shieldApplier
         self.ownershipGuard = ownershipGuard
         self.settleHeldRemovals = settleHeldRemovals
+        self.migrateLegacyOwner = migrateLegacyOwner
     }
 
-    func installRules(
-        fromJSON rulesJson: String,
-        ownerId: String,
-        pendingRuleIds: [String],
-        serverNowIso: String?
-    ) throws {
-        let rules: [BlockingRule] = try RuleParser.parseRules(fromJSON: rulesJson)
-        try ownershipGuard.requireOwnership(byOwnerId: ownerId)
+    func installRules(_ request: SetRulesRequest) throws {
+        let rules: [BlockingRule] = try RuleParser.parseRules(fromJSON: request.rulesJson)
+        try migrateLegacyOwner.migrateLegacyOwner(
+            legacyOwnerId: request.legacyOwnerId,
+            incomingOwnerId: request.ownerId
+        )
+        try ownershipGuard.requireOwnership(byOwnerId: request.ownerId)
         settleHeldRemovals.settleHeldRemovals(
             ruleIds: selectionRuleIds(in: rules),
-            pendingRuleIds: Set(pendingRuleIds),
-            serverNowIso: serverNowIso
+            pendingRuleIds: Set(request.pendingRuleIds),
+            serverNowIso: request.serverNowIso
         )
-        try rulesStorage.saveOwnerId(ownerId)
-        try rulesStorage.saveRulesJSON(rulesJson)
+        try rulesStorage.saveOwnerId(request.ownerId)
+        try rulesStorage.saveRulesJSON(request.rulesJson)
         defer { shieldApplier.applyShieldsForCurrentMoment() }
         try scheduleRegistrar.registerActivities(of: ShieldSchedulePlanner.plan(rules: rules))
     }

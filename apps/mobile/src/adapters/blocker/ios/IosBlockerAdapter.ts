@@ -10,14 +10,14 @@ type IosBlockerDependencies = {
 export class IosBlockerAdapter implements BlockerPort {
   constructor(private readonly dependencies: IosBlockerDependencies) {}
 
-  applyRules({ rules, pendingChanges, accountId, serverNowIso }: RulesSnapshot): Promise<void> {
-    const pendingRuleIds = pendingChanges.map((change) => change.ruleId)
-    return this.dependencies.nativeModule.setRules(
-      toIosRulesJson(rules),
-      accountId,
-      pendingRuleIds,
-      serverNowIso,
-    )
+  applyRules(snapshot: RulesSnapshot): Promise<void> {
+    return this.dependencies.nativeModule.setRules({
+      rulesJson: toIosRulesJson(snapshot.rules),
+      ownerId: snapshot.accountId,
+      pendingRuleIds: snapshot.pendingChanges.map((change) => change.ruleId),
+      serverNowIso: snapshot.serverNowIso,
+      legacyOwnerId: snapshot.legacyAccountId,
+    })
   }
 
   refreshEnforcement(): Promise<void> {

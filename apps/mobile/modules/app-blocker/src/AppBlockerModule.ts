@@ -1,13 +1,9 @@
 import { NativeModule, requireNativeModule } from 'expo'
-import type { InstalledApp } from './types'
+import type { InstalledApp, SetRulesRequest } from './types'
 
 declare class AppBlockerModule extends NativeModule {
-  setRules(
-    rulesJson: string,
-    ownerId?: string,
-    pendingRuleIds?: string[],
-    serverNowIso?: string | null,
-  ): Promise<void>
+  setRules(rulesJson: string, ownerId?: string): void
+  setRules(request: SetRulesRequest): Promise<void>
 
   isAccessibilityEnabled(): boolean
   openAccessibilitySettings(): void
@@ -23,6 +19,7 @@ declare class AppBlockerModule extends NativeModule {
     unreadableRuleIds: string[]
     unscheduledRuleIds: string[]
     oversizedRuleIds: string[]
+    isTotalOverLimit: boolean
   }>
   holdPendingSelection(ruleId: string, effectiveAtIso: string, ownerId: string): void
   discardPendingSelection(ruleId: string): void

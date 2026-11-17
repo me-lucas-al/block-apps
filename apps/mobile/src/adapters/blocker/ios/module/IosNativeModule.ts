@@ -1,17 +1,15 @@
+import type { SetRulesRequest } from '../../../../../modules/app-blocker/src/types'
+
 export type NativeGroupStates = {
   chosenRuleIds: string[]
   unreadableRuleIds: string[]
   unscheduledRuleIds: string[]
   oversizedRuleIds: string[]
+  isTotalOverLimit: boolean
 }
 
 export interface IosNativeModule {
-  setRules(
-    rulesJson: string,
-    ownerId: string,
-    pendingRuleIds: string[],
-    serverNowIso: string | null,
-  ): Promise<void>
+  setRules(request: SetRulesRequest): Promise<void>
   getAuthorizationStatus(): string
   requestScreenTimeAuthorization(): Promise<string>
   presentAppSelectionPicker(ruleId: string, ownerId: string): Promise<string>

@@ -23,7 +23,10 @@ function createSync(userId: string | null) {
   const sync = new AppRulesSync({
     ruleRepository: { list },
     pendingRuleChanges: { applyDueChanges, listPendingChanges: async () => [] },
-    userSession: { currentUserId: async () => userId },
+    userSession: {
+      currentUserId: async () => userId,
+      currentUserEmail: async () => (userId ? '  User@Example.com ' : null),
+    },
     serverClock: { lastServerTimeIso: () => '2026-11-16T12:00:00.000Z' },
     blocker: { applyRules, refreshEnforcement: vi.fn(), markAppOpened: vi.fn() },
   })
@@ -39,6 +42,7 @@ describe('AppRulesSync', () => {
       rules: [appRule],
       pendingChanges: [],
       accountId: 'user-sub-1',
+      legacyAccountId: 'user@example.com',
       serverNowIso: '2026-11-16T12:00:00.000Z',
     })
   })
@@ -51,13 +55,14 @@ describe('AppRulesSync', () => {
     expect(applyRules).not.toHaveBeenCalled()
   })
 
-  it('pushes rules that were already loaded without reading them again', () => {
+  it('pushes rules that were already loaded without reading them again', async () => {
     const { sync, applyRules, list } = createSync('user-sub-1')
-    sync.push([appRule], [], 'user-sub-1')
+    await sync.push([appRule], [], 'user-sub-1')
     expect(applyRules).toHaveBeenCalledWith({
       rules: [appRule],
       pendingChanges: [],
       accountId: 'user-sub-1',
+      legacyAccountId: 'user@example.com',
       serverNowIso: '2026-11-16T12:00:00.000Z',
     })
     expect(list).not.toHaveBeenCalled()

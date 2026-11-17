@@ -19,7 +19,7 @@ public class AppBlockerModule: Module {
         }
 
         AsyncFunction("getGroupStates") { (ruleIds: [String]) -> GroupStatesRecord in
-            LoadGroupStatesUseCase().loadGroupStates(ruleIds: ruleIds)
+            ModuleStateQueue.run { LoadGroupStatesUseCase().loadGroupStates(ruleIds: ruleIds) }
         }
 
         Function("holdPendingSelection") { (ruleId: String, effectiveAtIso: String, ownerId: String) throws in
@@ -38,21 +38,14 @@ public class AppBlockerModule: Module {
             ModuleStateQueue.run { DiscardPendingSelectionUseCase().discardPendingSelection(ruleId: ruleId) }
         }
 
-        AsyncFunction("setRules") { (json: String, ownerId: String, pendingIds: [String], serverNow: String?) throws in
+        AsyncFunction("setRules") { (request: SetRulesRequest) throws in
             try NativeExceptionMapper.run {
-                try ModuleStateQueue.run {
-                    try InstallRulesUseCase().installRules(
-                        fromJSON: json,
-                        ownerId: ownerId,
-                        pendingRuleIds: pendingIds,
-                        serverNowIso: serverNow
-                    )
-                }
+                try ModuleStateQueue.run { try InstallRulesUseCase().installRules(request) }
             }
         }
 
         Function("hasAcceptedStrictMode") { () -> Bool in
-            StrictModeAcceptanceStorage().loadHasAcceptedOnThisDevice()
+            ModuleStateQueue.run { StrictModeAcceptanceStorage().loadHasAcceptedOnThisDevice() }
         }
 
         Function("acceptStrictMode") { () throws in

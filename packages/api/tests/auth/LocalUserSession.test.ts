@@ -32,4 +32,19 @@ describe('LocalUserSession', () => {
     await session.notifySessionUpdated(null)
     expect(listener).not.toHaveBeenCalledWith(null)
   })
+
+  it('reads the user id from the id token subject', async () => {
+    const storage = new MemorySessionStorage()
+    const session = new LocalUserSession(storage)
+    expect(await session.currentUserId()).toBeNull()
+
+    const payload = btoa(JSON.stringify({ sub: 'user-sub-1' }))
+    await storage.save({
+      accessToken: 'acc',
+      idToken: `h.${payload}.s`,
+      refreshToken: 'ref',
+      email: 'user@example.com',
+    })
+    expect(await session.currentUserId()).toBe('user-sub-1')
+  })
 })

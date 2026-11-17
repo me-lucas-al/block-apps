@@ -1,5 +1,7 @@
-import type { BlockRule } from '@block-apps/core'
+import type { RulesSnapshot } from './RulesSnapshot'
 
 export interface BlockerPort {
-  applyRules(rules: readonly BlockRule[]): void
+  applyRules(snapshot: RulesSnapshot): Promise<void>
+  refreshEnforcement(): Promise<void>
+  markAppOpened(): Promise<void>
 }

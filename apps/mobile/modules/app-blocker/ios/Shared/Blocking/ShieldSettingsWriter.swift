@@ -8,7 +8,7 @@ struct ShieldSettingsWriter {
     }
 
     func writeShields(_ targets: ShieldTargets) {
-        let categories = targets.categoryTokens
+        let categories: Set<ActivityCategoryToken> = targets.categoryTokens
         store.shield.applications = targets.applicationTokens.isEmpty ? nil : targets.applicationTokens
         store.shield.applicationCategories = categories.isEmpty ? nil : .specific(categories)
         store.shield.webDomains = targets.webDomainTokens.isEmpty ? nil : targets.webDomainTokens
@@ -18,5 +18,9 @@ struct ShieldSettingsWriter {
 
     func requireAutomaticDateAndTime(_ required: Bool) {
         store.dateAndTime.requireAutomaticDateAndTime = required ? true : nil
+    }
+
+    func denyAppRemoval(_ denied: Bool) {
+        store.application.denyAppRemoval = denied ? true : nil
     }
 }

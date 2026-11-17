@@ -2,8 +2,8 @@ import Foundation
 
 public enum RuleParser {
     public static func parseRules(fromJSON json: String) throws -> [BlockingRule] {
-        let documents = try decodeDocuments(json)
-        return try documents.compactMap { document in
+        let documents: [RuleDocument] = try decodeDocuments(json)
+        return try documents.compactMap { (document: RuleDocument) throws -> BlockingRule? in
             try toRule(document)
         }
     }
@@ -17,7 +17,7 @@ public enum RuleParser {
     }
 
     private static func toRule(_ document: RuleDocument) throws -> BlockingRule? {
-        guard let kind = TargetKind(rawValue: document.targetType) else { return nil }
+        guard let kind: TargetKind = TargetKind(rawValue: document.targetType) else { return nil }
         return BlockingRule(
             id: document.id,
             kind: kind,
@@ -28,6 +28,9 @@ public enum RuleParser {
     }
 
     private static func toWindow(_ document: WindowDocument) throws -> TimeWindow {
+        if let invalidDay: Int = document.days.first(where: { !(0...6).contains($0) }) {
+            throw RuleParsingError.invalidDay(invalidDay)
+        }
         return TimeWindow(
             days: Set(document.days),
             startMinute: try MinuteOfDayParser.parseMinuteOfDay(document.start),

@@ -1,5 +1,6 @@
 import type { PendingRuleChange } from '@block-apps/core'
 import { NotFoundError } from '../../domain/errors/NotFoundError'
+import { requireAlwaysOnProtection } from '../../domain/rules/requireAlwaysOnProtection'
 import type { Clock } from '../../domain/time/Clock'
 import type { BlockRuleStore } from '../../rules/contracts/BlockRuleStore'
 import { computeCooldownDeadline } from '../computeCooldownDeadline'
@@ -25,6 +26,7 @@ export class RuleChangeScheduler {
   ): Promise<PendingRuleChange> {
     const rule = await this.blockRuleStore.findById(userId, ruleId)
     if (!rule) throw new NotFoundError('rule not found')
+    if (draft.kind === 'update') requireAlwaysOnProtection(rule.targetType, draft.mode)
 
     const pending = await this.pendingChangeStore.findByRuleId(userId, ruleId)
     if (pending && isSameChange(pending, draft)) return pending

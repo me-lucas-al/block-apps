@@ -6,6 +6,8 @@ on:
       - 'apps/mobile/modules/app-blocker/ios/**'
       - 'apps/mobile/targets/**'
       - 'apps/mobile/app.json'
+      - 'apps/mobile/package.json'
+      - 'apps/mobile/modules/app-blocker/expo-module.config.json'
       - 'apps/mobile/app.config.js'
       - 'apps/mobile/scripts/syncIosSharedSources.mjs'
       - '.github/workflows/ios-build.yml'

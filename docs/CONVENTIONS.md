@@ -25,11 +25,12 @@ apps/
   extension/src/   ports/{browser,data}/, adapters/{browser,chrome,firefox}/, shared/browser/, blocking/{,keywords/}, device/, popup/, background/
   admin/src/       ports/, adapters/, components/, screens/, services/, users/
   mobile/
-    src/           ports/, adapters/, sync/, background/, hooks/, screens/, components/, device/
+    src/           ports/{blocker,protection,appchoice,groupselection,device}/, adapters/blocker/{android,ios}/, sync/, hooks/, screens/, components/, device/, background/
     modules/app-blocker/
       src/                   ponte TypeScript
       android/.../appblocker/  Kotlin: admin/, service/, system/, ui/, rules/{model,evaluation,storage}/
-      ios/                   Swift (fase iOS pausada)
+      ios/                   Swift: BlockingCore/ (pacote puro), Shared/, Authorization/, Schedule/, Picker/, UseCases/, Exceptions/, Module/
+    targets/                 extensões iOS (device-activity-monitor, shield-config, shield-action)
 ```
 
 Código nativo de cada plataforma fica dentro do módulo (`android/`, `ios/`). A UI é uma só, em React Native.
@@ -60,6 +61,8 @@ Código nativo de cada plataforma fica dentro do módulo (`android/`, `ios/`). A
 
 - Siga as [API Design Guidelines](https://www.swift.org/documentation/api-design-guidelines): nomes que formam frases naturais na chamada, fábricas começando com `make`, parâmetros que se leem bem na documentação.
 - Mesma regra de pastas: `ios/` dividido por tópico (`Blocking/`, `Schedule/`, `Storage/`), um tipo principal por arquivo com o nome do tipo.
+- **Tipo sempre explícito**: toda constante, variável e propriedade declara o tipo (`let weekday: Int = ...`), mesmo quando o Swift conseguiria inferir. Vale também para `guard let`, `if let`, `for` e parâmetros nomeados de closure. O SwiftLint barra o que faltar (`explicit_type_interface` em `apps/mobile/.swiftlint.yml`, job `ios-lint` do CI).
+- Para rodar o lint na sua máquina, a partir de `apps/mobile`: `docker run --rm -v "$PWD:/work" -w /work ghcr.io/realm/swiftlint:0.65.1 lint --strict`.
 
 ## Fluxo de trabalho
 

@@ -1,42 +1,54 @@
 public enum ShieldSchedulePlanner {
-    public static let maxActivities = 20
-    public static let minimumIntervalMinutes = 15
+    public static let maxActivities: Int = 20
+    public static let minimumIntervalMinutes: Int = 15
+    public static let strictModeHeartbeatName: String = "strict-mode-heartbeat"
+    public static let strictModeHeartbeatStartMinute: Int = 4 * 60
 
     public static func plan(
         rules: [BlockingRule],
         maxActivities: Int = ShieldSchedulePlanner.maxActivities
     ) -> ShieldSchedulePlan {
-        var scheduledTriggers = Set<ActivityTrigger>()
-        var unscheduledRuleIds = Set<String>()
+        let needsHeartbeat: Bool = StrictModePolicy.hasStrictModeRule(in: rules)
+        let ruleActivityLimit: Int = needsHeartbeat ? maxActivities - 1 : maxActivities
+        var scheduledTriggers: Set<ActivityTrigger> = []
+        var unscheduledRuleIds: Set<String> = []
 
-        for rule in rules where rule.kind.isEnforcedOnIos {
-            let ruleTriggers = RuleTriggerCollector.collectTriggers(for: rule)
-            let combinedTriggers = scheduledTriggers.union(ruleTriggers)
-            if combinedTriggers.count > maxActivities {
+        for rule: BlockingRule in rules where rule.kind.isEnforcedOnIos {
+            let ruleTriggers: Set<ActivityTrigger> = RuleTriggerCollector.collectTriggers(for: rule)
+            let combinedTriggers: Set<ActivityTrigger> = scheduledTriggers.union(ruleTriggers)
+            if combinedTriggers.count > ruleActivityLimit {
                 unscheduledRuleIds.insert(rule.id)
                 continue
             }
             scheduledTriggers = combinedTriggers
         }
 
-        let activities = scheduledTriggers
-            .sorted(by: isEarlierInWeek)
+        let tickActivities: [PlannedActivity] = scheduledTriggers
+            .sorted { (first: ActivityTrigger, second: ActivityTrigger) -> Bool in
+                first.minuteOfDay < second.minuteOfDay
+            }
             .map(makeActivity)
-        return ShieldSchedulePlan(activities: activities, unscheduledRuleIds: unscheduledRuleIds)
-    }
-
-    private static func isEarlierInWeek(_ first: ActivityTrigger, _ second: ActivityTrigger) -> Bool {
-        if first.dayOfWeek != second.dayOfWeek { return first.dayOfWeek < second.dayOfWeek }
-        return first.minuteOfDay < second.minuteOfDay
+        let heartbeat: [PlannedActivity] = needsHeartbeat ? [makeHeartbeatActivity()] : []
+        return ShieldSchedulePlan(activities: tickActivities + heartbeat, unscheduledRuleIds: unscheduledRuleIds)
     }
 
     private static func makeActivity(from trigger: ActivityTrigger) -> PlannedActivity {
-        let endMinute = (trigger.minuteOfDay + minimumIntervalMinutes) % WindowPieceSplitter.minutesPerDay
         return PlannedActivity(
-            name: "tick-\(trigger.dayOfWeek)-\(trigger.minuteOfDay)",
-            weekday: trigger.dayOfWeek + 1,
+            name: "tick-\(trigger.minuteOfDay)",
             startMinute: trigger.minuteOfDay,
-            endMinute: endMinute
+            endMinute: endMinute(afterStartMinute: trigger.minuteOfDay)
         )
+    }
+
+    private static func makeHeartbeatActivity() -> PlannedActivity {
+        return PlannedActivity(
+            name: strictModeHeartbeatName,
+            startMinute: strictModeHeartbeatStartMinute,
+            endMinute: endMinute(afterStartMinute: strictModeHeartbeatStartMinute)
+        )
+    }
+
+    private static func endMinute(afterStartMinute startMinute: Int) -> Int {
+        return (startMinute + minimumIntervalMinutes) % RuleTriggerCollector.minutesPerDay
     }
 }

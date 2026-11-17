@@ -1,5 +1,5 @@
 enum ShieldTexts {
-    static let title = "Bloqueado"
-    static let subtitle = "Este conteúdo está bloqueado pelo Block Apps."
-    static let closeButtonLabel = "Fechar"
+    static let title: String = "Bloqueado"
+    static let subtitle: String = "Este conteúdo está bloqueado pelo Block Apps."
+    static let closeButtonLabel: String = "Fechar"
 }

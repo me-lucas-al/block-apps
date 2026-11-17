@@ -11,9 +11,15 @@ extension SelectionSnapshot {
     }
 
     private static func encodeTokens<Token: Codable & Hashable>(_ tokens: Set<Token>) -> Set<String> {
-        let encoder = JSONEncoder()
-        let encodedTokens = tokens.compactMap { token in
-            try? encoder.encode(token).base64EncodedString()
+        let encoder: JSONEncoder = JSONEncoder()
+        let encodedTokens: [String] = tokens.compactMap { (token: Token) -> String? in
+            do {
+                return try encoder.encode(token).base64EncodedString()
+            } catch {
+                let reason: String = String(describing: error)
+                AppLogger.selection.error("A selection token was not encoded: \(reason, privacy: .private)")
+                return nil
+            }
         }
         return Set(encodedTokens)
     }

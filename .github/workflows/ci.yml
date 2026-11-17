@@ -79,6 +79,17 @@ jobs:
         run: swift test
         working-directory: apps/mobile/modules/app-blocker/ios/BlockingCore
 
+  ios-lint:
+    name: iOS Swift lint (explicit types)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint Swift sources with SwiftLint
+        run: |
+          docker run --rm -v "$PWD/apps/mobile:/work" -w /work \
+            ghcr.io/realm/swiftlint:0.65.1 lint --strict
+
   terraform:
     name: Terraform format, lint, security and validate
     runs-on: ubuntu-latest

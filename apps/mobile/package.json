@@ -7,6 +7,7 @@
     "start": "expo start",
     "android": "expo run:android",
     "ios": "pnpm sync:ios-shared && expo run:ios",
+    "prebuild:ios": "pnpm sync:ios-shared && expo prebuild --platform ios --clean",
     "sync:ios-shared": "node scripts/syncIosSharedSources.mjs",
     "eas-build-pre-install": "node scripts/syncIosSharedSources.mjs",
     "test": "vitest run",

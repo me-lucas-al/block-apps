@@ -2,6 +2,11 @@ name: Release and Deploy
 
 on:
   workflow_dispatch:
+    inputs:
+      submit_ios:
+        description: Build the iOS app on EAS and submit it to TestFlight
+        type: boolean
+        default: false
 
 concurrency:
   group: deploy-production
@@ -165,3 +170,26 @@ jobs:
         run: |
           aws s3 sync apps/admin/dist "s3://$ADMIN_SITE_BUCKET_NAME" --delete
           aws cloudfront create-invalidation --distribution-id "$ADMIN_SITE_DISTRIBUTION_ID" --paths "/*"
+
+  submit-ios:
+    name: Build iOS on EAS and submit to TestFlight
+    needs: [build-and-package]
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 90
+    if: github.repository == 'me-lucas-al/block-apps' && github.ref == 'refs/heads/main' && inputs.submit_ios
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: 16.x
+          token: ${{ secrets.EXPO_TOKEN }}
+      - name: Build and submit to TestFlight
+        run: eas build --platform ios --profile production --non-interactive --wait --auto-submit
+        working-directory: apps/mobile

@@ -1,3 +1,4 @@
+import FamilyControls
 import ManagedSettings
 
 struct ShieldTargetsBuilder {
@@ -8,8 +9,8 @@ struct ShieldTargetsBuilder {
     }
 
     func buildTargets(for blockedRules: [BlockingRule]) -> ShieldTargets {
-        var targets = ShieldTargets()
-        for rule in blockedRules {
+        var targets: ShieldTargets = ShieldTargets()
+        for rule: BlockingRule in blockedRules {
             switch rule.kind {
             case .iosSelection:
                 addSelection(of: rule, to: &targets)
@@ -23,7 +24,7 @@ struct ShieldTargetsBuilder {
     }
 
     private func addSelection(of rule: BlockingRule, to targets: inout ShieldTargets) {
-        guard let selection = selectionStorage.loadSelection(ruleId: rule.id) else { return }
+        guard let selection: FamilyActivitySelection = selectionStorage.loadSelection(ruleId: rule.id) else { return }
         targets.applicationTokens.formUnion(selection.applicationTokens)
         targets.categoryTokens.formUnion(selection.categoryTokens)
         targets.webDomainTokens.formUnion(selection.webDomainTokens)

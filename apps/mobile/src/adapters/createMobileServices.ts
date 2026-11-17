@@ -34,6 +34,7 @@ export function createMobileServices() {
   })
 
   return {
+    config,
     storage,
     session,
     authenticator,

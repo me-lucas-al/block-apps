@@ -4,6 +4,7 @@ import { useMemo } from 'react'
 import { ActivityIndicator, SafeAreaView, StyleSheet } from 'react-native'
 import { useBackgroundRulesSync } from './src/hooks/session/useBackgroundRulesSync'
 import { useSessionEmail } from './src/hooks/session/useSessionEmail'
+import { useRequestAuthorizationOnFirstOpen } from './src/hooks/session/useRequestAuthorizationOnFirstOpen'
 import { useSyncWhenAppIsActive } from './src/hooks/session/useSyncWhenAppIsActive'
 import { HomeScreen } from './src/screens/HomeScreen'
 import { LoginScreen } from './src/screens/LoginScreen'
@@ -13,12 +14,13 @@ import { colors } from './src/theme'
 
 function Root() {
   const { email, loading } = useSessionEmail()
-  useSyncWhenAppIsActive(email)
+  const { syncFailure } = useSyncWhenAppIsActive(email)
+  const { authorizationFailure } = useRequestAuthorizationOnFirstOpen(email)
   useBackgroundRulesSync(email, loading)
 
   if (loading) return <ActivityIndicator style={styles.loading} />
   if (!email) return <LoginScreen />
-  return <HomeScreen email={email} />
+  return <HomeScreen email={email} syncFailure={syncFailure ?? authorizationFailure} />
 }
 
 export default function App() {

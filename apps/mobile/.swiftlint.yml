@@ -1,0 +1,20 @@
+opt_in_rules:
+  - explicit_type_interface
+
+explicit_type_interface:
+  severity: error
+
+included:
+  - modules/app-blocker/ios
+  - targets
+
+excluded:
+  - targets/_shared
+  - modules/app-blocker/ios/BlockingCore/.build
+
+line_length:
+  ignores_multiline_strings: true
+
+function_body_length:
+  warning: 80
+  error: 120

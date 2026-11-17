@@ -5,44 +5,65 @@ public class AppBlockerModule: Module {
         Name("AppBlocker")
 
         Function("getAuthorizationStatus") { () -> String in
-            ScreenTimeAuthorization.readStatusName()
+            ScreenTimeAuthorization.readStatus().rawValue
         }
 
         AsyncFunction("requestScreenTimeAuthorization") { () async throws -> String in
-            try await ScreenTimeAuthorization.requestIndividualAuthorization()
+            try await ScreenTimeAuthorization.requestIndividualAuthorization().rawValue
         }
 
-        AsyncFunction("presentAppSelectionPicker") { (ruleId: String) async -> String in
-            await ChooseAppsUseCase().chooseApps(forRuleId: ruleId)
+        AsyncFunction("presentAppSelectionPicker") { (ruleId: String, ownerId: String) async throws -> String in
+            try await NativeExceptionMapper.runAsync {
+                try await ChooseAppsUseCase().chooseApps(forRuleId: ruleId, ownerId: ownerId).rawValue
+            }
         }
 
-        Function("hasSelection") { (ruleId: String) -> Bool in
-            SelectionStorage().loadSelection(ruleId: ruleId) != nil
+        AsyncFunction("getGroupStates") { (ruleIds: [String]) -> GroupStatesRecord in
+            ModuleStateQueue.run { LoadGroupStatesUseCase().loadGroupStates(ruleIds: ruleIds) }
         }
 
-        Function("hasPendingSelectionRemoval") { (ruleId: String) -> Bool in
-            ResolvePendingSelectionUseCase().hasPendingSelection(ruleId: ruleId)
-        }
-
-        Function("commitPendingSelection") { (ruleId: String) in
-            ResolvePendingSelectionUseCase().commitPendingSelection(ruleId: ruleId)
-            ShieldApplier().applyShieldsForCurrentMoment()
+        Function("holdPendingSelection") { (ruleId: String, effectiveAtIso: String, ownerId: String) throws in
+            try NativeExceptionMapper.run {
+                try ModuleStateQueue.run {
+                    try HoldPendingSelectionUseCase().holdPendingSelection(
+                        ruleId: ruleId,
+                        effectiveAtIso: effectiveAtIso,
+                        ownerId: ownerId
+                    )
+                }
+            }
         }
 
         Function("discardPendingSelection") { (ruleId: String) in
-            ResolvePendingSelectionUseCase().discardPendingSelection(ruleId: ruleId)
+            ModuleStateQueue.run { DiscardPendingSelectionUseCase().discardPendingSelection(ruleId: ruleId) }
         }
 
-        Function("setRules") { (rulesJson: String) throws in
-            try InstallRulesUseCase().installRules(fromJSON: rulesJson)
+        AsyncFunction("setRules") { (request: SetRulesRequest) throws in
+            try NativeExceptionMapper.run {
+                try ModuleStateQueue.run { try InstallRulesUseCase().installRules(request) }
+            }
         }
 
-        Function("reapplyShields") { () in
-            ShieldApplier().applyShieldsForCurrentMoment()
+        Function("hasAcceptedStrictMode") { () -> Bool in
+            ModuleStateQueue.run { StrictModeAcceptanceStorage().loadHasAcceptedOnThisDevice() }
         }
 
-        Function("getUnscheduledRuleIds") { () -> [String] in
-            InstallRulesUseCase().findUnscheduledRuleIds()
+        Function("acceptStrictMode") { () throws in
+            try NativeExceptionMapper.run {
+                try ModuleStateQueue.run { try AcceptStrictModeUseCase().acceptStrictModeOnThisDevice() }
+            }
+        }
+
+        Function("revokeStrictMode") { () in
+            ModuleStateQueue.run { RevokeStrictModeUseCase().revokeStrictModeOnThisDevice() }
+        }
+
+        AsyncFunction("reapplyShields") { () in
+            ModuleStateQueue.run { ShieldApplier().applyShieldsForCurrentMoment() }
+        }
+
+        AsyncFunction("recordAppOpened") { () in
+            ModuleStateQueue.run { RecordAppOpenedUseCase().recordAppOpened() }
         }
     }
 }

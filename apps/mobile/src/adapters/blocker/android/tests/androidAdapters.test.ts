@@ -1,6 +1,6 @@
 import type { BlockRule } from '@block-apps/core'
 import { describe, expect, it, vi } from 'vitest'
-import type { AndroidNativeModule } from '../AndroidNativeModule'
+import type { AndroidNativeModule } from '../module/AndroidNativeModule'
 import { createAndroidAdapters } from '../createAndroidAdapters'
 
 const appRule: BlockRule = {
@@ -26,7 +26,13 @@ function buildNativeModule(overrides: Partial<AndroidNativeModule> = {}): Androi
 describe('createAndroidAdapters', () => {
   it('serializes app rules to the native module', () => {
     const nativeModule = buildNativeModule()
-    createAndroidAdapters(nativeModule).blocker.applyRules([appRule])
+    createAndroidAdapters(nativeModule).blocker.applyRules({
+      rules: [appRule],
+      pendingChanges: [],
+      serverNowIso: null,
+      legacyAccountId: null,
+      accountId: 'user@example.com',
+    })
     expect(nativeModule.setRules).toHaveBeenCalledWith(
       '[{"target":"com.instagram.android","mode":"always","windows":[]}]',
     )

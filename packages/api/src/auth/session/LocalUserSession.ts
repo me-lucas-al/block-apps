@@ -2,6 +2,7 @@ import type { SessionStorage } from '../contracts/SessionStorage'
 import type { SessionTokens } from '../contracts/SessionTokens'
 import type { UserSession } from '../UserSession'
 import type { Unsubscribe } from '../../subscription/Unsubscribe'
+import { readIdTokenSubject } from './readIdTokenSubject'
 
 type EmailListener = (email: string | null) => void
 
@@ -15,6 +16,11 @@ export class LocalUserSession implements UserSession {
     const tokens = await this.storage.load()
     this.lastKnownEmail = tokens?.email ?? null
     return this.lastKnownEmail
+  }
+
+  async currentUserId(): Promise<string | null> {
+    const tokens = await this.storage.load()
+    return tokens ? readIdTokenSubject(tokens.idToken) : null
   }
 
   async currentIdToken(): Promise<string | null> {

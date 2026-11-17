@@ -25,14 +25,23 @@ export function useGroupAppChoices(dependencies: GroupAppChoicesDependencies) {
   const [notice, setNotice] = useState<string | null>(null)
   const [groupStates, setGroupStates] = useState<GroupStates | null>(null)
   const [choicesVersion, setChoicesVersion] = useState(0)
+  const [statesLoadFailed, setStatesLoadFailed] = useState(false)
   const ruleIdsKey = JSON.stringify(ruleIds)
 
   useEffect(() => {
     let isStillMounted = true
     groupSelection
       .loadGroupStates(JSON.parse(ruleIdsKey) as string[])
-      .then((states) => isStillMounted && setGroupStates(states))
-      .catch((failure: unknown) => isStillMounted && setNotice(describeAppFailure(failure)))
+      .then((states) => {
+        if (!isStillMounted) return
+        setGroupStates(states)
+        setStatesLoadFailed(false)
+      })
+      .catch((failure: unknown) => {
+        if (!isStillMounted) return
+        setStatesLoadFailed(true)
+        setNotice(describeAppFailure(failure))
+      })
     return () => {
       isStillMounted = false
     }
@@ -58,9 +67,11 @@ export function useGroupAppChoices(dependencies: GroupAppChoicesDependencies) {
   return {
     notice,
     chooseAppsOfRule,
-    hasChosenApps: (ruleId: string) => !groupStates || groupStates.chosenRuleIds.includes(ruleId),
+    hasChosenApps: (ruleId: string) =>
+      statesLoadFailed || !groupStates || groupStates.chosenRuleIds.includes(ruleId),
     isSelectionUnreadable: (ruleId: string) =>
-      groupStates?.unreadableRuleIds.includes(ruleId) ?? false,
+      statesLoadFailed || (groupStates?.unreadableRuleIds.includes(ruleId) ?? false),
+    isTotalOverLimit: groupStates?.isTotalOverLimit ?? false,
     isOverAppLimit: (ruleId: string) => groupStates?.oversizedRuleIds.includes(ruleId) ?? false,
     isBlockedForLackOfSlots: (ruleId: string) =>
       groupStates?.unscheduledRuleIds.includes(ruleId) ?? false,

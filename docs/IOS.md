@@ -28,7 +28,7 @@ apps/mobile/
     Shared/              Storage/{AppGroup,Rules,Selection,Device}, Blocking/, Selection/, Logging/, Messages/ (compilado no módulo e nas extensões)
     UseCases/            Rules/, Selection/{Picker,Pending}, StrictMode/, Activity/
     Exceptions/          Rules/, Storage/, Platform/ (mensagens conferidas contra `describeAppFailure` por teste)
-    Authorization/ Schedule/ Picker/ Module/   só no módulo (Module/ guarda a fila serial de estado)
+    Authorization/ Schedule/ Picker/ Module/   só no módulo (Module/ guarda a fila serial: toda leitura e escrita de estado do módulo passa por ela)
     AppBlockerModule.swift   API para o JavaScript
   targets/               extensões geradas por @bacons/apple-targets
     device-activity-monitor/  shield-config/  shield-action/
@@ -58,7 +58,7 @@ Adicionar apps vale na hora. Remover apps fica guardado como seleção pendente 
 - A autorização do Tempo de Uso é pedida na primeira abertura, com o app logado, enquanto o status for "não determinado" (o botão "Autorizar" continua no cartão de proteção).
 - O módulo expõe `setRules`, `reapplyShields` e `recordAppOpened` como `AsyncFunction`, e `getGroupStates` devolve numa só chamada a seleção e o agendamento de todos os grupos. O `expo-module.config.json` usa a plataforma `apple` (conferido com `expo-modules-autolinking resolve --platform apple`).
 - Autorização conferida a cada volta ao primeiro plano e reportada ao servidor (`PUT /devices/:id/status`, `platform: ios`, `adminActive` igual à autorização ativa).
-- Sair da conta não desbloqueia, e **entrar com outra conta não substitui as regras** enquanto houver regras em vigor: o app grava no App Group o dono das regras (o `sub` do Cognito, que não muda com o e-mail) e o módulo recusa `setRules`, o seletor de apps (resultado `notOwner`) e o pedido de remoção de outra conta (`RulesOwnershipPolicy`). Quando o dono fica sem regras (por exemplo, removeu tudo depois do cooldown), outra conta pode assumir. Hoje isso vale só no iOS; o Android ainda aceita a troca.
+- Sair da conta não desbloqueia, e **entrar com outra conta não substitui as regras** enquanto houver regras em vigor: o app grava no App Group o dono das regras (o `sub` do Cognito, que não muda com o e-mail; um dono gravado antes como e-mail da mesma conta é migrado para o `sub` no primeiro `setRules`, por `LegacyOwnerPolicy`) e o módulo recusa `setRules`, o seletor de apps (resultado `notOwner`) e o pedido de remoção de outra conta (`RulesOwnershipPolicy`). Quando o dono fica sem regras (por exemplo, removeu tudo depois do cooldown), outra conta pode assumir. Hoje isso vale só no iOS; o Android ainda aceita a troca.
 - Tokens do Cognito ficam no Keychain (`expo-secure-store`).
 - Pedir de novo a remoção de apps do mesmo grupo cancela o pedido anterior e **recomeça o cooldown**; sem isso o novo pedido herdava o prazo do antigo e dava para encurtar a espera. Enquanto o grupo inteiro espera para ser removido, "Editar apps" fica bloqueado.
 - Se as regras no App Group não existem ou não podem ser lidas, o bloqueio atual é mantido (nunca limpa por engano).
@@ -99,7 +99,7 @@ Fazer num iPhone com iOS 16 ou mais, depois da aprovação da Apple. Correções
 - Modo estrito: sem autorização do Tempo de Uso o app não deixa ligar; a atividade `strict-mode-heartbeat` dispara todo dia e a trava libera depois de 14 dias sem abrir o app, mesmo sem outra regra de horário; em um segundo aparelho, o aceite é pedido antes de a trava ligar.
 - Reinstalar e entrar de novo: as regras voltam e a seleção pede nova escolha.
 - Ver no Console.app os logs do módulo e conferir que as falhas chegam ao app com os códigos de `ERR_*` (por exemplo, abrir o seletor sem tela disponível).
-- Grupo com mais de 50 apps: ver se o iOS bloqueia todos ou só parte, e se a lista mostra o aviso.
+- Grupo, ou soma dos grupos, com mais de 50 itens: ver se o iOS bloqueia todos ou só parte, e se a lista mostra os avisos.
 - Confiabilidade dos callbacks de `DeviceActivity` e dos tokens depois de atualizar o iOS.
 
 ## Erros e logs
@@ -126,7 +126,7 @@ Opcional e **escondido por padrão**: o cartão "Modo estrito" só aparece em bu
 
 - **Relógio:** a remoção de apps usa a hora do servidor, não a do aparelho. `requireAutomaticDateAndTime` fica ligado com regra de horário **ou** modo estrito ativo (`AutomaticClockPolicy`).
 - **Reinstalar:** a regra volta do servidor sem a seleção de apps, que fica só no aparelho, e o grupo fica sem bloqueio até escolher os apps de novo (o app avisa). A primeira escolha depois de reinstalar não passa pelo cooldown.
-- **Apps por grupo:** relata-se que a Apple só protege cerca de 50 apps por seleção (não confirmado). O limite relatado vale para o total bloqueado, mas a lista avisa por grupo (dois grupos de 30 apps não avisam), quando um grupo passa de 50 apps escolhidos individualmente (`SelectionLimits`; categorias não entram na conta), mas o módulo não corta a seleção: o corte automático fica para depois do teste em aparelho.
+- **Limite de apps:** relata-se que a Apple só protege cerca de 50 itens por seleção (não confirmado). A lista avisa quando um grupo, ou a soma de todos os grupos, passa de 50 itens (apps, categorias e sites escolhidos; `SelectionLimits`). O módulo não corta a seleção: cortar sem saber o que o iOS faz acima do limite poderia desbloquear apps escolhidos, então o corte automático só entra depois do teste em aparelho.
 - **Domínios:** `blockedByFilter` aceita cerca de 50 domínios (relato não confirmado); o excedente não é tratado nem avisado, e a lista de grupos do iOS não mostra regras de site.
 - **Seleção órfã:** a seleção guardada de uma regra removida ou de um formulário cancelado não é apagada (não há função nativa para isso); se a regra for recriada com o mesmo nome, herda a seleção antiga.
 - **Corrida na atualização:** uma atualização da lista logo depois de pedir a remoção pode descartar o pedido guardado; o efeito é seguro (os apps continuam bloqueados) mas o pedido precisa ser refeito.

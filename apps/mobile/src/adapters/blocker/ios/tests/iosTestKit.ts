@@ -41,7 +41,7 @@ export function snapshotOf(
   accountId = 'user-sub-1',
   serverNowIso: string | null = '2026-11-16T12:00:00.000Z',
 ) {
-  return { rules, pendingChanges, accountId, serverNowIso }
+  return { rules, pendingChanges, accountId, legacyAccountId: 'user@example.com', serverNowIso }
 }
 
 export function buildNativeModule(overrides: Partial<IosNativeModule> = {}): IosNativeModule {
@@ -55,6 +55,7 @@ export function buildNativeModule(overrides: Partial<IosNativeModule> = {}): Ios
       unreadableRuleIds: [],
       unscheduledRuleIds: [],
       oversizedRuleIds: [],
+      isTotalOverLimit: false,
     })),
     holdPendingSelection: vi.fn(),
     discardPendingSelection: vi.fn(),

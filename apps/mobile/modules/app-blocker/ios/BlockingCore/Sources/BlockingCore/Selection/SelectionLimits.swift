@@ -1,7 +1,7 @@
 public enum SelectionLimits {
-    public static let reportedMaximumApplications: Int = 50
+    public static let reportedMaximumItems: Int = 50
 
-    public static func exceedsReportedApplicationLimit(applicationCount: Int) -> Bool {
-        return applicationCount > reportedMaximumApplications
+    public static func exceedsReportedLimit(itemCount: Int) -> Bool {
+        return itemCount > reportedMaximumItems
     }
 }

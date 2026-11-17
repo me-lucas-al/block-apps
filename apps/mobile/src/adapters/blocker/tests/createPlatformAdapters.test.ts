@@ -18,6 +18,7 @@ const nativeModule: AndroidNativeModule & IosNativeModule = {
     unreadableRuleIds: [],
     unscheduledRuleIds: [],
     oversizedRuleIds: [],
+    isTotalOverLimit: false,
   }),
   holdPendingSelection: () => undefined,
   discardPendingSelection: () => undefined,

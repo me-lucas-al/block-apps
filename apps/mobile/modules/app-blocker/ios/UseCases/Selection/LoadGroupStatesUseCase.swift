@@ -6,6 +6,7 @@ struct GroupStatesRecord: Record {
     @Field var unreadableRuleIds: [String] = []
     @Field var unscheduledRuleIds: [String] = []
     @Field var oversizedRuleIds: [String] = []
+    @Field var isTotalOverLimit: Bool = false
 }
 
 struct LoadGroupStatesUseCase {
@@ -29,16 +30,25 @@ struct LoadGroupStatesUseCase {
             selectionStorage.loadSelectionResult(ruleId: ruleId).statusName == "unreadable"
         }
         record.unscheduledRuleIds = findUnscheduledRuleIds.findUnscheduledRuleIds()
+        let itemCounts: [String: Int] = countItems(ruleIds: ruleIds)
         record.oversizedRuleIds = ruleIds.filter { (ruleId: String) -> Bool in
-            hasTooManyApplications(ruleId: ruleId)
+            SelectionLimits.exceedsReportedLimit(itemCount: itemCounts[ruleId] ?? 0)
         }
+        let totalCount: Int = itemCounts.values.reduce(0, +)
+        record.isTotalOverLimit = SelectionLimits.exceedsReportedLimit(itemCount: totalCount)
         return record
     }
 
-    private func hasTooManyApplications(ruleId: String) -> Bool {
-        guard let selection: FamilyActivitySelection = selectionStorage.loadSelection(ruleId: ruleId) else {
-            return false
+    private func countItems(ruleIds: [String]) -> [String: Int] {
+        var itemCounts: [String: Int] = [:]
+        for ruleId: String in ruleIds {
+            guard let selection: FamilyActivitySelection = selectionStorage.loadSelection(ruleId: ruleId) else {
+                continue
+            }
+            itemCounts[ruleId] = selection.applicationTokens.count
+                + selection.categoryTokens.count
+                + selection.webDomainTokens.count
         }
-        return SelectionLimits.exceedsReportedApplicationLimit(applicationCount: selection.applicationTokens.count)
+        return itemCounts
     }
 }

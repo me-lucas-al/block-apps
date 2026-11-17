@@ -30,6 +30,7 @@ describe('createAndroidAdapters', () => {
       rules: [appRule],
       pendingChanges: [],
       serverNowIso: null,
+      legacyAccountId: null,
       accountId: 'user@example.com',
     })
     expect(nativeModule.setRules).toHaveBeenCalledWith(

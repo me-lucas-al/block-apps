@@ -28,5 +28,6 @@ struct ShieldApplier {
         let blockedRules = BlockedRuleResolver.resolveBlockedRules(rules, at: moment)
         settingsWriter.writeShields(targetsBuilder.buildTargets(for: blockedRules))
         settingsWriter.requireAutomaticDateAndTime(rules.contains { $0.followsTimeWindows })
+        settingsWriter.denyAppRemoval(StrictModePolicy.isDenyAppRemovalRequired(by: rules))
     }
 }

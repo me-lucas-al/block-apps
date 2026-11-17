@@ -14,6 +14,8 @@ import { RulesSyncScheduler } from '../background/RulesSyncScheduler'
 import type { GroupSelectionPort } from '../ports/groupselection/GroupSelectionPort'
 import type { AppChoicePort } from '../ports/appchoice/AppChoicePort'
 import type { ProtectionPort } from '../ports/protection/ProtectionPort'
+import type { StrictModeController } from '../strictmode/StrictModeController'
+import { createStrictMode } from '../strictmode/createStrictMode'
 import type { AppRulesSync } from '../sync/AppRulesSync'
 import { createRulesSync } from '../sync/createRulesSync'
 
@@ -25,6 +27,7 @@ export type Services = {
   readonly protection: ProtectionPort
   readonly appChoice: AppChoicePort
   readonly groupSelection: GroupSelectionPort | null
+  readonly strictMode: StrictModeController | null
   readonly listedTargetTypes: readonly TargetType[]
   readonly rulesSync: AppRulesSync
   readonly rulesSyncScheduler: RulesSyncScheduler
@@ -51,6 +54,12 @@ export function createServices(): Services {
     protection: adapters.protection,
     appChoice: adapters.appChoice,
     groupSelection: adapters.groupSelection,
+    strictMode: createStrictMode({
+      platform: adapters.platform,
+      ruleRepository: mobile.ruleRepository,
+      pendingRuleChanges: mobile.pendingRuleChanges,
+      rulesSync,
+    }),
     listedTargetTypes: adapters.listedTargetTypes,
     rulesSync,
     rulesSyncScheduler: new RulesSyncScheduler(new ExpoBackgroundTaskPort()),

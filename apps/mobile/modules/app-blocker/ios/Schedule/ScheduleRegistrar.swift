@@ -2,7 +2,8 @@ import DeviceActivity
 import Foundation
 
 struct ScheduleRegistrar {
-    private let registeredNamesKey = "schedule.registeredActivityNames"
+    private static let layoutVersion = 2
+    private let layoutVersionKey = "schedule.layoutVersion"
     private let activityCenter = DeviceActivityCenter()
     private let defaults: UserDefaults?
 
@@ -11,11 +12,9 @@ struct ScheduleRegistrar {
     }
 
     func registerActivities(of plan: ShieldSchedulePlan) throws {
-        let plannedNames = plan.activities.map { $0.name }
-        let registeredNames = defaults?.stringArray(forKey: registeredNamesKey)
-        if registeredNames == plannedNames { return }
+        if isAlreadyMonitoring(plan) { return }
 
-        defaults?.removeObject(forKey: registeredNamesKey)
+        defaults?.removeObject(forKey: layoutVersionKey)
         activityCenter.stopMonitoring()
         var firstFailure: Error?
         for activity in plan.activities {
@@ -29,7 +28,13 @@ struct ScheduleRegistrar {
             }
         }
         if let firstFailure = firstFailure { throw firstFailure }
-        defaults?.set(plannedNames, forKey: registeredNamesKey)
+        defaults?.set(Self.layoutVersion, forKey: layoutVersionKey)
+    }
+
+    private func isAlreadyMonitoring(_ plan: ShieldSchedulePlan) -> Bool {
+        if defaults?.integer(forKey: layoutVersionKey) != Self.layoutVersion { return false }
+        let monitoredNames = Set(activityCenter.activities.map { $0.rawValue })
+        return monitoredNames == Set(plan.activities.map { $0.name })
     }
 
     private func makeSchedule(for activity: PlannedActivity) -> DeviceActivitySchedule {
@@ -41,7 +46,8 @@ struct ScheduleRegistrar {
             ),
             intervalEnd: DateComponents(
                 hour: activity.endMinute / 60,
-                minute: activity.endMinute % 60
+                minute: activity.endMinute % 60,
+                weekday: activity.endWeekday
             ),
             repeats: true
         )

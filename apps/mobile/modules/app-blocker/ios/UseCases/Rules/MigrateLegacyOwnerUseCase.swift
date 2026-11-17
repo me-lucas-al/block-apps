@@ -6,11 +6,10 @@ struct MigrateLegacyOwnerUseCase {
     }
 
     func migrateLegacyOwner(legacyOwnerId: String?, incomingOwnerId: String) throws {
-        let shouldMigrate: Bool = LegacyOwnerPolicy.shouldMigrate(
-            storedOwnerId: rulesStorage.loadOwnerId(),
+        try LegacyOwnerMigration.migrate(
+            storage: rulesStorage,
             legacyOwnerId: legacyOwnerId,
             incomingOwnerId: incomingOwnerId
         )
-        if shouldMigrate { try rulesStorage.saveOwnerId(incomingOwnerId) }
     }
 }

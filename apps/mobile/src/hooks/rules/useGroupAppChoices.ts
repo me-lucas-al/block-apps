@@ -1,6 +1,7 @@
 import type { BlockRule } from '@block-apps/core'
 import { useCallback, useEffect, useState } from 'react'
 import { describeAppFailure } from '../../errors/describeAppFailure'
+import { describeGroupChoices } from '../../rules/describeGroupChoices'
 import type {
   GroupSelectionPort,
   GroupStates,
@@ -68,13 +69,6 @@ export function useGroupAppChoices(dependencies: GroupAppChoicesDependencies) {
   return {
     notice,
     chooseAppsOfRule,
-    hasChosenApps: (ruleId: string) =>
-      statesLoadFailed || !groupStates || groupStates.chosenRuleIds.includes(ruleId),
-    isSelectionUnreadable: (ruleId: string) =>
-      statesLoadFailed || (groupStates?.unreadableRuleIds.includes(ruleId) ?? false),
-    isTotalOverLimit: groupStates?.isTotalOverLimit ?? false,
-    isOverAppLimit: (ruleId: string) => groupStates?.oversizedRuleIds.includes(ruleId) ?? false,
-    isBlockedForLackOfSlots: (ruleId: string) =>
-      groupStates?.unscheduledRuleIds.includes(ruleId) ?? false,
+    ...describeGroupChoices(groupStates, statesLoadFailed),
   }
 }

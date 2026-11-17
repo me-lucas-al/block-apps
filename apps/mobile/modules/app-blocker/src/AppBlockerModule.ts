@@ -7,7 +7,7 @@ declare class AppBlockerModule extends NativeModule {
     ownerId?: string,
     pendingRuleIds?: string[],
     serverNowIso?: string | null,
-  ): void
+  ): Promise<void>
 
   isAccessibilityEnabled(): boolean
   openAccessibilitySettings(): void
@@ -18,16 +18,18 @@ declare class AppBlockerModule extends NativeModule {
   getAuthorizationStatus(): string
   requestScreenTimeAuthorization(): Promise<string>
   presentAppSelectionPicker(ruleId: string, ownerId: string): Promise<string>
-  hasSelection(ruleId: string): boolean
-  getSelectionStatus(ruleId: string): string
+  getGroupStates(ruleIds: string[]): Promise<{
+    chosenRuleIds: string[]
+    unreadableRuleIds: string[]
+    unscheduledRuleIds: string[]
+  }>
   holdPendingSelection(ruleId: string, effectiveAtIso: string, ownerId: string): void
   discardPendingSelection(ruleId: string): void
   hasAcceptedStrictMode(): boolean
   acceptStrictMode(): void
   revokeStrictMode(): void
-  reapplyShields(): void
-  recordAppOpened(): void
-  getUnscheduledRuleIds(): string[]
+  reapplyShields(): Promise<void>
+  recordAppOpened(): Promise<void>
 }
 
 export default requireNativeModule<AppBlockerModule>('AppBlocker')

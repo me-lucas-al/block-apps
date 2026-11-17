@@ -33,6 +33,10 @@ export class AndroidProtectionAdapter implements ProtectionPort {
     ]
   }
 
+  async requestAuthorizationOnFirstOpen(): Promise<void> {
+    return
+  }
+
   isDeviceProtected(): boolean {
     return this.nativeModule.isDeviceAdminActive()
   }

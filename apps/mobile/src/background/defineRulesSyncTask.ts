@@ -11,7 +11,7 @@ defineTask(RULES_SYNC_TASK_NAME, async () => {
   const { blocker } = createDeviceAdapters(() => mobile.session.currentUserId())
   const outcome = await syncRulesInBackground(() => createRulesSync(mobile, blocker))
   try {
-    blocker.refreshEnforcement()
+    await blocker.refreshEnforcement()
   } catch {
     return BackgroundTaskResult.Failed
   }

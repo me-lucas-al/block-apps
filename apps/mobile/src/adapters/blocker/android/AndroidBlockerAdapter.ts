@@ -6,15 +6,15 @@ import { toNativeRulesJson } from './rules/toNativeRulesJson'
 export class AndroidBlockerAdapter implements BlockerPort {
   constructor(private readonly nativeModule: Pick<AndroidNativeModule, 'setRules'>) {}
 
-  applyRules({ rules }: RulesSnapshot): void {
+  async applyRules({ rules }: RulesSnapshot): Promise<void> {
     this.nativeModule.setRules(toNativeRulesJson(rules))
   }
 
-  refreshEnforcement(): void {
+  async refreshEnforcement(): Promise<void> {
     return
   }
 
-  markAppOpened(): void {
+  async markAppOpened(): Promise<void> {
     return
   }
 }

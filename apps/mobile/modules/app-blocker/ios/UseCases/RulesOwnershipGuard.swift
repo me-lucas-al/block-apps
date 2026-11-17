@@ -10,7 +10,7 @@ struct RulesOwnershipGuard {
         let decision: RulesOwnershipDecision = RulesOwnershipPolicy.decide(
             storedOwnerId: rulesStorage.loadOwnerId(),
             incomingOwnerId: ownerId,
-            hasStoredRules: (storedRules?.isEmpty ?? false) == false
+            hasStoredRules: !(storedRules?.isEmpty ?? false)
         )
         if decision == .rejectBecauseAnotherAccountOwnsTheRules {
             throw InstallRulesError.anotherAccountOwnsTheRules

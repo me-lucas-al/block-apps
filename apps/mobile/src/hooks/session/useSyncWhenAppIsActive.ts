@@ -3,6 +3,10 @@ import { AppState } from 'react-native'
 import { describeAppFailure } from '../../errors/describeAppFailure'
 import { useServices } from '../../services/ServicesContext'
 
+function describeFailureOrNull(failure: unknown): string {
+  return describeAppFailure(failure)
+}
+
 export function useSyncWhenAppIsActive(signedInEmail: string | null): {
   syncFailure: string | null
 } {
@@ -15,13 +19,19 @@ export function useSyncWhenAppIsActive(signedInEmail: string | null): {
       return
     }
     let isStillActive = true
+    let latestRun = 0
+
+    const markOpenedThenSyncRules = async () => {
+      latestRun += 1
+      const thisRun = latestRun
+      const markFailure = await blocker.markAppOpened().then(() => null, describeFailureOrNull)
+      const syncRulesFailure = await rulesSync.sync().then(() => null, describeFailureOrNull)
+      if (!isStillActive || thisRun !== latestRun) return
+      setSyncFailure(markFailure ?? syncRulesFailure)
+    }
 
     const syncRulesAndReportStatus = () => {
-      blocker.markAppOpened()
-      void rulesSync
-        .sync()
-        .then(() => isStillActive && setSyncFailure(null))
-        .catch((failure: unknown) => isStillActive && setSyncFailure(describeAppFailure(failure)))
+      void markOpenedThenSyncRules()
       void statusReporter.reportDeviceStatus().catch(() => {})
     }
 

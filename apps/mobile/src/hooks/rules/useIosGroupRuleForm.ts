@@ -3,6 +3,7 @@ import type { BlockMode, TimeWindow } from '@block-apps/core'
 import { useState } from 'react'
 import { describeAppFailure } from '../../errors/describeAppFailure'
 import { buildIosGroupRule } from '../../rules/buildIosGroupRule'
+import { hasChosenApps } from '../../rules/hasChosenApps'
 import { ruleErrorMessage } from '../../rules/ruleErrorMessage'
 import type { GroupSelectionPort } from '../../ports/groupselection/GroupSelectionPort'
 
@@ -31,7 +32,7 @@ export function useIosGroupRuleForm(dependencies: IosGroupRuleFormDependencies) 
       if (outcome === 'removalPending') groupSelection.discardPendingRemoval(draft.ruleId)
       if (outcome === 'notOwner') setError(ruleErrorMessage('not-owner'))
       if (outcome === 'notAuthorized') setError(ruleErrorMessage('not-authorized'))
-      setAppsChosen(groupSelection.hasChosenApps(draft.ruleId))
+      setAppsChosen(await hasChosenApps(groupSelection, draft.ruleId))
     } catch (failure) {
       setError(describeAppFailure(failure))
     }
@@ -40,7 +41,9 @@ export function useIosGroupRuleForm(dependencies: IosGroupRuleFormDependencies) 
   const submitGroupRule = async () => {
     const draft = buildDraft()
     if (draft.error) return setError(ruleErrorMessage(draft.error))
-    if (!groupSelection.hasChosenApps(draft.ruleId)) return setError(ruleErrorMessage('no-apps'))
+    if (!(await hasChosenApps(groupSelection, draft.ruleId))) {
+      return setError(ruleErrorMessage('no-apps'))
+    }
     try {
       setError(null)
       await createGroupRule(draft.rule)

@@ -24,6 +24,11 @@ export class IosProtectionAdapter implements ProtectionPort {
     ]
   }
 
+  async requestAuthorizationOnFirstOpen(): Promise<void> {
+    if (this.nativeModule.getAuthorizationStatus() !== 'notDetermined') return
+    await this.nativeModule.requestScreenTimeAuthorization()
+  }
+
   isDeviceProtected(): boolean {
     return this.nativeModule.getAuthorizationStatus() === 'approved'
   }

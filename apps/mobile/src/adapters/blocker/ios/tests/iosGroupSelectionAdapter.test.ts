@@ -57,15 +57,12 @@ describe('iOS group selection adapter', () => {
     expect(adapters.appChoice.listInstalledApps()).toEqual([])
   })
 
-  it('tells an unreadable stored selection apart from a missing one', () => {
-    const nativeModule = buildNativeModule({ getSelectionStatus: () => 'unreadable' })
+  it('loads the state of every group with a single native call', async () => {
+    const states = { chosenRuleIds: ['a'], unreadableRuleIds: ['b'], unscheduledRuleIds: ['c'] }
+    const nativeModule = buildNativeModule({ getGroupStates: vi.fn(async () => states) })
     const { groupSelection } = createIosAdapters(nativeModule, signedInOwner)
-    expect(groupSelection?.selectionStatusOf(groupRule.id)).toBe('unreadable')
-  })
-
-  it('rejects a selection status it does not know', () => {
-    const nativeModule = buildNativeModule({ getSelectionStatus: () => 'weird' })
-    const { groupSelection } = createIosAdapters(nativeModule, signedInOwner)
-    expect(() => groupSelection?.selectionStatusOf(groupRule.id)).toThrow('weird')
+    await expect(groupSelection?.loadGroupStates(['a', 'b', 'c'])).resolves.toEqual(states)
+    expect(nativeModule.getGroupStates).toHaveBeenCalledOnce()
+    expect(nativeModule.getGroupStates).toHaveBeenCalledWith(['a', 'b', 'c'])
   })
 })

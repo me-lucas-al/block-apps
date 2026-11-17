@@ -4,7 +4,7 @@ import { createPlatformAdapters } from '../createPlatformAdapters'
 import type { IosNativeModule } from '../ios/module/IosNativeModule'
 
 const nativeModule: AndroidNativeModule & IosNativeModule = {
-  setRules: () => undefined,
+  setRules: async () => undefined,
   isAccessibilityEnabled: () => true,
   openAccessibilitySettings: () => undefined,
   isDeviceAdminActive: () => true,
@@ -13,16 +13,14 @@ const nativeModule: AndroidNativeModule & IosNativeModule = {
   getAuthorizationStatus: () => 'approved',
   requestScreenTimeAuthorization: async () => 'approved',
   presentAppSelectionPicker: async () => 'saved',
-  hasSelection: () => true,
-  getSelectionStatus: () => 'found',
+  getGroupStates: async () => ({ chosenRuleIds: [], unreadableRuleIds: [], unscheduledRuleIds: [] }),
   holdPendingSelection: () => undefined,
   discardPendingSelection: () => undefined,
   hasAcceptedStrictMode: () => false,
   acceptStrictMode: () => undefined,
   revokeStrictMode: () => undefined,
-  reapplyShields: () => undefined,
-  recordAppOpened: () => undefined,
-  getUnscheduledRuleIds: () => [],
+  reapplyShields: async () => undefined,
+  recordAppOpened: async () => undefined,
 }
 
 describe('createPlatformAdapters', () => {

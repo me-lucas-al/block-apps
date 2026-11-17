@@ -1,12 +1,9 @@
 import type { NewBlockRule } from '@block-apps/api'
-import type { BlockRule, PendingRuleChange, TargetType } from '@block-apps/core'
+import type { BlockRule, PendingRuleChange } from '@block-apps/core'
 import { useCallback, useEffect, useState } from 'react'
 import { describeAppFailure } from '../../errors/describeAppFailure'
+import { keepListedTypes } from '../../rules/keepListedTypes'
 import { useServices } from '../../services/ServicesContext'
-
-function keepListedTypes(rules: BlockRule[], listedTypes: readonly TargetType[]): BlockRule[] {
-  return rules.filter((rule) => listedTypes.includes(rule.targetType))
-}
 
 export function useBlockRules() {
   const {
@@ -21,6 +18,7 @@ export function useBlockRules() {
   const [rules, setRules] = useState<BlockRule[]>([])
   const [pendingChanges, setPendingChanges] = useState<PendingRuleChange[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [appliedVersion, setAppliedVersion] = useState(0)
 
   const reload = useCallback(async () => {
     await pendingRuleChanges.applyDueChanges().catch(() => undefined)
@@ -30,10 +28,11 @@ export function useBlockRules() {
     setPendingChanges(currentPendingChanges)
     try {
       const accountId = await userSession.currentUserId()
-      if (accountId) rulesSync.push(allRules, currentPendingChanges, accountId)
+      if (accountId) await rulesSync.push(allRules, currentPendingChanges, accountId)
     } catch (failure) {
       setError(describeAppFailure(failure))
     }
+    setAppliedVersion((version) => version + 1)
   }, [ruleRepository, pendingRuleChanges, rulesSync, listedTargetTypes, userSession])
 
   const runAndReloadRules = useCallback(
@@ -87,6 +86,7 @@ export function useBlockRules() {
     rules,
     pendingChanges,
     error,
+    appliedVersion,
     create: (rule: NewBlockRule) => runAndReloadRules(() => ruleRepository.create(rule)),
     requestRemoval: (ruleId: string) =>
       runAndReloadRules(() => pendingRuleChanges.requestRemoval(ruleId)).catch(() => undefined),

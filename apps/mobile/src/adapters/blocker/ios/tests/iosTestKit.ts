@@ -46,20 +46,22 @@ export function snapshotOf(
 
 export function buildNativeModule(overrides: Partial<IosNativeModule> = {}): IosNativeModule {
   return {
-    setRules: vi.fn(),
+    setRules: vi.fn(async () => undefined),
     getAuthorizationStatus: () => 'approved',
     requestScreenTimeAuthorization: vi.fn(async () => 'approved'),
     presentAppSelectionPicker: vi.fn(async () => 'saved'),
-    hasSelection: () => true,
-    getSelectionStatus: () => 'found',
+    getGroupStates: vi.fn(async () => ({
+      chosenRuleIds: [],
+      unreadableRuleIds: [],
+      unscheduledRuleIds: [],
+    })),
     holdPendingSelection: vi.fn(),
     discardPendingSelection: vi.fn(),
     hasAcceptedStrictMode: () => false,
     acceptStrictMode: vi.fn(),
     revokeStrictMode: vi.fn(),
-    reapplyShields: vi.fn(),
-    recordAppOpened: vi.fn(),
-    getUnscheduledRuleIds: () => [],
+    reapplyShields: vi.fn(async () => undefined),
+    recordAppOpened: vi.fn(async () => undefined),
     ...overrides,
   }
 }

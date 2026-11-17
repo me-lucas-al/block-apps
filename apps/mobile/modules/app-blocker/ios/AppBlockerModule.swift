@@ -18,12 +18,8 @@ public class AppBlockerModule: Module {
             }
         }
 
-        Function("hasSelection") { (ruleId: String) -> Bool in
-            SelectionStorage().hasNonEmptySelection(ruleId: ruleId)
-        }
-
-        Function("getSelectionStatus") { (ruleId: String) -> String in
-            SelectionStorage().loadSelectionResult(ruleId: ruleId).statusName
+        AsyncFunction("getGroupStates") { (ruleIds: [String]) -> GroupStatesRecord in
+            LoadGroupStatesUseCase().loadGroupStates(ruleIds: ruleIds)
         }
 
         Function("holdPendingSelection") { (ruleId: String, effectiveAtIso: String, ownerId: String) throws in
@@ -40,14 +36,16 @@ public class AppBlockerModule: Module {
             DiscardPendingSelectionUseCase().discardPendingSelection(ruleId: ruleId)
         }
 
-        Function("setRules") { (json: String, ownerId: String, pendingIds: [String], serverNow: String?) throws in
+        AsyncFunction("setRules") { (json: String, ownerId: String, pendingIds: [String], serverNow: String?) throws in
             try NativeExceptionMapper.run {
-                try InstallRulesUseCase().installRules(
-                    fromJSON: json,
-                    ownerId: ownerId,
-                    pendingRuleIds: pendingIds,
-                    serverNowIso: serverNow
-                )
+                try ModuleStateQueue.run {
+                    try InstallRulesUseCase().installRules(
+                        fromJSON: json,
+                        ownerId: ownerId,
+                        pendingRuleIds: pendingIds,
+                        serverNowIso: serverNow
+                    )
+                }
             }
         }
 
@@ -60,19 +58,15 @@ public class AppBlockerModule: Module {
         }
 
         Function("revokeStrictMode") { () in
-            RevokeStrictModeUseCase().revokeStrictModeOnThisDevice()
+            ModuleStateQueue.run { RevokeStrictModeUseCase().revokeStrictModeOnThisDevice() }
         }
 
-        Function("reapplyShields") { () in
-            ShieldApplier().applyShieldsForCurrentMoment()
+        AsyncFunction("reapplyShields") { () in
+            ModuleStateQueue.run { ShieldApplier().applyShieldsForCurrentMoment() }
         }
 
-        Function("recordAppOpened") { () in
-            RecordAppOpenedUseCase().recordAppOpened()
-        }
-
-        Function("getUnscheduledRuleIds") { () -> [String] in
-            FindUnscheduledRuleIdsUseCase().findUnscheduledRuleIds()
+        AsyncFunction("recordAppOpened") { () in
+            ModuleStateQueue.run { RecordAppOpenedUseCase().recordAppOpened() }
         }
     }
 }

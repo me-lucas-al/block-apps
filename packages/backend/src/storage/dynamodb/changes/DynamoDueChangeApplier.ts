@@ -1,6 +1,7 @@
 import { TransactWriteCommand } from '@aws-sdk/lib-dynamodb'
 import type { PendingRuleChange } from '@block-apps/core'
 import type { DueChangeApplier } from '../../../cooldown/contracts/DueChangeApplier'
+import { buildRuleChangeItem } from './buildRuleChangeItem'
 import { readFailedConditionIndexes } from '../conditions/readFailedConditionIndexes'
 import { userPartitionKey } from '../keys/partitionKeys'
 import { changeSortKey, ruleSortKey } from '../keys/sortKeys'
@@ -20,25 +21,7 @@ export class DynamoDueChangeApplier implements DueChangeApplier {
         ExpressionAttributeValues: { ':effectiveAt': change.effectiveAt },
       },
     }
-    const changeOnRule =
-      change.kind === 'delete'
-        ? {
-            Delete: {
-              TableName: this.context.tableName,
-              Key: ruleKey,
-              ConditionExpression: 'attribute_exists(pk)',
-            },
-          }
-        : {
-            Update: {
-              TableName: this.context.tableName,
-              Key: ruleKey,
-              ConditionExpression: 'attribute_exists(pk)',
-              UpdateExpression: 'SET #mode = :mode, #windows = :windows',
-              ExpressionAttributeNames: { '#mode': 'mode', '#windows': 'windows' },
-              ExpressionAttributeValues: { ':mode': change.mode, ':windows': change.windows },
-            },
-          }
+    const changeOnRule = buildRuleChangeItem(this.context.tableName, ruleKey, change)
     try {
       await this.context.client.send(
         new TransactWriteCommand({ TransactItems: [changeOnRule, removePendingChange] }),

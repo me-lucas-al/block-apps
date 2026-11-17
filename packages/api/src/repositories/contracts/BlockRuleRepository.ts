@@ -8,5 +8,6 @@ export interface BlockRuleRepository {
   list(): Promise<BlockRule[]>
   create(newRule: NewBlockRule): Promise<BlockRule>
   requestUpdate(ruleId: string, update: RuleUpdateInput): Promise<PendingRuleChange>
+  requestSelectionRemoval(ruleId: string): Promise<PendingRuleChange>
   subscribeToRuleChanges(onRuleChanged: () => void): Unsubscribe
 }

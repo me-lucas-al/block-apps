@@ -1,6 +1,6 @@
 import type { BlockMode, TimeWindow } from './blockRule'
 
-export type PendingChangeKind = 'update' | 'delete'
+export type PendingChangeKind = 'update' | 'delete' | 'selectionRemoval'
 
 export type PendingRuleChange = {
   readonly id: string

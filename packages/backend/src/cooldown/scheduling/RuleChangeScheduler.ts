@@ -1,6 +1,8 @@
 import type { PendingRuleChange } from '@block-apps/core'
+import { ConflictError } from '../../domain/errors/ConflictError'
 import { NotFoundError } from '../../domain/errors/NotFoundError'
 import { requireAlwaysOnProtection } from '../../domain/rules/requireAlwaysOnProtection'
+import { requireSelectionRule } from '../../domain/rules/requireSelectionRule'
 import type { Clock } from '../../domain/time/Clock'
 import type { BlockRuleStore } from '../../rules/contracts/BlockRuleStore'
 import { computeCooldownDeadline } from '../computeCooldownDeadline'
@@ -27,9 +29,13 @@ export class RuleChangeScheduler {
     const rule = await this.blockRuleStore.findById(userId, ruleId)
     if (!rule) throw new NotFoundError('rule not found')
     if (draft.kind === 'update') requireAlwaysOnProtection(rule.targetType, draft.mode)
+    if (draft.kind === 'selectionRemoval') requireSelectionRule(rule.targetType)
 
     const pending = await this.pendingChangeStore.findByRuleId(userId, ruleId)
     if (pending && isSameChange(pending, draft)) return pending
+    if (draft.kind === 'selectionRemoval' && pending && pending.kind !== 'selectionRemoval') {
+      throw new ConflictError('another change is already pending for this rule')
+    }
 
     const cooldownHours = await this.cooldownSettingsStore.readCooldownHours(userId)
     const change: PendingRuleChange = {

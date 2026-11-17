@@ -17,4 +17,8 @@ describe('describePendingChange', () => {
   it('describes a pending update with the remaining time', () => {
     expect(describePendingChange(change('update'), NOW)).toBe('Alteração em 24h 0min')
   })
+
+  it('describes a pending selection removal apart from a whole removal', () => {
+    expect(describePendingChange(change('selectionRemoval'), NOW)).toBe('Remoção de apps em 24h 0min')
+  })
 })

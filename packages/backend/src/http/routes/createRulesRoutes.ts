@@ -38,5 +38,13 @@ export function createRulesRoutes(useCases: ApiUseCases) {
     return context.json(change)
   })
 
+  routes.post('/:ruleId/selection-removal-requests', async (context) => {
+    const change = await useCases.requestSelectionRemoval.requestSelectionRemoval(
+      context.var.user.userId,
+      readRuleIdParam(context),
+    )
+    return context.json(change)
+  })
+
   return routes
 }

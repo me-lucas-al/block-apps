@@ -42,6 +42,14 @@ export class HttpBlockRuleRepository implements BlockRuleRepository {
     return change
   }
 
+  async requestSelectionRemoval(ruleId: string): Promise<PendingRuleChange> {
+    const change = await this.http.post<PendingRuleChange>(
+      `/rules/${encodeURIComponent(ruleId)}/selection-removal-requests`,
+    )
+    void this.poller.pollNow()
+    return change
+  }
+
   subscribeToRuleChanges(onRuleChanged: () => void): Unsubscribe {
     return this.poller.subscribe(onRuleChanged)
   }

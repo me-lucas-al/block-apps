@@ -58,4 +58,19 @@ describe('HttpBlockRuleRepository', () => {
     const result = await repo.requestUpdate('r1', { mode: 'always', windows: [] })
     expect(result).toEqual(change)
   })
+
+  it('requests a selection removal on its own endpoint', async () => {
+    const change = { id: 'r1', ruleId: 'r1', kind: 'selectionRemoval', mode: null, windows: null, effectiveAt: 'x' }
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify(change), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify([]), { status: 200 }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const client = new HttpApiClient({ baseUrl: 'https://api.test', getToken: async () => 'tok' })
+    const result = await new HttpBlockRuleRepository(client).requestSelectionRemoval('r1')
+
+    expect(result).toEqual(change)
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('https://api.test/rules/r1/selection-removal-requests')
+  })
 })

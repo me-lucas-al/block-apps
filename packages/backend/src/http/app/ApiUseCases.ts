@@ -2,6 +2,7 @@ import type { ApplyDueChangesForUserUseCase } from '../../cooldown/use-cases/App
 import type { CancelPendingChangeUseCase } from '../../cooldown/use-cases/CancelPendingChangeUseCase'
 import type { ListPendingChangesUseCase } from '../../cooldown/use-cases/ListPendingChangesUseCase'
 import type { RequestRuleRemovalUseCase } from '../../cooldown/use-cases/RequestRuleRemovalUseCase'
+import type { RequestSelectionRemovalUseCase } from '../../cooldown/use-cases/RequestSelectionRemovalUseCase'
 import type { RequestRuleUpdateUseCase } from '../../cooldown/use-cases/RequestRuleUpdateUseCase'
 import type { ReportDeviceStatusUseCase } from '../../devices/use-cases/ReportDeviceStatusUseCase'
 import type { CreateBlockRuleUseCase } from '../../rules/use-cases/CreateBlockRuleUseCase'
@@ -12,6 +13,7 @@ export type ApiUseCases = {
   readonly listBlockRules: ListBlockRulesUseCase
   readonly requestRuleUpdate: RequestRuleUpdateUseCase
   readonly requestRuleRemoval: RequestRuleRemovalUseCase
+  readonly requestSelectionRemoval: RequestSelectionRemovalUseCase
   readonly listPendingChanges: ListPendingChangesUseCase
   readonly applyDueChangesForUser: ApplyDueChangesForUserUseCase
   readonly cancelPendingChange: CancelPendingChangeUseCase

@@ -9,6 +9,20 @@ import type { TableContext } from '../TableContext'
 export class DynamoDueChangeApplier implements DueChangeApplier {
   constructor(private readonly context: TableContext) {}
 
+  private buildChangeOnRule(change: PendingRuleChange, ruleKey: { pk: string; sk: string }) {
+    const base = { TableName: this.context.tableName, Key: ruleKey, ConditionExpression: 'attribute_exists(pk)' }
+    if (change.kind === 'delete') return { Delete: base }
+    if (change.kind === 'selectionRemoval') return { ConditionCheck: base }
+    return {
+      Update: {
+        ...base,
+        UpdateExpression: 'SET #mode = :mode, #windows = :windows',
+        ExpressionAttributeNames: { '#mode': 'mode', '#windows': 'windows' },
+        ExpressionAttributeValues: { ':mode': change.mode, ':windows': change.windows },
+      },
+    }
+  }
+
   async applyDueChange(userId: string, change: PendingRuleChange): Promise<boolean> {
     const partitionKey = userPartitionKey(userId)
     const ruleKey = { pk: partitionKey, sk: ruleSortKey(change.ruleId) }
@@ -20,25 +34,7 @@ export class DynamoDueChangeApplier implements DueChangeApplier {
         ExpressionAttributeValues: { ':effectiveAt': change.effectiveAt },
       },
     }
-    const changeOnRule =
-      change.kind === 'delete'
-        ? {
-            Delete: {
-              TableName: this.context.tableName,
-              Key: ruleKey,
-              ConditionExpression: 'attribute_exists(pk)',
-            },
-          }
-        : {
-            Update: {
-              TableName: this.context.tableName,
-              Key: ruleKey,
-              ConditionExpression: 'attribute_exists(pk)',
-              UpdateExpression: 'SET #mode = :mode, #windows = :windows',
-              ExpressionAttributeNames: { '#mode': 'mode', '#windows': 'windows' },
-              ExpressionAttributeValues: { ':mode': change.mode, ':windows': change.windows },
-            },
-          }
+    const changeOnRule = this.buildChangeOnRule(change, ruleKey)
     try {
       await this.context.client.send(
         new TransactWriteCommand({ TransactItems: [changeOnRule, removePendingChange] }),

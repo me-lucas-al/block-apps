@@ -3,6 +3,7 @@ import { ApplyDueChangesForUserUseCase } from '../cooldown/use-cases/ApplyDueCha
 import { CancelPendingChangeUseCase } from '../cooldown/use-cases/CancelPendingChangeUseCase'
 import { ListPendingChangesUseCase } from '../cooldown/use-cases/ListPendingChangesUseCase'
 import { RequestRuleRemovalUseCase } from '../cooldown/use-cases/RequestRuleRemovalUseCase'
+import { RequestSelectionRemovalUseCase } from '../cooldown/use-cases/RequestSelectionRemovalUseCase'
 import { RequestRuleUpdateUseCase } from '../cooldown/use-cases/RequestRuleUpdateUseCase'
 import { ReportDeviceStatusUseCase } from '../devices/use-cases/ReportDeviceStatusUseCase'
 import type { Clock } from '../domain/time/Clock'
@@ -37,6 +38,7 @@ export function createApiUseCases(
     listBlockRules: new ListBlockRulesUseCase(stores.blockRuleStore),
     requestRuleUpdate: new RequestRuleUpdateUseCase(ruleChangeScheduler),
     requestRuleRemoval: new RequestRuleRemovalUseCase(ruleChangeScheduler),
+    requestSelectionRemoval: new RequestSelectionRemovalUseCase(ruleChangeScheduler),
     listPendingChanges: new ListPendingChangesUseCase(stores.pendingChangeStore),
     applyDueChangesForUser,
     cancelPendingChange: new CancelPendingChangeUseCase(stores.pendingChangeStore),

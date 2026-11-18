@@ -1,7 +1,7 @@
+import { ConflictError } from '../../domain/errors/ConflictError'
+import { canonicalizeTimeZone } from '../canonicalizeTimeZone'
 import type { DnsSettings, DnsSettingsStore } from '../contracts/DnsSettingsStore'
 import type { DnsTokenGenerator } from '../token/generateDnsToken'
-import { hashDnsToken } from '../token/hashDnsToken'
-import { validateTimeZone } from '../validateTimeZone'
 
 export class EnsureDnsProfileUseCase {
   constructor(
@@ -10,23 +10,31 @@ export class EnsureDnsProfileUseCase {
     private readonly now: () => Date,
   ) {}
 
-  async ensureDnsProfile(userId: string, timeZone: string): Promise<DnsSettings> {
-    validateTimeZone(timeZone)
-    const existing = await this.dnsSettingsStore.findDnsSettings(userId)
-    if (!existing) return this.createProfile(userId, timeZone)
-    if (existing.timeZone === timeZone) return existing
-    const updated = { ...existing, timeZone }
-    await this.dnsSettingsStore.saveDnsSettings(userId, updated, hashDnsToken(existing.token))
-    return updated
+  async ensureDnsProfile(userId: string, requestedTimeZone: string): Promise<DnsSettings> {
+    const timeZone = canonicalizeTimeZone(requestedTimeZone)
+    const currentDnsSettings = await this.dnsSettingsStore.findDnsSettings(userId)
+    if (!currentDnsSettings) return this.createProfile(userId, timeZone)
+    if (currentDnsSettings.timeZone === timeZone) return currentDnsSettings
+    const changed = await this.dnsSettingsStore.changeDnsTimeZone(
+      userId,
+      currentDnsSettings,
+      timeZone,
+    )
+    if (!changed) throw new ConflictError('dns profile changed, try again')
+    return { ...currentDnsSettings, timeZone }
   }
 
   private async createProfile(userId: string, timeZone: string): Promise<DnsSettings> {
-    const created = {
+    const newDnsSettings = {
       token: this.generateToken(),
       timeZone,
       createdAt: this.now().toISOString(),
     }
-    await this.dnsSettingsStore.saveDnsSettings(userId, created, null)
-    return created
+    if (await this.dnsSettingsStore.createDnsSettings(userId, newDnsSettings)) {
+      return newDnsSettings
+    }
+    const concurrentDnsSettings = await this.dnsSettingsStore.findDnsSettings(userId)
+    if (!concurrentDnsSettings) throw new ConflictError('dns profile changed, try again')
+    return concurrentDnsSettings
   }
 }

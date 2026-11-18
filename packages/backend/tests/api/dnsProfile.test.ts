@@ -67,10 +67,22 @@ describe.each(backendFactories)('dns profile ($name)', (factory) => {
 
   it.each([
     ['an invalid time zone', 'Mars/Olympus'],
+    ['a legacy abbreviation', 'EST'],
+    ['a fixed offset', '+03:00'],
     ['an empty time zone', ''],
     ['a missing time zone', undefined],
   ])('rejects %s', async (_label, timeZone) => {
     expect((await postProfile(backend(), timeZone)).status).toBe(400)
+  })
+
+  it('stores the canonical name of the time zone', async () => {
+    const reply = await postProfile(backend(), 'america/sao_paulo')
+    expect(reply.json).toMatchObject({ timeZone: 'America/Sao_Paulo' })
+  })
+
+  it('accepts UTC', async () => {
+    const reply = await postProfile(backend(), 'UTC')
+    expect(reply.status).toBe(200)
   })
 
   it('requires a signed in user', async () => {

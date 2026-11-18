@@ -27,8 +27,8 @@ describe.skipIf(!DYNAMODB_LOCAL_ENDPOINT)('DynamoDB user administration stores',
 
   it('erases the dns profile of a user together with the token lookup', async () => {
     const profile = { token: 'secret-token', timeZone: 'America/Sao_Paulo', createdAt: '2026-11-11T12:00:00.000Z' }
-    await stores.dnsSettingsStore.saveDnsSettings('user-1', profile, null)
-    await stores.dnsSettingsStore.saveDnsSettings('user-2', { ...profile, token: 'other-token' }, null)
+    await stores.dnsSettingsStore.createDnsSettings('user-1', profile)
+    await stores.dnsSettingsStore.createDnsSettings('user-2', { ...profile, token: 'other-token' })
 
     await new DynamoUserDataEraser(table.context).eraseAllDataOf('user-1')
 

@@ -32,13 +32,34 @@ export class InMemoryRuleDatabase
     return this.dnsSettingsByUser.get(userId) ?? null
   }
 
-  async saveDnsSettings(userId: string, settings: DnsSettings, previousTokenHash: string | null): Promise<void> {
-    this.dnsSettingsByUser.set(userId, settings)
-    const tokenHash = hashDnsToken(settings.token)
-    this.userIdByTokenHash.set(tokenHash, userId)
-    if (previousTokenHash && previousTokenHash !== tokenHash) {
-      this.userIdByTokenHash.delete(previousTokenHash)
-    }
+  async createDnsSettings(userId: string, newDnsSettings: DnsSettings): Promise<boolean> {
+    if (this.dnsSettingsByUser.has(userId)) return false
+    this.dnsSettingsByUser.set(userId, newDnsSettings)
+    this.userIdByTokenHash.set(hashDnsToken(newDnsSettings.token), userId)
+    return true
+  }
+
+  async replaceDnsToken(
+    userId: string,
+    currentDnsSettings: DnsSettings,
+    rotatedDnsSettings: DnsSettings,
+  ): Promise<boolean> {
+    if (this.dnsSettingsByUser.get(userId)?.token !== currentDnsSettings.token) return false
+    this.dnsSettingsByUser.set(userId, rotatedDnsSettings)
+    this.userIdByTokenHash.delete(hashDnsToken(currentDnsSettings.token))
+    this.userIdByTokenHash.set(hashDnsToken(rotatedDnsSettings.token), userId)
+    return true
+  }
+
+  async changeDnsTimeZone(
+    userId: string,
+    currentDnsSettings: DnsSettings,
+    timeZone: string,
+  ): Promise<boolean> {
+    const stored = this.dnsSettingsByUser.get(userId)
+    if (stored?.token !== currentDnsSettings.token) return false
+    this.dnsSettingsByUser.set(userId, { ...stored, timeZone })
+    return true
   }
 
   async findUserIdByDnsTokenHash(tokenHash: string): Promise<string | null> {

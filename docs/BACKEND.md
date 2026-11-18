@@ -27,6 +27,8 @@ Uma única tabela DynamoDB (`<prefixo>-data`), cobrança por demanda, com recupe
 | Configuração | `USER#<userId>` | `SETTINGS` | `cooldownHours` |
 | Perfil de DNS | `USER#<userId>` | `DNS` | `token`, `tokenHash` (SHA-256), `timeZone` (IANA), `createdAt` |
 | Busca do token de DNS | `DNSTOKEN#<tokenHash>` | `DNSTOKEN` | `userId` (o resolvedor consulta só pelo hash; apagar o usuário apaga este item junto) |
+
+O token de DNS fica em claro no item `DNS` do usuário, porque `POST /dns/profile` precisa devolvê-lo de novo para montar o perfil; só o item de busca guarda o hash. Criar, trocar o token e mudar o fuso são gravações condicionais (sem corrida entre abas: quem perde recebe 409). O fuso é validado e gravado pelo nome canônico (`America/Sao_Paulo`, ou `UTC`); abreviações como `EST` e offsets como `+03:00` são recusados.
 | Dispositivo | `USER#<userId>` | `DEVICE#<deviceId>` | `deviceId`, `platform`, `incognitoAllowed`, `adminActive`, `lastSeen` |
 
 Há uma mudança pendente por regra (a chave usa o `ruleId`), então pedir de novo substitui o pedido anterior.

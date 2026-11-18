@@ -1,7 +1,7 @@
+import { ConflictError } from '../../domain/errors/ConflictError'
 import { NotFoundError } from '../../domain/errors/NotFoundError'
 import type { DnsSettings, DnsSettingsStore } from '../contracts/DnsSettingsStore'
 import type { DnsTokenGenerator } from '../token/generateDnsToken'
-import { hashDnsToken } from '../token/hashDnsToken'
 
 export class RotateDnsTokenUseCase {
   constructor(
@@ -11,14 +11,19 @@ export class RotateDnsTokenUseCase {
   ) {}
 
   async rotateDnsToken(userId: string): Promise<DnsSettings> {
-    const existing = await this.dnsSettingsStore.findDnsSettings(userId)
-    if (!existing) throw new NotFoundError('dns profile not found')
-    const rotated = {
+    const currentDnsSettings = await this.dnsSettingsStore.findDnsSettings(userId)
+    if (!currentDnsSettings) throw new NotFoundError('dns profile not found')
+    const rotatedDnsSettings = {
       token: this.generateToken(),
-      timeZone: existing.timeZone,
+      timeZone: currentDnsSettings.timeZone,
       createdAt: this.now().toISOString(),
     }
-    await this.dnsSettingsStore.saveDnsSettings(userId, rotated, hashDnsToken(existing.token))
-    return rotated
+    const replaced = await this.dnsSettingsStore.replaceDnsToken(
+      userId,
+      currentDnsSettings,
+      rotatedDnsSettings,
+    )
+    if (!replaced) throw new ConflictError('dns profile changed, try again')
+    return rotatedDnsSettings
   }
 }

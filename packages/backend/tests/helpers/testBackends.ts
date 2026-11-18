@@ -1,56 +1,19 @@
 import { PutCommand } from '@aws-sdk/lib-dynamodb'
-import type { Hono } from 'hono'
-import { createApiUseCases } from '../../src/composition/createApiUseCases'
+import type { ApiStores } from '../../src/composition/ApiStores'
 import { createDynamoStores } from '../../src/composition/createDynamoStores'
-import { ApplyAllDueChangesUseCase } from '../../src/cooldown/use-cases/ApplyAllDueChangesUseCase'
-import { ApplyDueChangesForUserUseCase } from '../../src/cooldown/use-cases/ApplyDueChangesForUserUseCase'
-import type { ApiEnv } from '../../src/http/app/ApiEnv'
-import { createApiApp } from '../../src/http/app/createApiApp'
 import { DEFAULT_MAX_RULES_PER_USER } from '../../src/rules/quota/readMaxRulesPerUser'
 import { userPartitionKey } from '../../src/storage/dynamodb/keys/partitionKeys'
 import { SETTINGS_SORT_KEY } from '../../src/storage/dynamodb/keys/sortKeys'
-import type { ApiStores } from '../../src/composition/ApiStores'
-import type { DnsSettingsStore } from '../../src/dns/contracts/DnsSettingsStore'
-import { buildSequentialTokens } from './buildSequentialTokens'
+import { assembleTestBackend, type TestBackend } from './assembleTestBackend'
 import { createLocalTable, DYNAMODB_LOCAL_ENDPOINT } from './dynamoLocal'
 import { FakeClock } from './FakeClock'
 import { InMemoryRuleDatabase } from './InMemoryRuleDatabase'
 
-export type TestBackend = {
-  readonly app: Hono<ApiEnv>
-  readonly clock: FakeClock
-  readonly dnsSettingsStore: DnsSettingsStore
-  applyAllDueChanges(): Promise<number>
-  setCooldownHours(userId: string, cooldownHours: number): Promise<void>
-  dispose(): Promise<void>
-}
+export type { TestBackend }
 
 export type BackendFactory = {
   readonly name: string
   create(maxRulesPerUser?: number): Promise<TestBackend>
-}
-
-function assembleBackend(
-  stores: ApiStores,
-  clock: FakeClock,
-  maxRulesPerUser: number,
-  setCooldownHours: TestBackend['setCooldownHours'],
-  dispose: TestBackend['dispose'],
-): TestBackend {
-  const useCases = createApiUseCases(stores, clock.now, maxRulesPerUser, buildSequentialTokens())
-  const applyAll = new ApplyAllDueChangesUseCase(
-    stores.pendingChangeStore,
-    new ApplyDueChangesForUserUseCase(stores.pendingChangeStore, stores.dueChangeApplier, clock.now),
-    clock.now,
-  )
-  return {
-    app: createApiApp(useCases),
-    clock,
-    dnsSettingsStore: stores.dnsSettingsStore,
-    applyAllDueChanges: () => applyAll.applyAllDueChanges(),
-    setCooldownHours,
-    dispose,
-  }
 }
 
 const inMemoryFactory: BackendFactory = {
@@ -68,7 +31,7 @@ const inMemoryFactory: BackendFactory = {
     const setCooldownHours = async (userId: string, cooldownHours: number) => {
       database.setCooldownHours(userId, cooldownHours)
     }
-    return assembleBackend(stores, new FakeClock(), maxRulesPerUser, setCooldownHours, async () => {})
+    return assembleTestBackend(stores, new FakeClock(), maxRulesPerUser, setCooldownHours, async () => {})
   },
 }
 
@@ -85,7 +48,7 @@ function buildDynamoFactory(endpoint: string): BackendFactory {
           }),
         )
       }
-      return assembleBackend(
+      return assembleTestBackend(
         createDynamoStores(table.context),
         new FakeClock(),
         maxRulesPerUser,

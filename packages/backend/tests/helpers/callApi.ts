@@ -12,7 +12,13 @@ export type ApiCall = {
 
 export type ApiReply = { readonly status: number; readonly json: unknown }
 
-export async function callApi(app: Hono<ApiEnv>, call: ApiCall): Promise<ApiReply> {
+export type RawApiReply = {
+  readonly status: number
+  readonly headers: Headers
+  readonly text: string
+}
+
+export async function callRawApi(app: Hono<ApiEnv>, call: ApiCall): Promise<RawApiReply> {
   const userId = call.userId === undefined ? 'user-1' : call.userId
   const reply = await app.request(
     call.path,
@@ -23,6 +29,10 @@ export async function callApi(app: Hono<ApiEnv>, call: ApiCall): Promise<ApiRepl
     },
     buildLambdaBindings(userId, call.groups),
   )
-  const text = await reply.text()
-  return { status: reply.status, json: text ? (JSON.parse(text) as unknown) : null }
+  return { status: reply.status, headers: reply.headers, text: await reply.text() }
+}
+
+export async function callApi(app: Hono<ApiEnv>, call: ApiCall): Promise<ApiReply> {
+  const reply = await callRawApi(app, call)
+  return { status: reply.status, json: reply.text ? (JSON.parse(reply.text) as unknown) : null }
 }

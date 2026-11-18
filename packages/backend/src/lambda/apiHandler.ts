@@ -9,6 +9,7 @@ import { createLazyHandler } from './createLazyHandler'
 export const apiHandler = createLazyHandler(() => {
   const stores = createDynamoStores(createTableContext())
   const maxRulesPerUser = readConfiguredRuleLimit(process.env)
-  const useCases = createApiUseCases(stores, () => new Date(), maxRulesPerUser)
+  const dnsHost = process.env['DNS_HOST']?.trim() || null
+  const useCases = createApiUseCases(stores, () => new Date(), maxRulesPerUser, { dnsHost })
   return handle(createApiApp(useCases))
 })

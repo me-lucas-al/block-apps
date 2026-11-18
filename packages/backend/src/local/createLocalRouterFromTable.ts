@@ -1,3 +1,4 @@
+import { LOCAL_ADMIN_CLIENT_ID } from './buildLocalBindings'
 import { assembleCognitoAdminCollaborators } from '../composition/assembleCognitoAdminCollaborators'
 import { createAdminUseCases } from '../composition/createAdminUseCases'
 import { createApiUseCases } from '../composition/createApiUseCases'
@@ -26,6 +27,6 @@ export function createLocalRouterFromTable(table: TableContext, options: LocalAp
     () => new Date(),
     options.maxRulesPerUser,
   )
-  const adminApp = createAdminApp('admin', adminUseCases)
+  const adminApp = createAdminApp('admin', LOCAL_ADMIN_CLIENT_ID, adminUseCases)
   return createLocalRouter(createApiApp(apiUseCases), adminApp, options)
 }

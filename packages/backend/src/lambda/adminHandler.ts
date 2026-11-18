@@ -7,5 +7,11 @@ import { createLazyHandler } from './createLazyHandler'
 
 export const adminHandler = createLazyHandler(() => {
   const useCases = createAdminUseCases(createCognitoAdminCollaborators())
-  return handle(createAdminApp(readRequiredEnvironment('ADMIN_GROUP_NAME'), useCases))
+  return handle(
+    createAdminApp(
+      readRequiredEnvironment('ADMIN_GROUP_NAME'),
+      readRequiredEnvironment('ADMIN_CLIENT_ID'),
+      useCases,
+    ),
+  )
 })

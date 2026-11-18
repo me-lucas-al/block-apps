@@ -5,6 +5,7 @@ import type { ApiEnv } from '../../../src/http/app/ApiEnv'
 import { createAdminApp } from '../../../src/http/app/createAdminApp'
 import { FakeCognito } from '../../../src/local/cognito/FakeCognito'
 import { InMemoryUserSettings } from './InMemoryUserSettings'
+import { ADMIN_CLIENT_ID } from '../buildLambdaBindings'
 import { ADMIN_ONE, ADMIN_TWO, FEDERATED_ADMIN, PENDING_USER, USER_ONE } from './userIds'
 
 export type AdminBackend = {
@@ -41,6 +42,10 @@ export function buildAdminBackend(options?: { requireMfa?: boolean }): AdminBack
     cooldownSettingsStore: settings,
     cooldownSettingsWriter: settings,
   })
-  const app = createAdminApp('admin', createAdminUseCases(collaborators, options))
+  const app = createAdminApp(
+    'admin',
+    ADMIN_CLIENT_ID,
+    createAdminUseCases(collaborators, options),
+  )
   return { app, cognito, settings }
 }

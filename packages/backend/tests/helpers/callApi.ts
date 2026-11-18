@@ -1,6 +1,6 @@
 import type { Hono } from 'hono'
 import type { ApiEnv } from '../../src/http/app/ApiEnv'
-import { buildLambdaBindings } from './buildLambdaBindings'
+import { buildLambdaBindings, type TokenClaimOverrides } from './buildLambdaBindings'
 
 export type ApiCall = {
   readonly method: string
@@ -8,6 +8,7 @@ export type ApiCall = {
   readonly body?: unknown
   readonly userId?: string | null
   readonly groups?: string[]
+  readonly clientClaims?: TokenClaimOverrides
 }
 
 export type ApiReply = { readonly status: number; readonly json: unknown }
@@ -21,7 +22,7 @@ export async function callApi(app: Hono<ApiEnv>, call: ApiCall): Promise<ApiRepl
       headers: { 'content-type': 'application/json' },
       body: call.body === undefined ? undefined : JSON.stringify(call.body),
     },
-    buildLambdaBindings(userId, call.groups),
+    buildLambdaBindings(userId, call.groups, call.clientClaims),
   )
   const text = await reply.text()
   return { status: reply.status, json: text ? (JSON.parse(text) as unknown) : null }

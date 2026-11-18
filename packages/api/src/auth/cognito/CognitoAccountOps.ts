@@ -81,13 +81,7 @@ export class CognitoAccountOps {
     })
   }
 
-  globalSignOut(email: string): Promise<void> {
-    const user = this.getUser(email)
-    return new Promise((resolve) => {
-      user.globalSignOut({
-        onSuccess: () => resolve(),
-        onFailure: () => resolve(),
-      })
-    })
+  clearCachedSession(email: string): void {
+    this.getUser(email).signOut()
   }
 }

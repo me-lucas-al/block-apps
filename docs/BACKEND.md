@@ -25,6 +25,8 @@ Uma única tabela DynamoDB (`<prefixo>-data`), cobrança por demanda, com recupe
 | Regra | `USER#<userId>` | `RULE#<ruleId>` | `id`, `targetType` (`app`, `site` ou `keyword`), `target`, `mode`, `windows` |
 | Mudança pendente | `USER#<userId>` | `CHANGE#<ruleId>` | `ruleId`, `kind` (`update`, `delete` ou `selectionRemoval`), `mode`, `windows` (nulos em `delete` e `selectionRemoval`), `effectiveAt`, `dueBucket` (sempre `DUE`) |
 | Configuração | `USER#<userId>` | `SETTINGS` | `cooldownHours` |
+| Perfil de DNS | `USER#<userId>` | `DNS` | `token`, `tokenHash` (SHA-256), `timeZone` (IANA), `createdAt` |
+| Busca do token de DNS | `DNSTOKEN#<tokenHash>` | `DNSTOKEN` | `userId` (o resolvedor consulta só pelo hash; apagar o usuário apaga este item junto) |
 | Dispositivo | `USER#<userId>` | `DEVICE#<deviceId>` | `deviceId`, `platform`, `incognitoAllowed`, `adminActive`, `lastSeen` |
 
 Há uma mudança pendente por regra (a chave usa o `ruleId`), então pedir de novo substitui o pedido anterior.
@@ -48,6 +50,7 @@ Há uma mudança pendente por regra (a chave usa o `ruleId`), então pedir de no
 | `POST /rules/:ruleId/removal-requests` | pede remoção (cooldown) |
 | `GET /pending-changes`, `POST /pending-changes/apply-due`, `DELETE /pending-changes/:ruleId` | ver, aplicar vencidas, cancelar |
 | `PUT /devices/:deviceId/status` | informa status do dispositivo |
+| `POST /dns/profile`, `POST /dns/rotate` | cria ou devolve o token de DNS do usuário (e grava o fuso IANA enviado em `timeZone`), troca o token |
 
 O `userId` vem sempre do `sub` do token validado pelo API Gateway; nenhuma rota aceita `userId` no corpo. O id de uma regra é `<app|site>~<alvo>` e o alvo é minúsculo, só com letras, dígitos, ponto, hífen e sublinhado.
 

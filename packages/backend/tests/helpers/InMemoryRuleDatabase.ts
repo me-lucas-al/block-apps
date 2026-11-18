@@ -2,7 +2,9 @@ import type { BlockRule, PendingRuleChange } from '@block-apps/core'
 import type { CooldownSettingsStore } from '../../src/cooldown/contracts/CooldownSettingsStore'
 import type { DueChangeApplier } from '../../src/cooldown/contracts/DueChangeApplier'
 import type { PendingChangeStore } from '../../src/cooldown/contracts/PendingChangeStore'
+import type { DnsSettings, DnsSettingsStore } from '../../src/dns/contracts/DnsSettingsStore'
 import type { DeviceStatus, DeviceStore } from '../../src/devices/contracts/DeviceStore'
+import { hashDnsToken } from '../../src/dns/token/hashDnsToken'
 import { ConflictError } from '../../src/domain/errors/ConflictError'
 import { NotFoundError } from '../../src/domain/errors/NotFoundError'
 import type { BlockRuleStore } from '../../src/rules/contracts/BlockRuleStore'
@@ -10,12 +12,38 @@ import type { BlockRuleStore } from '../../src/rules/contracts/BlockRuleStore'
 type StoredEntry<Content> = { readonly userId: string; readonly content: Content }
 
 export class InMemoryRuleDatabase
-  implements BlockRuleStore, PendingChangeStore, DueChangeApplier, CooldownSettingsStore, DeviceStore
+  implements
+    BlockRuleStore,
+    PendingChangeStore,
+    DueChangeApplier,
+    CooldownSettingsStore,
+    DeviceStore,
+    DnsSettingsStore
 {
+  private readonly dnsSettingsByUser = new Map<string, DnsSettings>()
+  private readonly userIdByTokenHash = new Map<string, string>()
+
   private readonly rules = new Map<string, StoredEntry<BlockRule>>()
   private readonly changes = new Map<string, StoredEntry<PendingRuleChange>>()
   readonly devices = new Map<string, DeviceStatus & { lastSeen: string }>()
   private readonly cooldownHoursByUser = new Map<string, number>()
+
+  async findDnsSettings(userId: string): Promise<DnsSettings | null> {
+    return this.dnsSettingsByUser.get(userId) ?? null
+  }
+
+  async saveDnsSettings(userId: string, settings: DnsSettings, previousTokenHash: string | null): Promise<void> {
+    this.dnsSettingsByUser.set(userId, settings)
+    const tokenHash = hashDnsToken(settings.token)
+    this.userIdByTokenHash.set(tokenHash, userId)
+    if (previousTokenHash && previousTokenHash !== tokenHash) {
+      this.userIdByTokenHash.delete(previousTokenHash)
+    }
+  }
+
+  async findUserIdByDnsTokenHash(tokenHash: string): Promise<string | null> {
+    return this.userIdByTokenHash.get(tokenHash) ?? null
+  }
 
   setCooldownHours(userId: string, cooldownHours: number): void {
     this.cooldownHoursByUser.set(userId, cooldownHours)

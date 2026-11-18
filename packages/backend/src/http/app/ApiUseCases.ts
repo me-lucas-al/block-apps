@@ -4,6 +4,8 @@ import type { ListPendingChangesUseCase } from '../../cooldown/use-cases/ListPen
 import type { RequestRuleRemovalUseCase } from '../../cooldown/use-cases/RequestRuleRemovalUseCase'
 import type { RequestRuleUpdateUseCase } from '../../cooldown/use-cases/RequestRuleUpdateUseCase'
 import type { RequestSelectionRemovalUseCase } from '../../cooldown/use-cases/RequestSelectionRemovalUseCase'
+import type { EnsureDnsProfileUseCase } from '../../dns/use-cases/EnsureDnsProfileUseCase'
+import type { RotateDnsTokenUseCase } from '../../dns/use-cases/RotateDnsTokenUseCase'
 import type { ReportDeviceStatusUseCase } from '../../devices/use-cases/ReportDeviceStatusUseCase'
 import type { CreateBlockRuleUseCase } from '../../rules/use-cases/CreateBlockRuleUseCase'
 import type { ListBlockRulesUseCase } from '../../rules/use-cases/ListBlockRulesUseCase'
@@ -18,4 +20,6 @@ export type ApiUseCases = {
   readonly applyDueChangesForUser: ApplyDueChangesForUserUseCase
   readonly cancelPendingChange: CancelPendingChangeUseCase
   readonly reportDeviceStatus: ReportDeviceStatusUseCase
+  readonly ensureDnsProfile: EnsureDnsProfileUseCase
+  readonly rotateDnsToken: RotateDnsTokenUseCase
 }

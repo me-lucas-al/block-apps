@@ -10,6 +10,8 @@ import { DEFAULT_MAX_RULES_PER_USER } from '../../src/rules/quota/readMaxRulesPe
 import { userPartitionKey } from '../../src/storage/dynamodb/keys/partitionKeys'
 import { SETTINGS_SORT_KEY } from '../../src/storage/dynamodb/keys/sortKeys'
 import type { ApiStores } from '../../src/composition/ApiStores'
+import type { DnsSettingsStore } from '../../src/dns/contracts/DnsSettingsStore'
+import { buildSequentialTokens } from './buildSequentialTokens'
 import { createLocalTable, DYNAMODB_LOCAL_ENDPOINT } from './dynamoLocal'
 import { FakeClock } from './FakeClock'
 import { InMemoryRuleDatabase } from './InMemoryRuleDatabase'
@@ -17,6 +19,7 @@ import { InMemoryRuleDatabase } from './InMemoryRuleDatabase'
 export type TestBackend = {
   readonly app: Hono<ApiEnv>
   readonly clock: FakeClock
+  readonly dnsSettingsStore: DnsSettingsStore
   applyAllDueChanges(): Promise<number>
   setCooldownHours(userId: string, cooldownHours: number): Promise<void>
   dispose(): Promise<void>
@@ -34,7 +37,7 @@ function assembleBackend(
   setCooldownHours: TestBackend['setCooldownHours'],
   dispose: TestBackend['dispose'],
 ): TestBackend {
-  const useCases = createApiUseCases(stores, clock.now, maxRulesPerUser)
+  const useCases = createApiUseCases(stores, clock.now, maxRulesPerUser, buildSequentialTokens())
   const applyAll = new ApplyAllDueChangesUseCase(
     stores.pendingChangeStore,
     new ApplyDueChangesForUserUseCase(stores.pendingChangeStore, stores.dueChangeApplier, clock.now),
@@ -43,6 +46,7 @@ function assembleBackend(
   return {
     app: createApiApp(useCases),
     clock,
+    dnsSettingsStore: stores.dnsSettingsStore,
     applyAllDueChanges: () => applyAll.applyAllDueChanges(),
     setCooldownHours,
     dispose,
@@ -59,6 +63,7 @@ const inMemoryFactory: BackendFactory = {
       dueChangeApplier: database,
       cooldownSettingsStore: database,
       deviceStore: database,
+      dnsSettingsStore: database,
     }
     const setCooldownHours = async (userId: string, cooldownHours: number) => {
       database.setCooldownHours(userId, cooldownHours)

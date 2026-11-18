@@ -20,6 +20,7 @@ function buildLocalTestRouter() {
       dueChangeApplier: database,
       cooldownSettingsStore: database,
       deviceStore: database,
+      dnsSettingsStore: database,
     },
     () => new Date(),
     DEFAULT_MAX_RULES_PER_USER,

@@ -1,6 +1,7 @@
 import { BatchWriteCommand } from '@aws-sdk/lib-dynamodb'
 import type { UserDataEraser } from '../../../users/contracts/UserDataEraser'
 import { userPartitionKey } from '../keys/partitionKeys'
+import { listKeysToErase } from './listKeysToErase'
 import { queryAllPages } from '../queryAllPages'
 import type { TableContext } from '../TableContext'
 
@@ -13,11 +14,12 @@ export class DynamoUserDataEraser implements UserDataEraser {
     const items = await queryAllPages(this.context, {
       KeyConditionExpression: 'pk = :pk',
       ExpressionAttributeValues: { ':pk': userPartitionKey(userId) },
-      ProjectionExpression: 'pk, sk',
+      ProjectionExpression: 'pk, sk, tokenHash',
       ConsistentRead: true,
     })
-    for (let start = 0; start < items.length; start += BATCH_SIZE) {
-      await this.deleteBatch(items.slice(start, start + BATCH_SIZE))
+    const keys = items.flatMap(listKeysToErase)
+    for (let start = 0; start < keys.length; start += BATCH_SIZE) {
+      await this.deleteBatch(keys.slice(start, start + BATCH_SIZE))
     }
   }
 

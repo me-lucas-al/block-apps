@@ -320,6 +320,9 @@ importers:
       '@hono/aws-lambda':
         specifier: ^1.0.1
         version: 1.0.1(hono@4.13.14)
+      dns-packet:
+        specifier: ^5.6.1
+        version: 5.6.1
       hono:
         specifier: 4.13.14
         version: 4.13.14
@@ -330,6 +333,9 @@ importers:
       '@types/aws-lambda':
         specifier: ^8.10.164
         version: 8.10.164
+      '@types/dns-packet':
+        specifier: ^5.6.5
+        version: 5.6.5
       '@types/node':
         specifier: ^24.19.2
         version: 24.19.2
@@ -1399,6 +1405,9 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
+  '@leichtgewicht/ip-codec@2.0.5':
+    resolution: {integrity: sha512-Vo+PSpZG2/fmgmiNzYK9qWRh8h/CHrwD0mo1h1DzL4yzHNSfWYujGTYsWGreD000gcgmZ7K4Ys6Tx9TxtsKdDw==}
+
   '@noxcturnal/noxcturnal-darwin-arm64@0.1.12':
     resolution: {integrity: sha512-46MqSBhSPSL/LbY0ZhH2Zh+MJUOLWuwEuk6FQLFeJYFepENuNoWinZO/P7xX3dZQ3g2OrJiPE6iWKMBgoeF+gA==}
     engines: {node: '>=18'}
@@ -1821,6 +1830,9 @@ packages:
 
   '@types/chrome@0.0.280':
     resolution: {integrity: sha512-AotSmZrL9bcZDDmSI1D9dE7PGbhOur5L0cKxXd7IqbVizQWCY4gcvupPUVsQ4FfDj3V2tt/iOpomT9EY0s+w1g==}
+
+  '@types/dns-packet@5.6.5':
+    resolution: {integrity: sha512-qXOC7XLOEe43ehtWJCMnQXvgcIpv6rPmQ1jXT98Ad8A3TB1Ue50jsCbSSSyuazScEuZ/Q026vHbrOTVkmwA+7Q==}
 
   '@types/estree@1.0.10':
     resolution: {integrity: sha512-lTyOMnOcmRBzdCv6/4zUZCrEhV0xrqQiUZBZtVcbmLHBXKLnN8q89v/wKRF/Q0HbwVsqbIG3o5HDoFl9sduM+g==}
@@ -2287,6 +2299,10 @@ packages:
 
   dijkstrajs@1.0.3:
     resolution: {integrity: sha512-qiSlmBq9+BCdCA/L46dw8Uy93mloxsPSbwnm5yrKn2vMPiy8KyAskTF6zuV/j5BMsmOGZDPs7KjU+mjb670kfA==}
+
+  dns-packet@5.6.1:
+    resolution: {integrity: sha512-l4gcSouhcgIKRvyy99RNVOgxXiicE+2jZoNmaNmZ6JXiGajBOJAesk1OBlJuM5k2c+eudGdLxDqXuPCKIj6kpw==}
+    engines: {node: '>=6'}
 
   dnssd-advertise@1.1.6:
     resolution: {integrity: sha512-Ndrrf6BMPalkQPd/zubL+4YghH2J9NspapQ09uDXwYbvOPkP0oaqf5CkcwJ0b50kS2O3ul6yVu+jz+RY62Cejg==}
@@ -5202,6 +5218,8 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.6.0
 
+  '@leichtgewicht/ip-codec@2.0.5': {}
+
   '@noxcturnal/noxcturnal-darwin-arm64@0.1.12':
     optional: true
 
@@ -5507,6 +5525,10 @@ snapshots:
     dependencies:
       '@types/filesystem': 0.0.36
       '@types/har-format': 1.2.16
+
+  '@types/dns-packet@5.6.5':
+    dependencies:
+      '@types/node': 24.19.2
 
   '@types/estree@1.0.10': {}
 
@@ -5988,6 +6010,10 @@ snapshots:
   detect-libc@2.1.2: {}
 
   dijkstrajs@1.0.3: {}
+
+  dns-packet@5.6.1:
+    dependencies:
+      '@leichtgewicht/ip-codec': 2.0.5
 
   dnssd-advertise@1.1.6: {}
 

@@ -1,6 +1,7 @@
 import { assembleCognitoAdminCollaborators } from '../../../src/composition/assembleCognitoAdminCollaborators'
 import { createAdminUseCases } from '../../../src/composition/createAdminUseCases'
 import { createApiUseCases } from '../../../src/composition/createApiUseCases'
+import { createDnsResolverApp } from '../../../src/composition/createDnsResolverApp'
 import { createAdminApp } from '../../../src/http/app/createAdminApp'
 import { createApiApp } from '../../../src/http/app/createApiApp'
 import { buildLocalBindings } from '../../../src/local/buildLocalBindings'
@@ -31,8 +32,11 @@ function buildLocalTestRouter() {
     cooldownSettingsWriter: settings,
   })
   const adminApp = createAdminApp('admin', createAdminUseCases(adminCollaborators))
+  const dnsApp = createDnsResolverApp(database, {
+    listSiteRulesByUser: (userId) => database.listRulesByUser(userId),
+  })
   const options = { allowedOrigins: ['http://painel.local'], allowedHosts: [] }
-  return createLocalRouter(createApiApp(apiUseCases), adminApp, options)
+  return createLocalRouter(createApiApp(apiUseCases), adminApp, options, dnsApp)
 }
 
 export function requestWithDevToken(

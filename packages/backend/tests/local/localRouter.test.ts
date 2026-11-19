@@ -33,6 +33,10 @@ describe('local router', () => {
     expect((await requestWithDevToken('/admin/users', userToken)).status).toBe(403)
   })
 
+  it('routes /dns-query requests without an auth token', async () => {
+    expect((await requestWithDevToken('/dns-query/missing-token', null)).status).toBe(404)
+  })
+
   it('refuses a request whose host is not local, which blocks DNS rebinding', async () => {
     const reply = await requestWithDevToken('/health', null, {}, {}, 'http://evil.example.com')
     expect(reply.status).toBe(403)

@@ -1,7 +1,9 @@
 import { PutCommand } from '@aws-sdk/lib-dynamodb'
 import type { ApiStores } from '../../src/composition/ApiStores'
 import { createDynamoStores } from '../../src/composition/createDynamoStores'
+import type { SiteRuleReader } from '../../src/dns/contracts/SiteRuleReader'
 import { DEFAULT_MAX_RULES_PER_USER } from '../../src/rules/quota/readMaxRulesPerUser'
+import { DynamoBlockRuleStore } from '../../src/storage/dynamodb/rules/DynamoBlockRuleStore'
 import { userPartitionKey } from '../../src/storage/dynamodb/keys/partitionKeys'
 import { SETTINGS_SORT_KEY } from '../../src/storage/dynamodb/keys/sortKeys'
 import { assembleTestBackend, type TestBackend } from './assembleTestBackend'
@@ -28,10 +30,21 @@ const inMemoryFactory: BackendFactory = {
       deviceStore: database,
       dnsSettingsStore: database,
     }
+    const siteRuleReader: SiteRuleReader = {
+      listSiteRulesByUser: async (userId) =>
+        (await database.listRulesByUser(userId)).filter((rule) => rule.targetType === 'site'),
+    }
     const setCooldownHours = async (userId: string, cooldownHours: number) => {
       database.setCooldownHours(userId, cooldownHours)
     }
-    return assembleTestBackend(stores, new FakeClock(), maxRulesPerUser, setCooldownHours, async () => {})
+    return assembleTestBackend(
+      stores,
+      siteRuleReader,
+      new FakeClock(),
+      maxRulesPerUser,
+      setCooldownHours,
+      async () => {},
+    )
   },
 }
 
@@ -50,6 +63,7 @@ function buildDynamoFactory(endpoint: string): BackendFactory {
       }
       return assembleTestBackend(
         createDynamoStores(table.context),
+        new DynamoBlockRuleStore(table.context),
         new FakeClock(),
         maxRulesPerUser,
         setCooldownHours,

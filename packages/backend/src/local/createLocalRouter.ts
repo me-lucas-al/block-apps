@@ -15,6 +15,7 @@ export function createLocalRouter(
   apiApp: Hono<ApiEnv>,
   adminApp: Hono<ApiEnv>,
   options: LocalRouterOptions,
+  dnsApp?: Hono,
 ) {
   const acceptedHosts = new Set([...LOOPBACK_HOSTNAMES, ...options.allowedHosts])
   const router = new Hono<ApiEnv>()
@@ -27,7 +28,11 @@ export function createLocalRouter(
     }),
   )
   router.all('*', (context) => {
-    const targetApp = new URL(context.req.url).pathname.startsWith('/admin') ? adminApp : apiApp
+    const pathname = new URL(context.req.url).pathname
+    if (dnsApp && pathname.startsWith('/dns-query/')) {
+      return dnsApp.fetch(context.req.raw, context.env)
+    }
+    const targetApp = pathname.startsWith('/admin') ? adminApp : apiApp
     return targetApp.fetch(context.req.raw, context.env)
   })
   return router

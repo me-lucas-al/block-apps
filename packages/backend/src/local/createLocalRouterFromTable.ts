@@ -1,9 +1,13 @@
 import { assembleCognitoAdminCollaborators } from '../composition/assembleCognitoAdminCollaborators'
 import { createAdminUseCases } from '../composition/createAdminUseCases'
 import { createApiUseCases } from '../composition/createApiUseCases'
+import { createDnsResolverApp } from '../composition/createDnsResolverApp'
 import { createDynamoStores } from '../composition/createDynamoStores'
+import { FetchDohUpstream, readDohUpstreamUrl } from '../dns/upstream/FetchDohUpstream'
 import { createAdminApp } from '../http/app/createAdminApp'
 import { createApiApp } from '../http/app/createApiApp'
+import { DynamoDnsSettingsStore } from '../storage/dynamodb/dns/DynamoDnsSettingsStore'
+import { DynamoBlockRuleStore } from '../storage/dynamodb/rules/DynamoBlockRuleStore'
 import { DynamoCooldownSettingsStore } from '../storage/dynamodb/settings/DynamoCooldownSettingsStore'
 import { DynamoCooldownSettingsWriter } from '../storage/dynamodb/settings/DynamoCooldownSettingsWriter'
 import type { TableContext } from '../storage/dynamodb/TableContext'
@@ -27,5 +31,10 @@ export function createLocalRouterFromTable(table: TableContext, options: LocalAp
     options.maxRulesPerUser,
   )
   const adminApp = createAdminApp('admin', adminUseCases)
-  return createLocalRouter(createApiApp(apiUseCases), adminApp, options)
+  const dnsApp = createDnsResolverApp(
+    new DynamoDnsSettingsStore(table),
+    new DynamoBlockRuleStore(table),
+    new FetchDohUpstream(readDohUpstreamUrl(process.env)),
+  )
+  return createLocalRouter(createApiApp(apiUseCases), adminApp, options, dnsApp)
 }

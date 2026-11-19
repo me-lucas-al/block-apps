@@ -1,4 +1,5 @@
 export { adminHandler } from './lambda/adminHandler'
 export { apiHandler } from './lambda/apiHandler'
+export { dnsHandler } from './lambda/dnsHandler'
 export { preSignUpHandler } from './lambda/preSignUp/preSignUpHandler'
 export { schedulerHandler } from './lambda/schedulerHandler'

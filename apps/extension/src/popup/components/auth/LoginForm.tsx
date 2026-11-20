@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { launchExtensionGoogleAuth } from '../../../adapters/chrome/identity/extensionGoogleAuth'
 import { useServices } from '../../services/ServicesContext'
 import { ConfirmSignUpForm } from './ConfirmSignUpForm'
 import { ForgotPasswordForm } from './ForgotPasswordForm'
@@ -10,7 +9,7 @@ import { TotpForm } from './TotpForm'
 type AuthView = 'login' | 'confirm_signup' | 'new_password' | 'totp' | 'forgot_password'
 
 export function LoginForm() {
-  const { authenticator } = useServices()
+  const { authenticator, googleSignIn } = useServices()
   const [view, setView] = useState<AuthView>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -42,7 +41,7 @@ export function LoginForm() {
   const handleGoogleSignIn = async () => {
     try {
       setError(null)
-      await launchExtensionGoogleAuth(authenticator)
+      await googleSignIn.requestGoogleSignIn()
     } catch (failure) {
       setError(failure instanceof Error ? failure.message : 'Erro no login Google')
     }

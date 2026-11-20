@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native'
-import { useServices } from '../../services/ServicesContext'
+import { useSignOut } from '../../hooks/session/useSignOut'
 import { colors } from '../../theme'
 import { Button } from '../ui/Button'
 
@@ -8,11 +8,11 @@ type HomeHeaderProps = {
 }
 
 export function HomeHeader({ email }: HomeHeaderProps) {
-  const { authenticator } = useServices()
+  const signOut = useSignOut()
   return (
     <View style={styles.header}>
       <Text style={styles.email}>{email}</Text>
-      <Button label="Sair" variant="secondary" onPress={() => void authenticator.signOut()} />
+      <Button label="Sair" variant="secondary" onPress={() => void signOut()} />
     </View>
   )
 }

@@ -77,6 +77,11 @@ variable "tags" {
   default     = {}
 }
 
+variable "admin_client_id" {
+  description = "Client do Cognito do painel administrativo, o único aceito nas rotas /admin."
+  type        = string
+}
+
 variable "admin_group_name" {
   description = "Grupo do Cognito que identifica administradores."
   type        = string

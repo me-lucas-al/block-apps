@@ -31,9 +31,10 @@ describe('toNativeRulesJson', () => {
     expect(toNativeRulesJson([keywordRule])).toBe('[]')
   })
 
-  it('keeps only app rules and drops ids', () => {
+  it('keeps only app rules and keeps their ids for the ownership proof', () => {
     expect(JSON.parse(toNativeRulesJson([appRule, siteRule]))).toEqual([
       {
+        id: 'rule-1',
         target: 'com.instagram.android',
         mode: 'schedule',
         windows: [{ days: [1, 2], start: '18:00', end: '20:00' }],

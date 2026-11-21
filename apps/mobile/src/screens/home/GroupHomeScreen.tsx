@@ -8,11 +8,9 @@ import { Button } from '../../components/ui/Button'
 import { useBlockRules } from '../../hooks/rules/useBlockRules'
 import { useGroupAppChoices } from '../../hooks/rules/useGroupAppChoices'
 import type { GroupSelectionPort } from '../../ports/groupselection/GroupSelectionPort'
+import { describeSelectionLimitWarning } from '../../rules/describeSelectionLimitWarning'
 import { colors } from '../../theme'
 import { AddGroupRuleScreen } from '../AddGroupRuleScreen'
-
-const TOTAL_OVER_LIMIT_WARNING =
-  'Os grupos somam mais de 50 apps, categorias e sites. O iOS pode não bloquear todos.'
 
 type GroupHomeScreenProps = {
   email: string
@@ -46,7 +44,7 @@ export function GroupHomeScreen({ email, groupSelection }: GroupHomeScreenProps)
       <StrictModeCard />
       {rulesState.error && <Text style={styles.error}>{rulesState.error}</Text>}
       {choices.notice && <Text style={styles.notice}>{choices.notice}</Text>}
-      {choices.isTotalOverLimit && <Text style={styles.warning}>{TOTAL_OVER_LIMIT_WARNING}</Text>}
+      {choices.isTotalOverLimit && <Text style={styles.warning}>{describeSelectionLimitWarning('allGroups')}</Text>}
       <FlatList
         data={rulesState.rules}
         keyExtractor={(rule) => rule.id}

@@ -41,6 +41,15 @@ final class GroupLimitReportTests: XCTestCase {
         XCTAssertEqual(report.oversizedRuleIds, [])
     }
 
+    func testCountsOfGroupsThatAreNotListedDoNotEnterTheTotal() {
+        let report: GroupLimitReport = GroupLimitReport(
+            ruleIds: ["a"],
+            itemCountsByRuleId: ["a": 10, "removed": 60]
+        )
+        XCTAssertFalse(report.isTotalOverLimit)
+        XCTAssertEqual(report.oversizedRuleIds, [])
+    }
+
     func testNoGroupsMeansNoWarning() {
         let report: GroupLimitReport = GroupLimitReport(ruleIds: [], itemCountsByRuleId: [:])
         XCTAssertEqual(report.oversizedRuleIds, [])

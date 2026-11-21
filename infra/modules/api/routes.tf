@@ -14,6 +14,14 @@ resource "aws_apigatewayv2_integration" "admin_function" {
   payload_format_version = "2.0"
 }
 
+resource "aws_apigatewayv2_integration" "dns_function" {
+  api_id                 = aws_apigatewayv2_api.main.id
+  integration_type       = "AWS_PROXY"
+  integration_method     = "POST"
+  integration_uri        = module.dns_function.invoke_arn
+  payload_format_version = "2.0"
+}
+
 resource "aws_apigatewayv2_route" "health" {
   api_id             = aws_apigatewayv2_api.main.id
   route_key          = "GET /health"
@@ -35,6 +43,20 @@ resource "aws_apigatewayv2_route" "dns_rotate" {
   target             = "integrations/${aws_apigatewayv2_integration.api_function.id}"
   authorization_type = "JWT"
   authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
+}
+
+resource "aws_apigatewayv2_route" "dns_query_get" {
+  api_id             = aws_apigatewayv2_api.main.id
+  route_key          = "GET /dns-query/{token}"
+  target             = "integrations/${aws_apigatewayv2_integration.dns_function.id}"
+  authorization_type = "NONE"
+}
+
+resource "aws_apigatewayv2_route" "dns_query_post" {
+  api_id             = aws_apigatewayv2_api.main.id
+  route_key          = "POST /dns-query/{token}"
+  target             = "integrations/${aws_apigatewayv2_integration.dns_function.id}"
+  authorization_type = "NONE"
 }
 
 resource "aws_apigatewayv2_route" "protected" {
@@ -59,4 +81,12 @@ resource "aws_lambda_permission" "gateway_invokes_admin_function" {
   function_name = module.admin_function.function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.main.execution_arn}/*/*/admin/*"
+}
+
+resource "aws_lambda_permission" "gateway_invokes_dns_function" {
+  statement_id  = "AllowHttpApiInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = module.dns_function.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.main.execution_arn}/*/*/dns-query/*"
 }

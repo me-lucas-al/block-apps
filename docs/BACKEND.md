@@ -1,6 +1,6 @@
 # Backend (Lambda + DynamoDB)
 
-Pacote `packages/backend`: API em Hono, use cases pequenos e adaptadores DynamoDB e Cognito. Quatro funções saem do mesmo pacote: `apiHandler` (regras, mudanças pendentes, dispositivos), `adminHandler` (rotas `/admin/*`), `preSignUpHandler` (gatilho do Cognito que vincula o login do Google à conta de mesmo e-mail) e `schedulerHandler` (aplica as mudanças vencidas a cada 5 minutos). Cada função só lê as variáveis de ambiente de que precisa, na primeira invocação.
+Pacote `packages/backend`: API em Hono, use cases pequenos e adaptadores DynamoDB e Cognito. Cinco funções saem do mesmo pacote: `apiHandler` (regras, mudanças pendentes, dispositivos), `adminHandler` (rotas `/admin/*`), `dnsHandler` (resolvedor DNS sobre HTTPS, rotas `/dns-query/*`), `preSignUpHandler` (gatilho do Cognito que vincula o login do Google à conta de mesmo e-mail) e `schedulerHandler` (aplica as mudanças vencidas a cada 5 minutos). Cada função só lê as variáveis de ambiente de que precisa, na primeira invocação.
 
 ```
 src/
@@ -8,13 +8,13 @@ src/
   rules/         criar e listar regras
   cooldown/      pedido de alteração, remoção, aplicação das mudanças vencidas
   devices/       status de dispositivos
-  dns/           token, fuso e perfil de DNS (contratos de gravação e de validação do token)
+  dns/           token, fuso e perfil de DNS (contratos de gravação e de validação do token), resolver/ (cache, pacotes DNS, regras), upstream/ (cliente DoH)
   users/         use cases, guardas e contratos das rotas administrativas
   auth/          vínculo entre login do Google e conta com senha (PreSignUp)
   storage/       adaptadores DynamoDB (chaves, tabelas) e Cognito
   http/          app Hono, autenticação (claims do JWT), rotas, parsing
   composition/   liga stores e use cases
-  lambda/        entradas das quatro funções
+  lambda/        entradas das cinco funções
 ```
 
 ## Modelo de dados
@@ -75,6 +75,20 @@ O `userId` vem sempre do `sub` do token validado pelo API Gateway; nenhuma rota 
 - **Identificadores estáveis.** Os `PayloadUUID` e os `PayloadIdentifier` derivam do `userId`, então a rotação do token troca só a `ServerURL` e o iOS trata o perfil novo como atualização do mesmo perfil.
 - **Instalação.** A rota exige o JWT, e o Safari não envia o cabeçalho `Authorization`. Por isso o app baixa o corpo da resposta com o Bearer e entrega o arquivo ao iOS pelo share sheet ou como arquivo; abrir o link no navegador devolve `401`. Depois o usuário confirma em Ajustes > Geral > VPN e Gerenciamento de Dispositivo.
 - **Sem assinatura e removível.** O perfil não é assinado (o iOS o mostra como "Não assinado") e o usuário pode removê-lo a qualquer momento (o perfil usa `PayloadRemovalDisallowed = false`, e o iOS só impede a remoção de perfis instalados por MDM ou em dispositivo supervisionado). É um limite conhecido do bloqueio por DNS sem MDM: quem remove o perfil desliga o bloqueio de sites.
+
+## Resolvedor DNS sobre HTTPS
+
+A função `dns` (`dnsHandler`) responde ao DNS do iPhone: bloqueia os sites das regras do usuário e encaminha o resto a um resolvedor público. Ela só lê o banco (`GetItem` e `Query`).
+
+- **Rotas públicas, sem JWT.** `GET /dns-query/{token}?dns=<base64url>` e `POST /dns-query/{token}` (corpo `application/dns-message`, RFC 8484). O token do caminho é a credencial: 43 caracteres base64url, o mesmo formato de `generateDnsToken`.
+- **Ordem das verificações, antes de qualquer acesso ao banco.** 1) formato do token (malformado: `404` vazio, sem hash nem leitura); 2) tamanho e leitura da mensagem; 3) decodificação e validação da mensagem DNS; só então a busca do token. Respostas: `404` token malformado ou desconhecido, `415` tipo de mídia que não é `application/dns-message`, `413` acima de 512 bytes (no GET, o parâmetro `dns` tem teto de 683 caracteres, antes de decodificar; no POST, vale o `Content-Length` e a leitura do corpo para ao passar de 512 bytes), `400` parâmetro `dns` ausente ou vazio, corpo vazio, base64url inválido, mensagem que não é consulta DNS ou que traz mais (ou menos) de uma pergunta. Sucesso: `200` com `application/dns-message` e `Cache-Control: no-store`.
+- **Bloqueio.** Regras `site` casam o domínio e seus subdomínios, no modo `always` ou `schedule` (a janela é o horário **liberado**; fora dela bloqueia). `A` responde `0.0.0.0` e `AAAA` responde `::`, TTL 30; outros tipos (como `HTTPS`) respondem `NOERROR` vazio. O que não é bloqueado vai ao upstream.
+- **`DNS_UPSTREAM_URL`.** URL `https` do resolvedor público (padrão `https://1.1.1.1/dns-query`). Outro esquema, URL inválida ou URL com usuário e senha fazem a função falhar na primeira chamada, com o log `invalid dns upstream configuration` (sem o valor). O cliente não segue redirecionamentos, tem timeout de 2 segundos, aceita no máximo 4096 bytes de resposta e exige resposta de pelo menos 12 bytes com o mesmo `id` da consulta; qualquer falha vira `SERVFAIL`.
+- **SERVFAIL.** O resolvedor responde uma mensagem DNS válida com `SERVFAIL` (mesmo `id` e pergunta da consulta) quando o upstream falha e quando a busca do token falha (erro do DynamoDB sem cache). Nunca devolve `500` vazio por falha de leitura.
+- **Cache por container (memória da Lambda).** O token vale por até **60 s** depois de uma rotação (cache do dono do token); regras e fuso mudam no resolvedor em até **30 s**. Token desconhecido fica em cache negativo por **10 s**, para uma sonda não gerar uma leitura por requisição. Cada cache guarda até 5000 entradas (a mais antiga sai primeiro). Se a leitura falha, o cache velho serve por no máximo **10 minutos** (`staleUsableMs` em `dnsCacheTimings.ts`); depois disso vale a regra abaixo.
+- **Fail-open (decisão do dono, intencional).** Se a leitura das regras falha e não há cache utilizável, a consulta é liberada ao upstream em vez de derrubar o DNS do aparelho. Isso desliga o bloqueio durante a falha. Cada ocorrência grava uma métrica EMF `DnsFailOpen` (namespace `BlockApps/Dns`) e um log JSON `dns rules load failed; failing open`, sem token, e o alarme `<prefixo>-dns-dnsfailopen` avisa. Também são métricas EMF `DnsTokenLookupFailure` e `DnsUpstreamFailure`.
+- **Limite de taxa.** As rotas têm limite próprio no API Gateway (ver `docs/INFRA.md`); acima dele o aparelho recebe `429` e fica sem DNS.
+- **Limites conhecidos.** A cadeia `CNAME` não é tratada: só o nome perguntado é comparado com as regras, então um domínio liberado que aponta por `CNAME` para um domínio bloqueado passa. A hora da janela vem de `toZonedDate`, que monta uma data com os componentes do fuso do usuário e depende do fuso do processo (`TZ`) para ler dia e hora; a Lambda roda em UTC, e um fuso de processo com horário de verão pode errar uma hora na transição. Fuso do usuário inválido cai em UTC.
 
 ## Cota de regras
 

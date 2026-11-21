@@ -8,15 +8,26 @@ import expo.modules.appblocker.rules.ownership.RulesOwnershipPolicy
 class RulesInstaller(private val storage: RulesStorage) {
   fun install(rulesJson: String, ownerId: String, legacyOwnerId: String?) {
     RuleParser.parse(rulesJson)
-    migrateLegacyOwner(ownerId, legacyOwnerId)
+    migrateLegacyOwner(rulesJson, ownerId, legacyOwnerId)
     requireOwnership(ownerId)
     storage.saveOwnerId(ownerId)
     storage.saveRulesJson(rulesJson)
   }
 
-  private fun migrateLegacyOwner(ownerId: String, legacyOwnerId: String?) {
-    val shouldMigrate = LegacyOwnerPolicy.shouldMigrate(storage.readOwnerId(), legacyOwnerId, ownerId)
+  private fun migrateLegacyOwner(rulesJson: String, ownerId: String, legacyOwnerId: String?) {
+    val shouldMigrate = LegacyOwnerPolicy.shouldMigrate(
+      storedOwnerId = storage.readOwnerId(),
+      legacyOwnerId = legacyOwnerId,
+      incomingOwnerId = ownerId,
+      storedRuleIds = readStoredRuleIds(),
+      incomingRuleIds = RuleIdReader.readIds(rulesJson) ?: emptySet(),
+    )
     if (shouldMigrate) storage.saveOwnerId(ownerId)
+  }
+
+  private fun readStoredRuleIds(): Set<String>? {
+    val storedRulesJson = storage.readRulesJson() ?: return emptySet()
+    return RuleIdReader.readIds(storedRulesJson)
   }
 
   private fun hasAnyRule(rulesJson: String): Boolean =

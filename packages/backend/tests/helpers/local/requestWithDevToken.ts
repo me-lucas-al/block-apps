@@ -30,8 +30,7 @@ function buildLocalTestRouter() {
     cooldownSettingsWriter: settings,
   })
   const adminApp = createAdminApp(
-    'admin',
-    LOCAL_ADMIN_CLIENT_ID,
+    { adminGroupName: 'admin', adminClientId: LOCAL_ADMIN_CLIENT_ID },
     createAdminUseCases(adminCollaborators),
   )
   const options = { allowedOrigins: ['http://painel.local'], allowedHosts: [] }

@@ -46,6 +46,12 @@ resource "aws_apigatewayv2_stage" "default" {
     throttling_rate_limit  = 2
   }
 
+  route_settings {
+    route_key              = aws_apigatewayv2_route.dns_rotate.route_key
+    throttling_burst_limit = 5
+    throttling_rate_limit  = 2
+  }
+
   access_log_settings {
     destination_arn = aws_cloudwatch_log_group.gateway.arn
     format = jsonencode({

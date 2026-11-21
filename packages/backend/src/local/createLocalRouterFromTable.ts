@@ -7,6 +7,7 @@ import { FetchDohUpstream, readDohUpstreamUrl } from '../dns/upstream/FetchDohUp
 import { createAdminApp } from '../http/app/createAdminApp'
 import { createApiApp } from '../http/app/createApiApp'
 import { DynamoDnsSettingsStore } from '../storage/dynamodb/dns/DynamoDnsSettingsStore'
+import { DynamoDnsTokenLookup } from '../storage/dynamodb/dns/DynamoDnsTokenLookup'
 import { DynamoBlockRuleStore } from '../storage/dynamodb/rules/DynamoBlockRuleStore'
 import { DynamoCooldownSettingsStore } from '../storage/dynamodb/settings/DynamoCooldownSettingsStore'
 import { DynamoCooldownSettingsWriter } from '../storage/dynamodb/settings/DynamoCooldownSettingsWriter'
@@ -15,7 +16,10 @@ import { DynamoUserDataEraser } from '../storage/dynamodb/users/DynamoUserDataEr
 import { createLocalRouter, type LocalRouterOptions } from './createLocalRouter'
 import { seedLocalUsers } from './seedLocalUsers'
 
-export type LocalApiOptions = LocalRouterOptions & { readonly maxRulesPerUser: number }
+export type LocalApiOptions = LocalRouterOptions & {
+  readonly maxRulesPerUser: number
+  readonly dnsHost?: string
+}
 
 export function createLocalRouterFromTable(table: TableContext, options: LocalApiOptions) {
   const adminUseCases = createAdminUseCases(
@@ -29,10 +33,12 @@ export function createLocalRouterFromTable(table: TableContext, options: LocalAp
     createDynamoStores(table),
     () => new Date(),
     options.maxRulesPerUser,
+    { dnsHost: options.dnsHost },
   )
   const adminApp = createAdminApp('admin', adminUseCases)
   const dnsApp = createDnsResolverApp(
     new DynamoDnsSettingsStore(table),
+    new DynamoDnsTokenLookup(table),
     new DynamoBlockRuleStore(table),
     new FetchDohUpstream(readDohUpstreamUrl(process.env)),
   )

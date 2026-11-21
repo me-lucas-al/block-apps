@@ -15,6 +15,14 @@ describe('readLocalServerConfig', () => {
     })
   })
 
+  it('reads the DNS host and refuses a value with scheme or path', () => {
+    expect(readLocalServerConfig(LOCAL_ENV).dnsHost).toBeUndefined()
+    expect(readLocalServerConfig({ ...LOCAL_ENV, DNS_HOST: 'dns.example.test' }).dnsHost).toBe('dns.example.test')
+    expect(() => readLocalServerConfig({ ...LOCAL_ENV, DNS_HOST: 'https://dns.example.test/' })).toThrow(
+      'DNS_HOST must be a bare lowercase hostname',
+    )
+  })
+
   it('reads the rule limit from MAX_RULES_PER_USER and refuses an invalid one', () => {
     expect(readLocalServerConfig({ ...LOCAL_ENV, MAX_RULES_PER_USER: '5' }).maxRulesPerUser).toBe(5)
     expect(() => readLocalServerConfig({ ...LOCAL_ENV, MAX_RULES_PER_USER: '0' })).toThrow(

@@ -22,7 +22,8 @@ describe.each(backendFactories)('dns mobileconfig ($name)', (factory) => {
     expect(reply.status).toBe(200)
     expect(reply.headers.get('content-type')).toBe('application/x-apple-aspen-config; charset=utf-8')
     expect(reply.headers.get('content-disposition')).toBe('attachment; filename="block-apps-dns.mobileconfig"')
-    expect(reply.headers.get('cache-control')).toBe('no-store')
+    expect(reply.headers.get('cache-control')).toBe('private, no-store')
+    expect(reply.headers.get('x-content-type-options')).toBe('nosniff')
     expect(reply.text).toContain('<string>https://dns.example.test/dns-query/test-token-1</string>')
   })
 

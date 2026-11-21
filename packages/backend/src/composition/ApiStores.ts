@@ -2,6 +2,7 @@ import type { CooldownSettingsStore } from '../cooldown/contracts/CooldownSettin
 import type { DueChangeApplier } from '../cooldown/contracts/DueChangeApplier'
 import type { PendingChangeStore } from '../cooldown/contracts/PendingChangeStore'
 import type { DnsSettingsStore } from '../dns/contracts/DnsSettingsStore'
+import type { DnsTokenLookup } from '../dns/contracts/DnsTokenLookup'
 import type { DeviceStore } from '../devices/contracts/DeviceStore'
 import type { BlockRuleStore } from '../rules/contracts/BlockRuleStore'
 
@@ -12,4 +13,5 @@ export type ApiStores = {
   readonly cooldownSettingsStore: CooldownSettingsStore
   readonly deviceStore: DeviceStore
   readonly dnsSettingsStore: DnsSettingsStore
+  readonly dnsTokenLookup: DnsTokenLookup
 }

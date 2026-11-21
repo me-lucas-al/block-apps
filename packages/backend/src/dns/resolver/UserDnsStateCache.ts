@@ -1,4 +1,5 @@
 import type { DnsSettingsStore } from '../contracts/DnsSettingsStore'
+import type { DnsTokenLookup } from '../contracts/DnsTokenLookup'
 import type { DnsStateProvider, UserDnsState } from '../contracts/DnsStateProvider'
 import type { SiteRuleReader } from '../contracts/SiteRuleReader'
 import { hashDnsToken } from '../token/hashDnsToken'
@@ -13,6 +14,7 @@ export class UserDnsStateCache implements DnsStateProvider {
   private readonly stateCache = new TtlCache<UserDnsState>(RULES_CACHE_TTL_MS)
 
   constructor(
+    private readonly dnsTokenLookup: DnsTokenLookup,
     private readonly dnsSettingsStore: DnsSettingsStore,
     private readonly siteRuleReader: SiteRuleReader,
   ) {}
@@ -22,9 +24,10 @@ export class UserDnsStateCache implements DnsStateProvider {
     const cached = this.userIdCache.readFresh(tokenHash, nowMs)
     if (cached) return cached
     try {
-      const userId = await this.dnsSettingsStore.findUserIdByDnsTokenHash(tokenHash)
-      if (userId) this.userIdCache.write(tokenHash, userId, nowMs)
-      return userId
+      const owner = await this.dnsTokenLookup.findValidatedDnsOwner(tokenHash)
+      if (!owner) return null
+      this.userIdCache.write(tokenHash, owner.userId, nowMs)
+      return owner.userId
     } catch (error: unknown) {
       const stale = this.userIdCache.readStale(tokenHash)
       if (!stale) throw error

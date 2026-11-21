@@ -2,9 +2,8 @@ import type { BlockRule, PendingRuleChange } from '@block-apps/core'
 import type { CooldownSettingsStore } from '../../src/cooldown/contracts/CooldownSettingsStore'
 import type { DueChangeApplier } from '../../src/cooldown/contracts/DueChangeApplier'
 import type { PendingChangeStore } from '../../src/cooldown/contracts/PendingChangeStore'
-import type { DnsSettings, DnsSettingsStore } from '../../src/dns/contracts/DnsSettingsStore'
+import type { SiteRuleReader } from '../../src/dns/contracts/SiteRuleReader'
 import type { DeviceStatus, DeviceStore } from '../../src/devices/contracts/DeviceStore'
-import { hashDnsToken } from '../../src/dns/token/hashDnsToken'
 import { ConflictError } from '../../src/domain/errors/ConflictError'
 import { NotFoundError } from '../../src/domain/errors/NotFoundError'
 import type { BlockRuleStore } from '../../src/rules/contracts/BlockRuleStore'
@@ -12,59 +11,12 @@ import type { BlockRuleStore } from '../../src/rules/contracts/BlockRuleStore'
 type StoredEntry<Content> = { readonly userId: string; readonly content: Content }
 
 export class InMemoryRuleDatabase
-  implements
-    BlockRuleStore,
-    PendingChangeStore,
-    DueChangeApplier,
-    CooldownSettingsStore,
-    DeviceStore,
-    DnsSettingsStore
+  implements BlockRuleStore, PendingChangeStore, DueChangeApplier, CooldownSettingsStore, DeviceStore, SiteRuleReader
 {
-  private readonly dnsSettingsByUser = new Map<string, DnsSettings>()
-  private readonly userIdByTokenHash = new Map<string, string>()
-
   private readonly rules = new Map<string, StoredEntry<BlockRule>>()
   private readonly changes = new Map<string, StoredEntry<PendingRuleChange>>()
   readonly devices = new Map<string, DeviceStatus & { lastSeen: string }>()
   private readonly cooldownHoursByUser = new Map<string, number>()
-
-  async findDnsSettings(userId: string): Promise<DnsSettings | null> {
-    return this.dnsSettingsByUser.get(userId) ?? null
-  }
-
-  async createDnsSettings(userId: string, newDnsSettings: DnsSettings): Promise<boolean> {
-    if (this.dnsSettingsByUser.has(userId)) return false
-    this.dnsSettingsByUser.set(userId, newDnsSettings)
-    this.userIdByTokenHash.set(hashDnsToken(newDnsSettings.token), userId)
-    return true
-  }
-
-  async replaceDnsToken(
-    userId: string,
-    currentDnsSettings: DnsSettings,
-    rotatedDnsSettings: DnsSettings,
-  ): Promise<boolean> {
-    if (this.dnsSettingsByUser.get(userId)?.token !== currentDnsSettings.token) return false
-    this.dnsSettingsByUser.set(userId, rotatedDnsSettings)
-    this.userIdByTokenHash.delete(hashDnsToken(currentDnsSettings.token))
-    this.userIdByTokenHash.set(hashDnsToken(rotatedDnsSettings.token), userId)
-    return true
-  }
-
-  async changeDnsTimeZone(
-    userId: string,
-    currentDnsSettings: DnsSettings,
-    timeZone: string,
-  ): Promise<boolean> {
-    const stored = this.dnsSettingsByUser.get(userId)
-    if (stored?.token !== currentDnsSettings.token) return false
-    this.dnsSettingsByUser.set(userId, { ...stored, timeZone })
-    return true
-  }
-
-  async findUserIdByDnsTokenHash(tokenHash: string): Promise<string | null> {
-    return this.userIdByTokenHash.get(tokenHash) ?? null
-  }
 
   setCooldownHours(userId: string, cooldownHours: number): void {
     this.cooldownHoursByUser.set(userId, cooldownHours)
@@ -76,6 +28,10 @@ export class InMemoryRuleDatabase
 
   async listRulesByUser(userId: string): Promise<BlockRule[]> {
     return [...this.rules.values()].filter((entry) => entry.userId === userId).map((entry) => entry.content)
+  }
+
+  async listSiteRulesByUser(userId: string): Promise<BlockRule[]> {
+    return (await this.listRulesByUser(userId)).filter((rule) => rule.targetType === 'site')
   }
 
   async findById(userId: string, ruleId: string): Promise<BlockRule | null> {

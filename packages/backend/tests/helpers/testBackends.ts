@@ -1,78 +1,30 @@
-import { PutCommand } from '@aws-sdk/lib-dynamodb'
-import type { ApiStores } from '../../src/composition/ApiStores'
-import { createDynamoStores } from '../../src/composition/createDynamoStores'
-import type { SiteRuleReader } from '../../src/dns/contracts/SiteRuleReader'
-import { DEFAULT_MAX_RULES_PER_USER } from '../../src/rules/quota/readMaxRulesPerUser'
-import { DynamoBlockRuleStore } from '../../src/storage/dynamodb/rules/DynamoBlockRuleStore'
-import { userPartitionKey } from '../../src/storage/dynamodb/keys/partitionKeys'
-import { SETTINGS_SORT_KEY } from '../../src/storage/dynamodb/keys/sortKeys'
-import { assembleTestBackend, type TestBackend } from './assembleTestBackend'
-import { createLocalTable, DYNAMODB_LOCAL_ENDPOINT } from './dynamoLocal'
-import { FakeClock } from './FakeClock'
-import { InMemoryRuleDatabase } from './InMemoryRuleDatabase'
+import type { Hono } from 'hono'
+import type { DnsSettingsStore } from '../../src/dns/contracts/DnsSettingsStore'
+import type { DohUpstream } from '../../src/dns/contracts/DohUpstream'
+import type { DnsTokenLookup } from '../../src/dns/contracts/DnsTokenLookup'
+import type { ApiEnv } from '../../src/http/app/ApiEnv'
+import { buildDynamoBackendFactory } from './backends/buildDynamoBackendFactory'
+import { inMemoryBackendFactory } from './backends/inMemoryBackendFactory'
+import { DYNAMODB_LOCAL_ENDPOINT } from './dynamoLocal'
+import type { FakeClock } from './FakeClock'
 
-export type { TestBackend }
+export type TestBackend = {
+  readonly app: Hono<ApiEnv>
+  readonly clock: FakeClock
+  readonly dnsSettingsStore: DnsSettingsStore
+  readonly dnsTokenLookup: DnsTokenLookup
+  createDnsResolver(upstream: DohUpstream): Hono
+  applyAllDueChanges(): Promise<number>
+  setCooldownHours(userId: string, cooldownHours: number): Promise<void>
+  plantOrphanTokenLookup(userId: string, tokenHash: string): Promise<void>
+  dispose(): Promise<void>
+}
 
 export type BackendFactory = {
   readonly name: string
   create(maxRulesPerUser?: number): Promise<TestBackend>
 }
 
-const inMemoryFactory: BackendFactory = {
-  name: 'in-memory',
-  create: async (maxRulesPerUser = DEFAULT_MAX_RULES_PER_USER) => {
-    const database = new InMemoryRuleDatabase()
-    const stores: ApiStores = {
-      blockRuleStore: database,
-      pendingChangeStore: database,
-      dueChangeApplier: database,
-      cooldownSettingsStore: database,
-      deviceStore: database,
-      dnsSettingsStore: database,
-    }
-    const siteRuleReader: SiteRuleReader = {
-      listSiteRulesByUser: async (userId) =>
-        (await database.listRulesByUser(userId)).filter((rule) => rule.targetType === 'site'),
-    }
-    const setCooldownHours = async (userId: string, cooldownHours: number) => {
-      database.setCooldownHours(userId, cooldownHours)
-    }
-    return assembleTestBackend(
-      stores,
-      siteRuleReader,
-      new FakeClock(),
-      maxRulesPerUser,
-      setCooldownHours,
-      async () => {},
-    )
-  },
-}
-
-function buildDynamoFactory(endpoint: string): BackendFactory {
-  return {
-    name: 'dynamodb-local',
-    create: async (maxRulesPerUser = DEFAULT_MAX_RULES_PER_USER) => {
-      const table = await createLocalTable(endpoint)
-      const setCooldownHours = async (userId: string, cooldownHours: number) => {
-        await table.context.client.send(
-          new PutCommand({
-            TableName: table.context.tableName,
-            Item: { pk: userPartitionKey(userId), sk: SETTINGS_SORT_KEY, cooldownHours },
-          }),
-        )
-      }
-      return assembleTestBackend(
-        createDynamoStores(table.context),
-        new DynamoBlockRuleStore(table.context),
-        new FakeClock(),
-        maxRulesPerUser,
-        setCooldownHours,
-        table.dropTable,
-      )
-    },
-  }
-}
-
 export const backendFactories: BackendFactory[] = DYNAMODB_LOCAL_ENDPOINT
-  ? [inMemoryFactory, buildDynamoFactory(DYNAMODB_LOCAL_ENDPOINT)]
-  : [inMemoryFactory]
+  ? [inMemoryBackendFactory, buildDynamoBackendFactory(DYNAMODB_LOCAL_ENDPOINT)]
+  : [inMemoryBackendFactory]

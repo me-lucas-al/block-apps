@@ -1,8 +1,4 @@
-export type DnsSettings = {
-  readonly token: string
-  readonly timeZone: string
-  readonly createdAt: string
-}
+import type { DnsSettings } from './DnsSettings'
 
 export interface DnsSettingsStore {
   findDnsSettings(userId: string): Promise<DnsSettings | null>
@@ -17,5 +13,4 @@ export interface DnsSettingsStore {
     currentDnsSettings: DnsSettings,
     timeZone: string,
   ): Promise<boolean>
-  findUserIdByDnsTokenHash(tokenHash: string): Promise<string | null>
 }

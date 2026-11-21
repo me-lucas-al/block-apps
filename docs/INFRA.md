@@ -87,12 +87,20 @@ O `release.yml` só roda por disparo manual e os jobs de deploy usam o ambiente 
 
 - **Required reviewers:** quem aprova cada deploy.
 - **Deployment branches:** só `main`.
-- **Variables:** `HOSTED_DOMAIN_PREFIX`, `GOOGLE_CLIENT_ID`, `INITIAL_ADMIN_EMAIL`, `ALARM_EMAIL` (e-mail que recebe os alarmes).
+- **Variables:** `HOSTED_DOMAIN_PREFIX`, `GOOGLE_CLIENT_ID`, `INITIAL_ADMIN_EMAIL`, `ALARM_EMAIL` (e-mail que recebe os alarmes), `DNS_HOST` (hostname do resolvedor DoH, veja abaixo; vazio desliga o perfil de DNS).
 - **Secrets:** `AWS_ROLE_ARN`, `TF_STATE_BUCKET`, `GOOGLE_CLIENT_SECRET`.
 
 O job de build da extensão e do painel não usa o ambiente, então crie no nível do repositório as variáveis `API_URL`, `COGNITO_USER_POOL_ID`, `COGNITO_HOSTED_DOMAIN`, `EXTENSION_COGNITO_CLIENT_ID` e `ADMIN_COGNITO_CLIENT_ID` (valores dos outputs do Terraform). O `release.yml` confere essas variáveis antes de empacotar e falha se alguma estiver vazia. Os leitores de configuração dos clientes só lançam erro quando o app abre, não durante o build do Vite.
 
 O workflow passa esses valores ao Terraform por `TF_VAR_*`, gera `release.tfplan` com `plan -out` e aplica exatamente esse arquivo. O `Terraform Plan` das PRs não usa o ambiente (para não pedir aprovação a cada PR), então crie as mesmas variáveis e segredos também no nível do repositório.
+
+## Host do resolvedor DNS (`dns_host`)
+
+A Lambda `api` gera o perfil iOS `GET /dns/profile.mobileconfig` apontando para `https://<dns_host>/dns-query/<token>`. O host vem da variável Terraform `dns_host` (módulo `api` e ambiente `dev`), que vira a variável de ambiente `DNS_HOST` da Lambda. Em produção, defina a variável `DNS_HOST` do GitHub (usada em `release.yml` e `terraform-plan.yml` como `TF_VAR_dns_host`); localmente, use `dns_host` no `terraform.tfvars`.
+
+- O valor precisa ser só o hostname em minúsculas (`dns.exemplo.com`), sem `https://`, porta, caminho ou espaço. O Terraform recusa outro formato no `plan` e a Lambda falha ao atender a primeira chamada com o log `invalid dns host configuration`.
+- Ele precisa casar com o domínio público que o resolvedor DoH vai expor (a PR do resolvedor, #100): é esse nome que o iPhone vai consultar, com o certificado TLS correspondente. Use o mesmo valor de `dns_host` na configuração do resolvedor.
+- Vazio (padrão) desliga o recurso: a rota responde `404 dns blocking is not configured` e nenhum perfil é gerado.
 
 ## O que a infraestrutura garante (e o que não)
 
@@ -103,7 +111,7 @@ O workflow passa esses valores ao Terraform por `TF_VAR_*`, gera `release.tfplan
 - Cognito: senha mínima de 10 caracteres, MFA configurável com TOTP obrigatório para administradores, revogação de tokens e tokens de acesso de 15 minutos.
 - `allow_self_signup` ligado por padrão para cadastro aberto de usuários.
 - Suporte a envio de e-mails em produção com SES (`ses_identity_arn` e `ses_from_address`).
-- API com throttling (50 por segundo, rota de saúde mais restrita), logs de acesso e CORS restrito às origens do painel.
+- API com throttling (50 por segundo, rotas de saúde e `POST /dns/rotate` mais restritas: 2 por segundo, rajada de 5), logs de acesso e CORS restrito às origens do painel.
 - Estado em bucket privado, versionado, criptografado, só por TLS, com versões antigas expirando em 90 dias.
 - Nunca coloque chaves de acesso no repositório. Para CI, use OIDC.
 

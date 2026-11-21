@@ -2,17 +2,16 @@ import { describe, expect, it, vi } from 'vitest'
 import type { DohUpstream } from '../../src/dns/contracts/DohUpstream'
 import { UserDnsStateCache } from '../../src/dns/resolver/UserDnsStateCache'
 import { ResolveDohQueryUseCase } from '../../src/dns/use-cases/ResolveDohQueryUseCase'
+import { buildDnsSettings } from '../helpers/dns/buildDnsSettings'
 import { buildDnsQuery, decodeDnsResponse } from '../helpers/dnsQueryHelpers'
+import { InMemoryDnsSettingsStore } from '../helpers/InMemoryDnsSettingsStore'
 import { InMemoryRuleDatabase } from '../helpers/InMemoryRuleDatabase'
 
-async function buildSut(upstream?: DohUpstream) {
-  const database = new InMemoryRuleDatabase()
-  await database.createDnsSettings('user-1', {
-    token: 'tok-1',
-    timeZone: 'America/Sao_Paulo',
-    createdAt: '2026-11-19T12:00:00.000Z',
-  })
-  await database.insert('user-1', {
+async function buildUseCaseWithBlockedSite(upstream?: DohUpstream) {
+  const ruleDatabase = new InMemoryRuleDatabase()
+  const dnsStore = new InMemoryDnsSettingsStore()
+  await dnsStore.createDnsSettings('user-1', buildDnsSettings('tok-1', 'America/Sao_Paulo'))
+  await ruleDatabase.insert('user-1', {
     id: 'site~exemplo.com',
     targetType: 'site',
     target: 'exemplo.com',
@@ -22,9 +21,7 @@ async function buildSut(upstream?: DohUpstream) {
   const resolvedUpstream: DohUpstream = upstream ?? {
     forwardQuery: vi.fn(async (query) => query),
   }
-  const cache = new UserDnsStateCache(database, {
-    listSiteRulesByUser: (userId) => database.listRulesByUser(userId),
-  })
+  const cache = new UserDnsStateCache(dnsStore, dnsStore, ruleDatabase)
   const useCase = new ResolveDohQueryUseCase(
     cache,
     resolvedUpstream,
@@ -35,20 +32,20 @@ async function buildSut(upstream?: DohUpstream) {
 
 describe('ResolveDohQueryUseCase', () => {
   it('returns not-found for an unknown token', async () => {
-    const { useCase } = await buildSut()
+    const { useCase } = await buildUseCaseWithBlockedSite()
     expect(await useCase.resolve('missing-token', buildDnsQuery('exemplo.com'))).toEqual({
       status: 'not-found',
     })
   })
 
   it('blocks matching domains without calling upstream', async () => {
-    const { useCase, upstream } = await buildSut()
-    const result = await useCase.resolve('tok-1', buildDnsQuery('sub.exemplo.com'))
+    const { useCase, upstream } = await buildUseCaseWithBlockedSite()
+    const resolution = await useCase.resolve('tok-1', buildDnsQuery('sub.exemplo.com'))
 
-    expect(result.status).toBe('ok')
+    expect(resolution.status).toBe('ok')
     expect(upstream.forwardQuery).not.toHaveBeenCalled()
-    if (result.status === 'ok') {
-      expect(decodeDnsResponse(result.wireResponse).answers?.[0]).toMatchObject({
+    if (resolution.status === 'ok') {
+      expect(decodeDnsResponse(resolution.wireResponse).answers?.[0]).toMatchObject({
         data: '0.0.0.0',
         ttl: 30,
       })
@@ -57,16 +54,16 @@ describe('ResolveDohQueryUseCase', () => {
 
   it('returns SERVFAIL when upstream throws', async () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    const { useCase } = await buildSut({
+    const { useCase } = await buildUseCaseWithBlockedSite({
       forwardQuery: async () => {
         throw new Error('timeout')
       },
     })
 
-    const result = await useCase.resolve('tok-1', buildDnsQuery('outro.com'))
-    expect(result.status).toBe('ok')
-    if (result.status === 'ok') {
-      expect(decodeDnsResponse(result.wireResponse).rcode).toBe('SERVFAIL')
+    const resolution = await useCase.resolve('tok-1', buildDnsQuery('outro.com'))
+    expect(resolution.status).toBe('ok')
+    if (resolution.status === 'ok') {
+      expect(decodeDnsResponse(resolution.wireResponse).rcode).toBe('SERVFAIL')
     }
     consoleSpy.mockRestore()
   })

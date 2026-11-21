@@ -52,6 +52,17 @@ variable "initial_admin_email" {
   default     = ""
 }
 
+variable "dns_host" {
+  description = "Hostname público do resolvedor DoH (sem esquema, porta ou caminho), por exemplo dns.exemplo.com. Vazio desliga o perfil .mobileconfig."
+  type        = string
+  default     = ""
+
+  validation {
+    condition     = var.dns_host == "" || can(regex("^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$", var.dns_host))
+    error_message = "dns_host deve ser só o hostname em minúsculas, sem esquema, porta, caminho ou espaço."
+  }
+}
+
 variable "protect_from_deletion" {
   description = "Liga a proteção contra exclusão da tabela e do user pool na AWS."
   type        = bool

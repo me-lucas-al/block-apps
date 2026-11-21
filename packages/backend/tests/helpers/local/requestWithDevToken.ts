@@ -9,20 +9,13 @@ import { createLocalRouter } from '../../../src/local/createLocalRouter'
 import { seedLocalUsers } from '../../../src/local/seedLocalUsers'
 import { DEFAULT_MAX_RULES_PER_USER } from '../../../src/rules/quota/readMaxRulesPerUser'
 import { InMemoryUserSettings } from '../admin/InMemoryUserSettings'
-import { InMemoryRuleDatabase } from '../InMemoryRuleDatabase'
+import { buildInMemoryApiStores } from '../backends/buildInMemoryApiStores'
 
 function buildLocalTestRouter() {
-  const database = new InMemoryRuleDatabase()
   const settings = new InMemoryUserSettings()
+  const { stores, ruleDatabase } = buildInMemoryApiStores()
   const apiUseCases = createApiUseCases(
-    {
-      blockRuleStore: database,
-      pendingChangeStore: database,
-      dueChangeApplier: database,
-      cooldownSettingsStore: database,
-      deviceStore: database,
-      dnsSettingsStore: database,
-    },
+    stores,
     () => new Date(),
     DEFAULT_MAX_RULES_PER_USER,
   )
@@ -32,9 +25,7 @@ function buildLocalTestRouter() {
     cooldownSettingsWriter: settings,
   })
   const adminApp = createAdminApp('admin', createAdminUseCases(adminCollaborators))
-  const dnsApp = createDnsResolverApp(database, {
-    listSiteRulesByUser: (userId) => database.listRulesByUser(userId),
-  })
+  const dnsApp = createDnsResolverApp(stores.dnsSettingsStore, stores.dnsTokenLookup, ruleDatabase)
   const options = { allowedOrigins: ['http://painel.local'], allowedHosts: [] }
   return createLocalRouter(createApiApp(apiUseCases), adminApp, options, dnsApp)
 }

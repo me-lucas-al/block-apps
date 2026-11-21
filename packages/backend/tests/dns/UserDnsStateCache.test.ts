@@ -1,24 +1,35 @@
 import { describe, expect, it, vi } from 'vitest'
 import { UserDnsStateCache } from '../../src/dns/resolver/UserDnsStateCache'
+import { buildDnsSettings } from '../helpers/dns/buildDnsSettings'
+import { InMemoryDnsSettingsStore } from '../helpers/InMemoryDnsSettingsStore'
 import { InMemoryRuleDatabase } from '../helpers/InMemoryRuleDatabase'
+
+async function seedUserWithSiteRule(token: string) {
+  const ruleDatabase = new InMemoryRuleDatabase()
+  const dnsStore = new InMemoryDnsSettingsStore()
+  await dnsStore.createDnsSettings('user-1', buildDnsSettings(token))
+  await ruleDatabase.insert('user-1', {
+    id: 'site~exemplo.com',
+    targetType: 'site',
+    target: 'exemplo.com',
+    mode: 'always',
+    windows: [],
+  })
+  return { ruleDatabase, dnsStore }
+}
 
 describe('UserDnsStateCache', () => {
   it('caches token lookups for 60s and site rules for 30s', async () => {
-    const database = new InMemoryRuleDatabase()
-    await database.createDnsSettings('user-1', {
-      token: 'tok-1',
-      timeZone: 'UTC',
-      createdAt: '2026-11-19T12:00:00.000Z',
-    })
-    const tokenSpy = vi.spyOn(database, 'findUserIdByDnsTokenHash')
-    const rulesSpy = vi.fn(async (userId: string) => database.listRulesByUser(userId))
-    const cache = new UserDnsStateCache(database, { listSiteRulesByUser: rulesSpy })
+    const { ruleDatabase, dnsStore } = await seedUserWithSiteRule('tok-1')
+    const ownerLookupSpy = vi.spyOn(dnsStore, 'findValidatedDnsOwner')
+    const rulesSpy = vi.fn(async (userId: string) => ruleDatabase.listRulesByUser(userId))
+    const cache = new UserDnsStateCache(dnsStore, dnsStore, { listSiteRulesByUser: rulesSpy })
 
     expect(await cache.findUserId('tok-1', 0)).toBe('user-1')
     expect(await cache.findUserId('tok-1', 59_000)).toBe('user-1')
-    expect(tokenSpy).toHaveBeenCalledTimes(1)
+    expect(ownerLookupSpy).toHaveBeenCalledTimes(1)
     expect(await cache.findUserId('tok-1', 60_000)).toBe('user-1')
-    expect(tokenSpy).toHaveBeenCalledTimes(2)
+    expect(ownerLookupSpy).toHaveBeenCalledTimes(2)
 
     await cache.readUserState('user-1', 0)
     await cache.readUserState('user-1', 29_000)
@@ -28,36 +39,22 @@ describe('UserDnsStateCache', () => {
   })
 
   it('uses stale rules on error and returns null when cold', async () => {
-    const database = new InMemoryRuleDatabase()
-    await database.createDnsSettings('user-1', {
-      token: 'tok-1',
-      timeZone: 'UTC',
-      createdAt: '2026-11-19T12:00:00.000Z',
-    })
-    await database.insert('user-1', {
-      id: 'site~exemplo.com',
-      targetType: 'site',
-      target: 'exemplo.com',
-      mode: 'always',
-      windows: [],
-    })
-    let shouldFail = false
+    const { ruleDatabase, dnsStore } = await seedUserWithSiteRule('tok-1')
+    let rulesReadFails = false
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    const warmCache = new UserDnsStateCache(database, {
+    const warmCache = new UserDnsStateCache(dnsStore, dnsStore, {
       listSiteRulesByUser: async (userId) => {
-        if (shouldFail) throw new Error('outage')
-        return database.listRulesByUser(userId)
+        if (rulesReadFails) throw new Error('outage')
+        return ruleDatabase.listRulesByUser(userId)
       },
     })
 
-    const initial = await warmCache.readUserState('user-1', 0)
-    expect(initial?.rules).toHaveLength(1)
+    expect((await warmCache.readUserState('user-1', 0))?.rules).toHaveLength(1)
 
-    shouldFail = true
-    const stale = await warmCache.readUserState('user-1', 31_000)
-    expect(stale?.rules).toHaveLength(1)
+    rulesReadFails = true
+    expect((await warmCache.readUserState('user-1', 31_000))?.rules).toHaveLength(1)
 
-    const coldCache = new UserDnsStateCache(database, {
+    const coldCache = new UserDnsStateCache(dnsStore, dnsStore, {
       listSiteRulesByUser: async () => {
         throw new Error('cold outage')
       },

@@ -8,6 +8,7 @@ src/
   rules/         criar e listar regras
   cooldown/      pedido de alteração, remoção, aplicação das mudanças vencidas
   devices/       status de dispositivos
+  dns/           token, fuso e perfil de DNS (contratos de gravação e de validação do token)
   users/         use cases, guardas e contratos das rotas administrativas
   auth/          vínculo entre login do Google e conta com senha (PreSignUp)
   storage/       adaptadores DynamoDB (chaves, tabelas) e Cognito
@@ -25,15 +26,23 @@ Uma única tabela DynamoDB (`<prefixo>-data`), cobrança por demanda, com recupe
 | Regra | `USER#<userId>` | `RULE#<ruleId>` | `id`, `targetType` (`app`, `site` ou `keyword`), `target`, `mode`, `windows` |
 | Mudança pendente | `USER#<userId>` | `CHANGE#<ruleId>` | `ruleId`, `kind` (`update`, `delete` ou `selectionRemoval`), `mode`, `windows` (nulos em `delete` e `selectionRemoval`), `effectiveAt`, `dueBucket` (sempre `DUE`) |
 | Configuração | `USER#<userId>` | `SETTINGS` | `cooldownHours` |
-| Perfil de DNS | `USER#<userId>` | `DNS` | `token`, `tokenHash` (SHA-256), `timeZone` (IANA), `createdAt` |
-| Busca do token de DNS | `DNSTOKEN#<tokenHash>` | `DNSTOKEN` | `userId` (o resolvedor consulta só pelo hash; apagar o usuário apaga este item junto) |
-
-O token de DNS fica em claro no item `DNS` do usuário, porque `POST /dns/profile` precisa devolvê-lo de novo para montar o perfil; só o item de busca guarda o hash. Criar, trocar o token e mudar o fuso são gravações condicionais (sem corrida entre abas: quem perde recebe 409). O fuso é validado e gravado pelo nome canônico (`America/Sao_Paulo`, ou `UTC`); abreviações como `EST` e offsets como `+03:00` são recusados.
 | Dispositivo | `USER#<userId>` | `DEVICE#<deviceId>` | `deviceId`, `platform`, `incognitoAllowed`, `adminActive`, `lastSeen` |
+| Perfil de DNS | `USER#<userId>` | `DNS` | `token`, `tokenHash` (SHA-256 hex), `timeZone` (IANA), `createdAt` (criação do perfil, nunca muda), `tokenCreatedAt` (criação ou última rotação do token) |
+| Busca do token de DNS | `DNSTOKEN#<tokenHash>` | `DNSTOKEN` | `userId` (índice de busca: não vale sozinho, ver "Token de DNS") |
 
 Há uma mudança pendente por regra (a chave usa o `ruleId`), então pedir de novo substitui o pedido anterior.
 
 Índice secundário global `due-changes`: chave de partição `dueBucket`, de ordenação `effectiveAt`, projeção `ALL`. O `schedulerHandler` consulta o balde `DUE` até o instante atual para achar quem tem mudança vencida.
+
+### Token de DNS
+
+- **Validação.** O contrato `DnsTokenLookup` (`findValidatedDnsOwner(tokenHash)`) é a única forma de o resolvedor aceitar um token. Ele lê o item de busca `DNSTOKEN#<hash>`, depois o item `DNS` do usuário apontado (as duas leituras com `ConsistentRead`) e só devolve `{ userId, dnsSettings }` se o `tokenHash` do item `DNS` for igual ao hash buscado. Um item de busca órfão (usuário apagado, falha parcial da exclusão, rotação concorrente) nunca valida, porque o item `DNS` não existe ou guarda outro token. Item `DNS` malformado também não valida: a leitura falha com `MalformedDnsSettingsError`.
+- **Token em claro (decisão consciente).** O token fica em claro no item `DNS`, porque `POST /dns/profile` precisa devolvê-lo de novo para montar o perfil no aparelho; só o item de busca usa o hash. Não há HMAC nem KMS nesta etapa. Mitigações: o token é aleatório (32 bytes, base64url, 43 caracteres), a tabela é criptografada, as respostas das rotas `/dns` levam `Cache-Control: no-store`, o log nunca grava o token e a rotação (`POST /dns/rotate`) invalida o anterior na hora.
+- **Quem lê o token.** O backup contínuo (PITR) retém versões antigas do item `DNS`, tokens inclusive, por até 35 dias depois da rotação ou da exclusão. A role `data-reader` (`infra/modules/data/reader_role.tf`) lê a tabela inteira, então **consegue ler os tokens de DNS**: o IAM não filtra por `sk`, e filtrar por atributo quebraria o console. Risco aceito: a role exige MFA e é só para pessoas da conta; para anular um token vazado, rotacione-o.
+- **Gravações condicionais.** Criar o perfil, trocar o token e mudar o fuso usam condição (`attribute_not_exists` na criação; `tokenHash` igual ao lido na troca do fuso; `tokenHash` e `timeZone` iguais aos lidos na rotação) e o item de busca novo entra com `attribute_not_exists(pk)`. Quem perde a corrida recebe 409 e tenta de novo. Se `POST /dns/profile` perde a corrida de criação, relê o perfil e reaplica o fuso pedido (ou responde 409), nunca devolve em silêncio um fuso diferente.
+- **Fuso.** Validado e gravado pelo nome canônico (`America/Sao_Paulo`, ou `UTC`); abreviações como `EST` e offsets como `+03:00` são recusados.
+- **Exclusão.** O apagador de usuário remove primeiro as chaves de busca do DNS (lidas do `tokenHash` do item `DNS`) e só depois o item `DNS` e o resto. Se ele falhar no meio ou uma rotação cair entre a leitura e a exclusão, sobra no máximo um item de busca órfão (lixo sem valor: não valida).
+- **Limite de taxa.** `POST /dns/rotate` tem rota própria no API Gateway com limite menor (2 por segundo, rajada de 5), somado ao limite padrão da API.
 
 ### Riscos do desenho
 

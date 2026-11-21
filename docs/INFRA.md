@@ -103,7 +103,7 @@ O workflow passa esses valores ao Terraform por `TF_VAR_*`, gera `release.tfplan
 - Cognito: senha mínima de 10 caracteres, MFA configurável com TOTP obrigatório para administradores, revogação de tokens e tokens de acesso de 15 minutos.
 - `allow_self_signup` ligado por padrão para cadastro aberto de usuários.
 - Suporte a envio de e-mails em produção com SES (`ses_identity_arn` e `ses_from_address`).
-- API com throttling (50 por segundo, rota de saúde mais restrita), logs de acesso e CORS restrito às origens do painel.
+- API com throttling (50 por segundo, rotas de saúde e `POST /dns/rotate` mais restritas: 2 por segundo, rajada de 5), logs de acesso e CORS restrito às origens do painel.
 - Estado em bucket privado, versionado, criptografado, só por TLS, com versões antigas expirando em 90 dias.
 - Nunca coloque chaves de acesso no repositório. Para CI, use OIDC.
 

@@ -1,5 +1,5 @@
-import { act } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { act, cleanup } from '@testing-library/react'
+import { afterEach, describe, expect, it } from 'vitest'
 import {
   OVER_LIMIT_STATES,
   WITHIN_LIMIT_STATES,
@@ -8,6 +8,8 @@ import {
 } from './helpers/groupSelectionFixtures'
 
 describe('useGroupAppChoices stale loads', () => {
+  afterEach(cleanup)
+
   it('drops a superseded load that resolves after a newer one', async () => {
     const { groupSelection, settlersByRuleIds } = buildGroupSelectionWithManualLoads()
 

@@ -1,5 +1,5 @@
-import { waitFor } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { cleanup, waitFor } from '@testing-library/react'
+import { afterEach, describe, expect, it } from 'vitest'
 import type { GroupStates } from '../../../ports/groupselection/GroupSelectionPort'
 import {
   OVER_LIMIT_STATES,
@@ -8,6 +8,8 @@ import {
 } from './helpers/groupSelectionFixtures'
 
 describe('useGroupAppChoices state loading', () => {
+  afterEach(cleanup)
+
   it('shows no warning while the group states are loading', () => {
     const groupSelection = buildGroupSelection(() => new Promise<GroupStates>(() => undefined))
 

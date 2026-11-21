@@ -1,4 +1,5 @@
 import { Hono, type Context } from 'hono'
+import { isWellFormedDnsToken } from '../../dns/token/dnsTokenFormat'
 import type { ResolveDohQueryUseCase } from '../../dns/use-cases/ResolveDohQueryUseCase'
 import {
   readGetDohWireQuery,
@@ -6,17 +7,25 @@ import {
   type ReadWireQueryResult,
 } from './readDohWireQuery'
 
+const REJECTION_STATUS_BY_READ_STATUS = {
+  'bad-request': 400,
+  'payload-too-large': 413,
+  'unsupported-media-type': 415,
+} as const
+
 async function answerDohRequest(
   context: Context,
   resolveDohQueryUseCase: ResolveDohQueryUseCase,
   readWireQuery: () => Promise<ReadWireQueryResult> | ReadWireQueryResult,
 ) {
   const token = context.req.param('token') ?? ''
-  const parsed = await readWireQuery()
-  const wireQuery = parsed.status === 'ok' ? parsed.wireQuery : null
-  const resolution = await resolveDohQueryUseCase.resolveDohQuery(token, wireQuery)
+  if (!isWellFormedDnsToken(token)) return context.body(null, 404)
+  const wireQueryRead = await readWireQuery()
+  if (wireQueryRead.status !== 'ok') {
+    return context.body(null, REJECTION_STATUS_BY_READ_STATUS[wireQueryRead.status])
+  }
+  const resolution = await resolveDohQueryUseCase.resolveDohQuery(token, wireQueryRead.wireQuery)
   if (resolution.status === 'not-found') return context.body(null, 404)
-  if (parsed.status === 'unsupported-media-type') return context.body(null, 415)
   if (resolution.status === 'invalid-query') return context.body(null, 400)
   return context.body(new Uint8Array(resolution.wireResponse), 200, {
     'content-type': 'application/dns-message',

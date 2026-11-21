@@ -10,6 +10,9 @@ object RuleIdReader {
   private fun toIds(rules: JSONArray): Set<String> =
     (0 until rules.length()).map { toId(rules.getJSONObject(it)) }.toSet()
 
-  private fun toId(rule: JSONObject): String =
-    rule.optString("id").ifEmpty { "app~${rule.getString("target")}" }
+  private fun toId(rule: JSONObject): String {
+    val idFromTarget = "app~${rule.getString("target")}"
+    if (rule.isNull("id")) return idFromTarget
+    return rule.getString("id").ifEmpty { idFromTarget }
+  }
 }

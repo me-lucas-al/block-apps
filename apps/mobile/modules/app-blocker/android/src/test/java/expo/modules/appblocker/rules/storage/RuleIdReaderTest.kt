@@ -17,6 +17,11 @@ class RuleIdReaderTest {
   }
 
   @Test
+  fun aNullIdUsesTheIdBuiltFromTheTarget() {
+    assertEquals(setOf("app~com.a"), RuleIdReader.readIds("""[{"id":null,"target":"com.a"}]"""))
+  }
+
+  @Test
   fun anEmptyListHasNoIds() {
     assertEquals(emptySet<String>(), RuleIdReader.readIds("[]"))
   }

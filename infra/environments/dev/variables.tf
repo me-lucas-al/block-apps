@@ -63,6 +63,17 @@ variable "dns_host" {
   }
 }
 
+variable "dns_upstream_url" {
+  description = "URL https do resolvedor DoH público para onde as consultas liberadas são encaminhadas, por exemplo https://dns.google/dns-query. Vazio usa o padrão do backend (https://1.1.1.1/dns-query)."
+  type        = string
+  default     = "https://1.1.1.1/dns-query"
+
+  validation {
+    condition     = var.dns_upstream_url == "" || can(regex("^https://[^/@\\s]+(/\\S*)?$", var.dns_upstream_url))
+    error_message = "dns_upstream_url deve ser uma URL https sem credenciais (https://host/caminho) ou vazio."
+  }
+}
+
 variable "protect_from_deletion" {
   description = "Liga a proteção contra exclusão da tabela e do user pool na AWS."
   type        = bool

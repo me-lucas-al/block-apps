@@ -25,7 +25,13 @@ function buildLocalTestRouter() {
     cooldownSettingsWriter: settings,
   })
   const adminApp = createAdminApp('admin', createAdminUseCases(adminCollaborators))
-  const dnsApp = assembleDohResolverApp(stores.dnsSettingsStore, stores.dnsTokenLookup, ruleDatabase)
+  const dnsApp = assembleDohResolverApp(
+    stores.dnsSettingsStore,
+    stores.dnsTokenLookup,
+    ruleDatabase,
+    { forwardQuery: async (wireQuery) => wireQuery },
+    () => new Date(),
+  )
   const options = { allowedOrigins: ['http://painel.local'], allowedHosts: [] }
   return createLocalRouter(createApiApp(apiUseCases), adminApp, options, dnsApp)
 }

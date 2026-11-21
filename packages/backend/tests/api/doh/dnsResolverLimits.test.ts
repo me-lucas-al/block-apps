@@ -19,6 +19,8 @@ const dnsApp = assembleDohResolverApp(
   new UnreachableDnsSettingsStore(),
   untouchableTokenLookup,
   untouchableSiteRuleReader,
+  { forwardQuery: async (wireQuery) => wireQuery },
+  () => new Date(),
 )
 const oversizedWire = new Uint8Array(DOH_MAX_WIRE_BYTES + 1).fill(1)
 

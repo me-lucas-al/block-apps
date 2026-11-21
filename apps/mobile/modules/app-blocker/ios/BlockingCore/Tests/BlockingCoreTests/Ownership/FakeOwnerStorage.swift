@@ -24,13 +24,4 @@ final class FakeOwnerStorage: OwnerStoring {
         self.ownerId = ownerId
         savedOwnerIds.append(ownerId)
     }
-
-    func migrateToSubOne(legacyOwnerId: String? = "a@b.c", incomingRuleIds: Set<String> = ["rule-1"]) throws {
-        try LegacyOwnerMigration.migrate(
-            storage: self,
-            legacyOwnerId: legacyOwnerId,
-            incomingOwnerId: "sub-1",
-            incomingRuleIds: incomingRuleIds
-        )
-    }
 }

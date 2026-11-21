@@ -4,26 +4,26 @@ import XCTest
 final class LegacyOwnerMigrationTests: XCTestCase {
     func testAnOwnerStoredAsTheEmailIsReplacedByTheSub() throws {
         let storage: FakeOwnerStorage = FakeOwnerStorage(ownerId: "a@b.c")
-        try storage.migrateToSubOne()
+        try storage.migrateLegacyOwnerToSubOne()
         XCTAssertEqual(storage.ownerId, "sub-1")
     }
 
     func testAnotherAccountsOwnerIsLeftAlone() throws {
         let storage: FakeOwnerStorage = FakeOwnerStorage(ownerId: "other@b.c")
-        try storage.migrateToSubOne()
+        try storage.migrateLegacyOwnerToSubOne()
         XCTAssertEqual(storage.ownerId, "other@b.c")
         XCTAssertTrue(storage.savedOwnerIds.isEmpty)
     }
 
     func testNothingIsWrittenWhenTheOwnerIsAlreadyTheSub() throws {
         let storage: FakeOwnerStorage = FakeOwnerStorage(ownerId: "sub-1")
-        try storage.migrateToSubOne()
+        try storage.migrateLegacyOwnerToSubOne()
         XCTAssertTrue(storage.savedOwnerIds.isEmpty)
     }
 
     func testNothingIsWrittenWhenThereIsNoLegacyOwnerId() throws {
         let storage: FakeOwnerStorage = FakeOwnerStorage(ownerId: "a@b.c")
-        try storage.migrateToSubOne(legacyOwnerId: nil)
+        try storage.migrateLegacyOwnerToSubOne(legacyOwnerId: nil)
         XCTAssertEqual(storage.ownerId, "a@b.c")
         XCTAssertTrue(storage.savedOwnerIds.isEmpty)
     }
@@ -31,7 +31,7 @@ final class LegacyOwnerMigrationTests: XCTestCase {
     func testAFailureToSaveIsReportedInsteadOfSwallowed() {
         let storage: FakeOwnerStorage = FakeOwnerStorage(ownerId: "a@b.c")
         storage.failsToSave = true
-        XCTAssertThrowsError(try storage.migrateToSubOne())
+        XCTAssertThrowsError(try storage.migrateLegacyOwnerToSubOne())
         XCTAssertEqual(storage.ownerId, "a@b.c")
     }
 }

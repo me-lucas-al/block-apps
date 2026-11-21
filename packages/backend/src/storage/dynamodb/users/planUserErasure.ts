@@ -1,9 +1,16 @@
-import { dnsTokenPartitionKey } from '../keys/partitionKeys'
-import { DNS_SORT_KEY, DNS_TOKEN_SORT_KEY } from '../keys/sortKeys'
+import { listDnsLookupKeys } from '../dns/listDnsLookupKeys'
 
-export function listKeysToErase(item: Record<string, unknown>): Record<string, unknown>[] {
-  const ownKey = { pk: item['pk'], sk: item['sk'] }
-  const tokenHash = item['tokenHash']
-  if (item['sk'] !== DNS_SORT_KEY || typeof tokenHash !== 'string') return [ownKey]
-  return [ownKey, { pk: dnsTokenPartitionKey(tokenHash), sk: DNS_TOKEN_SORT_KEY }]
+type StoredKey = Record<string, unknown>
+
+export type UserErasurePlan = {
+  readonly lookupKeys: StoredKey[]
+  readonly userKeys: StoredKey[]
+}
+
+export function planUserErasure(storedEntries: StoredKey[]): UserErasurePlan {
+  const userKeys = storedEntries.map((storedEntry) => ({
+    pk: storedEntry['pk'],
+    sk: storedEntry['sk'],
+  }))
+  return { lookupKeys: listDnsLookupKeys(storedEntries), userKeys }
 }

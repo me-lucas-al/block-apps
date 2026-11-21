@@ -1,4 +1,4 @@
-import { ValidationError } from '../domain/errors/ValidationError'
+import { ValidationError } from '../../domain/errors/ValidationError'
 
 const INVALID_TIME_ZONE_MESSAGE = 'timeZone must be a valid IANA time zone such as America/Sao_Paulo'
 

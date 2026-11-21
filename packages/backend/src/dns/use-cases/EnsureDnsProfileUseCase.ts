@@ -1,5 +1,5 @@
 import { ConflictError } from '../../domain/errors/ConflictError'
-import { canonicalizeTimeZone } from '../canonicalizeTimeZone'
+import { canonicalizeTimeZone } from '../time-zone/canonicalizeTimeZone'
 import type { DnsSettings, DnsSettingsStore } from '../contracts/DnsSettingsStore'
 import type { DnsTokenGenerator } from '../token/generateDnsToken'
 

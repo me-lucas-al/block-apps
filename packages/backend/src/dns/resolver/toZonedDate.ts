@@ -25,8 +25,8 @@ function getFormatter(timeZone: string): Intl.DateTimeFormat {
 }
 
 function readPart(parts: readonly Intl.DateTimeFormatPart[], type: Intl.DateTimeFormatPartTypes): number {
-  const value = parts.find((part) => part.type === type)?.value
-  return Number(value ?? 0)
+  const partText = parts.find((part) => part.type === type)?.value
+  return Number(partText ?? 0)
 }
 
 export function toZonedDate(instant: Date, timeZone: string): Date {

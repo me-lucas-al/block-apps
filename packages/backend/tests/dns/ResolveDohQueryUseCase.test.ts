@@ -33,14 +33,14 @@ async function buildUseCaseWithBlockedSite(upstream?: DohUpstream) {
 describe('ResolveDohQueryUseCase', () => {
   it('returns not-found for an unknown token', async () => {
     const { useCase } = await buildUseCaseWithBlockedSite()
-    expect(await useCase.resolve('missing-token', buildDnsQuery('exemplo.com'))).toEqual({
+    expect(await useCase.resolveDohQuery('missing-token', buildDnsQuery('exemplo.com'))).toEqual({
       status: 'not-found',
     })
   })
 
   it('blocks matching domains without calling upstream', async () => {
     const { useCase, upstream } = await buildUseCaseWithBlockedSite()
-    const resolution = await useCase.resolve('tok-1', buildDnsQuery('sub.exemplo.com'))
+    const resolution = await useCase.resolveDohQuery('tok-1', buildDnsQuery('sub.exemplo.com'))
 
     expect(resolution.status).toBe('ok')
     expect(upstream.forwardQuery).not.toHaveBeenCalled()
@@ -60,7 +60,7 @@ describe('ResolveDohQueryUseCase', () => {
       },
     })
 
-    const resolution = await useCase.resolve('tok-1', buildDnsQuery('outro.com'))
+    const resolution = await useCase.resolveDohQuery('tok-1', buildDnsQuery('outro.com'))
     expect(resolution.status).toBe('ok')
     if (resolution.status === 'ok') {
       expect(decodeDnsResponse(resolution.wireResponse).rcode).toBe('SERVFAIL')

@@ -1,6 +1,6 @@
 import type { ApiStores } from '../../../src/composition/ApiStores'
 import { createApiUseCases } from '../../../src/composition/createApiUseCases'
-import { createDnsResolverApp } from '../../../src/composition/createDnsResolverApp'
+import { assembleDohResolverApp } from '../../../src/composition/doh/assembleDohResolverApp'
 import type { SiteRuleReader } from '../../../src/dns/contracts/SiteRuleReader'
 import { ApplyAllDueChangesUseCase } from '../../../src/cooldown/use-cases/ApplyAllDueChangesUseCase'
 import { ApplyDueChangesForUserUseCase } from '../../../src/cooldown/use-cases/ApplyDueChangesForUserUseCase'
@@ -38,7 +38,7 @@ export function assembleBackend(
     dnsSettingsStore: stores.dnsSettingsStore,
     dnsTokenLookup: stores.dnsTokenLookup,
     createDnsResolver: (upstream) =>
-      createDnsResolverApp(
+      assembleDohResolverApp(
         stores.dnsSettingsStore,
         stores.dnsTokenLookup,
         siteRuleReader,

@@ -6,15 +6,15 @@ import {
   type ReadWireQueryResult,
 } from './readDohWireQuery'
 
-async function handleDohRequest(
+async function answerDohRequest(
   context: Context,
-  resolveQuery: ResolveDohQueryUseCase,
+  resolveDohQueryUseCase: ResolveDohQueryUseCase,
   readWireQuery: () => Promise<ReadWireQueryResult> | ReadWireQueryResult,
 ) {
   const token = context.req.param('token') ?? ''
   const parsed = await readWireQuery()
   const wireQuery = parsed.status === 'ok' ? parsed.wireQuery : null
-  const resolution = await resolveQuery.resolve(token, wireQuery)
+  const resolution = await resolveDohQueryUseCase.resolveDohQuery(token, wireQuery)
   if (resolution.status === 'not-found') return context.body(null, 404)
   if (parsed.status === 'unsupported-media-type') return context.body(null, 415)
   if (resolution.status === 'invalid-query') return context.body(null, 400)
@@ -24,7 +24,7 @@ async function handleDohRequest(
   })
 }
 
-export function createDnsApp(resolveQuery: ResolveDohQueryUseCase) {
+export function createDohQueryApp(resolveDohQueryUseCase: ResolveDohQueryUseCase) {
   const app = new Hono()
   app.onError((error, context) => {
     console.error(JSON.stringify({ message: 'unhandled dns error', name: error.name, detail: error.message }))
@@ -33,10 +33,10 @@ export function createDnsApp(resolveQuery: ResolveDohQueryUseCase) {
   app.notFound((context) => context.body(null, 404))
 
   app.get('/dns-query/:token', (context) =>
-    handleDohRequest(context, resolveQuery, () => readGetDohWireQuery(context)),
+    answerDohRequest(context, resolveDohQueryUseCase, () => readGetDohWireQuery(context)),
   )
   app.post('/dns-query/:token', (context) =>
-    handleDohRequest(context, resolveQuery, () => readPostDohWireQuery(context)),
+    answerDohRequest(context, resolveDohQueryUseCase, () => readPostDohWireQuery(context)),
   )
 
   return app

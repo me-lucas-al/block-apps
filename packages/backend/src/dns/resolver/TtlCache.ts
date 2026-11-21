@@ -1,24 +1,24 @@
-type CacheEntry<Value> = {
-  readonly value: Value
+type CacheEntry<CachedContent> = {
+  readonly cachedContent: CachedContent
   readonly expiresAt: number
 }
 
-export class TtlCache<Value> {
-  private readonly entries = new Map<string, CacheEntry<Value>>()
+export class TtlCache<CachedContent> {
+  private readonly entries = new Map<string, CacheEntry<CachedContent>>()
 
   constructor(private readonly ttlMs: number) {}
 
-  readFresh(key: string, nowMs: number): Value | undefined {
+  readFresh(key: string, nowMs: number): CachedContent | undefined {
     const entry = this.entries.get(key)
     if (!entry || entry.expiresAt <= nowMs) return undefined
-    return entry.value
+    return entry.cachedContent
   }
 
-  readStale(key: string): Value | undefined {
-    return this.entries.get(key)?.value
+  readStale(key: string): CachedContent | undefined {
+    return this.entries.get(key)?.cachedContent
   }
 
-  write(key: string, value: Value, nowMs: number): void {
-    this.entries.set(key, { value, expiresAt: nowMs + this.ttlMs })
+  write(key: string, cachedContent: CachedContent, nowMs: number): void {
+    this.entries.set(key, { cachedContent, expiresAt: nowMs + this.ttlMs })
   }
 }

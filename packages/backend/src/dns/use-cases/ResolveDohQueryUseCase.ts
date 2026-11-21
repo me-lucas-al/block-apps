@@ -23,7 +23,7 @@ export class ResolveDohQueryUseCase {
     private readonly clock: Clock,
   ) {}
 
-  async resolve(token: string, wireQuery: Uint8Array | null): Promise<DohResolution> {
+  async resolveDohQuery(token: string, wireQuery: Uint8Array | null): Promise<DohResolution> {
     if (!token) return { status: 'not-found' }
     const now = this.clock()
     const userId = await this.stateProvider.findUserId(token, now.getTime())

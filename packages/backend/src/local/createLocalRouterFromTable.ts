@@ -1,7 +1,7 @@
 import { assembleCognitoAdminCollaborators } from '../composition/assembleCognitoAdminCollaborators'
 import { createAdminUseCases } from '../composition/createAdminUseCases'
 import { createApiUseCases } from '../composition/createApiUseCases'
-import { createDnsResolverApp } from '../composition/createDnsResolverApp'
+import { assembleDohResolverApp } from '../composition/doh/assembleDohResolverApp'
 import { createDynamoStores } from '../composition/createDynamoStores'
 import { FetchDohUpstream, readDohUpstreamUrl } from '../dns/upstream/FetchDohUpstream'
 import { createAdminApp } from '../http/app/createAdminApp'
@@ -36,7 +36,7 @@ export function createLocalRouterFromTable(table: TableContext, options: LocalAp
     { dnsHost: options.dnsHost },
   )
   const adminApp = createAdminApp('admin', adminUseCases)
-  const dnsApp = createDnsResolverApp(
+  const dnsApp = assembleDohResolverApp(
     new DynamoDnsSettingsStore(table),
     new DynamoDnsTokenLookup(table),
     new DynamoBlockRuleStore(table),

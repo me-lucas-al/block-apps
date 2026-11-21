@@ -21,6 +21,12 @@ struct SharedRulesStorage {
         return defaults?.string(forKey: ownerKey)
     }
 
+    func loadStoredRuleIds() -> Set<String>? {
+        guard defaults?.string(forKey: rulesKey) != nil else { return [] }
+        guard let storedRules: [BlockingRule] = loadRules() else { return nil }
+        return Set(storedRules.map { (rule: BlockingRule) -> String in rule.id })
+    }
+
     func loadRules() -> [BlockingRule]? {
         guard let json: String = defaults?.string(forKey: rulesKey) else { return nil }
         do {

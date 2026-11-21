@@ -1,3 +1,5 @@
 hosted_domain_prefix = "block-apps-dev-troque-este-valor"
 initial_admin_email  = "voce@exemplo.com"
 alarm_email          = "alertas@exemplo.com"
+extension_ids         = ["abcdefghijklmnopabcdefghijklmnop"]
+firefox_redirect_urls = ["https://663c73f5c9fd763da1f0cd8d249eeddd7ff8bea7.extensions.allizom.org/"]

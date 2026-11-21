@@ -3,12 +3,11 @@ import { BuildDnsProfileUseCase } from '../../src/dns/use-cases/BuildDnsProfileU
 import { NotFoundError } from '../../src/domain/errors/NotFoundError'
 import { InMemoryDnsSettingsStore } from '../helpers/InMemoryDnsSettingsStore'
 import { buildDnsSettings } from '../helpers/dns/buildDnsSettings'
+import { UnreachableDnsSettingsStore } from '../helpers/dns/UnreachableDnsSettingsStore'
 
 describe('BuildDnsProfileUseCase', () => {
-  it('throws NotFoundError when dnsHost is not configured', async () => {
-    const store = new InMemoryDnsSettingsStore()
-    await store.createDnsSettings('user-1', buildDnsSettings('tok-1'))
-    const useCase = new BuildDnsProfileUseCase(store, null)
+  it('throws NotFoundError before querying the store when dnsHost is not configured', async () => {
+    const useCase = new BuildDnsProfileUseCase(new UnreachableDnsSettingsStore(), undefined)
 
     await expect(useCase.buildDnsProfileFor('user-1')).rejects.toBeInstanceOf(NotFoundError)
   })

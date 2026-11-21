@@ -1,0 +1,6 @@
+export const PROFILE_IDENTIFIER_PREFIX = 'com.blockapps.dns'
+export const SETTINGS_IDENTIFIER_PREFIX = 'com.blockapps.dns.settings'
+export const PROFILE_DISPLAY_NAME = 'Block Apps: bloqueio de sites'
+export const PROFILE_DESCRIPTION = 'Bloqueia os sites das suas regras usando um DNS seguro.'
+export const PROFILE_ORGANIZATION = 'Block Apps'
+export const SETTINGS_DISPLAY_NAME = 'DNS seguro do Block Apps'

@@ -21,7 +21,7 @@ import type { ApiStores } from './ApiStores'
 
 export type DnsOptions = {
   readonly generateToken?: DnsTokenGenerator
-  readonly dnsHost?: string | null
+  readonly dnsHost?: string
 }
 
 export function createApiUseCases(
@@ -62,6 +62,6 @@ export function createApiUseCases(
       new ChangeDnsTimeZoneUseCase(stores.dnsSettingsStore),
     ),
     rotateDnsToken: new RotateDnsTokenUseCase(stores.dnsSettingsStore, generateToken, clock),
-    buildDnsProfile: new BuildDnsProfileUseCase(stores.dnsSettingsStore, dnsOptions.dnsHost ?? null),
+    buildDnsProfile: new BuildDnsProfileUseCase(stores.dnsSettingsStore, dnsOptions.dnsHost),
   }
 }

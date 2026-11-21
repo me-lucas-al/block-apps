@@ -44,7 +44,9 @@ export function GroupHomeScreen({ email, groupSelection }: GroupHomeScreenProps)
       <StrictModeCard />
       {rulesState.error && <Text style={styles.error}>{rulesState.error}</Text>}
       {choices.notice && <Text style={styles.notice}>{choices.notice}</Text>}
-      {choices.isTotalOverLimit && <Text style={styles.warning}>{describeSelectionLimitWarning('allGroups')}</Text>}
+      {choices.isTotalOverLimit && (
+        <Text style={styles.warning}>{describeSelectionLimitWarning('allGroups')}</Text>
+      )}
       <FlatList
         data={rulesState.rules}
         keyExtractor={(rule) => rule.id}

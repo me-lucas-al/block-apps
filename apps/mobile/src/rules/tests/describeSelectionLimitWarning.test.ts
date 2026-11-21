@@ -17,7 +17,7 @@ describe('describeSelectionLimitWarning', () => {
     )
   })
 
-  it('states the same limit the native module uses', () => {
+  it('keeps the limit at 50 items', () => {
     expect(IOS_PROTECTED_ITEMS_LIMIT).toBe(50)
   })
 

@@ -24,5 +24,13 @@ export function createDnsRoutes(useCases: ApiUseCases) {
     return context.json(dnsSettings)
   })
 
+  routes.get('/profile.mobileconfig', async (context) => {
+    const profile = await useCases.buildDnsProfile.buildDnsProfileFor(context.var.user.userId)
+    return context.body(profile, 200, {
+      'content-type': 'application/x-apple-aspen-config; charset=utf-8',
+      'content-disposition': 'attachment; filename="block-apps-dns.mobileconfig"',
+    })
+  })
+
   return routes
 }

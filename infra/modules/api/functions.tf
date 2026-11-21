@@ -12,6 +12,7 @@ module "api_function" {
   environment = {
     TABLE_NAME         = var.table_name
     MAX_RULES_PER_USER = tostring(var.max_rules_per_user)
+    DNS_HOST           = var.dns_host
   }
 }
 

@@ -7,6 +7,8 @@ import { buildSequentialTokens } from '../buildSequentialTokens'
 import type { FakeClock } from '../FakeClock'
 import type { TestBackend } from '../testBackends'
 
+const TEST_DNS_HOST = 'dns.example.test'
+
 type BackendControls = Pick<
   TestBackend,
   'setCooldownHours' | 'plantOrphanTokenLookup' | 'dispose'
@@ -18,7 +20,10 @@ export function assembleBackend(
   maxRulesPerUser: number,
   controls: BackendControls,
 ): TestBackend {
-  const useCases = createApiUseCases(stores, clock.now, maxRulesPerUser, buildSequentialTokens())
+  const useCases = createApiUseCases(stores, clock.now, maxRulesPerUser, {
+    generateToken: buildSequentialTokens(),
+    dnsHost: TEST_DNS_HOST,
+  })
   const applyAll = new ApplyAllDueChangesUseCase(
     stores.pendingChangeStore,
     new ApplyDueChangesForUserUseCase(stores.pendingChangeStore, stores.dueChangeApplier, clock.now),

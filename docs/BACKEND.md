@@ -37,7 +37,7 @@ Há uma mudança pendente por regra (a chave usa o `ruleId`), então pedir de no
 ### Token de DNS
 
 - **Validação.** O contrato `DnsTokenLookup` (`findValidatedDnsOwner(tokenHash)`) é a única forma de o resolvedor aceitar um token. Ele lê o item de busca `DNSTOKEN#<hash>`, depois o item `DNS` do usuário apontado (as duas leituras com `ConsistentRead`) e só devolve `{ userId, dnsSettings }` se o `tokenHash` do item `DNS` for igual ao hash buscado. Um item de busca órfão (usuário apagado, falha parcial da exclusão, rotação concorrente) nunca valida, porque o item `DNS` não existe ou guarda outro token. Item `DNS` malformado também não valida: a leitura falha com `MalformedDnsSettingsError`.
-- **Token em claro (decisão consciente).** O token fica em claro no item `DNS`, porque `POST /dns/profile` precisa devolvê-lo de novo para montar o perfil no aparelho; só o item de busca usa o hash. Não há HMAC nem KMS nesta etapa. Mitigações: o token é aleatório (32 bytes, base64url, 43 caracteres), a tabela é criptografada, as respostas das rotas `/dns` levam `Cache-Control: no-store`, o log nunca grava o token e a rotação (`POST /dns/rotate`) invalida o anterior na hora.
+- **Token em claro (decisão consciente).** O token fica em claro no item `DNS`, porque `POST /dns/profile` precisa devolvê-lo de novo para montar o perfil no aparelho; só o item de busca usa o hash. Não há HMAC nem KMS nesta etapa. Mitigações: o token é aleatório (32 bytes, base64url, 43 caracteres), a tabela é criptografada, as respostas das rotas `/dns` levam `Cache-Control: private, no-store`, o log nunca grava o token e a rotação (`POST /dns/rotate`) invalida o anterior na hora.
 - **Quem lê o token.** O backup contínuo (PITR) retém versões antigas do item `DNS`, tokens inclusive, por até 35 dias depois da rotação ou da exclusão. A role `data-reader` (`infra/modules/data/reader_role.tf`) lê a tabela inteira, então **consegue ler os tokens de DNS**: o IAM não filtra por `sk`, e filtrar por atributo quebraria o console. Risco aceito: a role exige MFA e é só para pessoas da conta; para anular um token vazado, rotacione-o.
 - **Gravações condicionais.** Criar o perfil, trocar o token e mudar o fuso usam condição (`attribute_not_exists` na criação; `tokenHash` igual ao lido na troca do fuso; `tokenHash` e `timeZone` iguais aos lidos na rotação) e o item de busca novo entra com `attribute_not_exists(pk)`. Quem perde a corrida recebe 409 e tenta de novo. Se `POST /dns/profile` perde a corrida de criação, relê o perfil e reaplica o fuso pedido (ou responde 409), nunca devolve em silêncio um fuso diferente.
 - **Fuso.** Validado e gravado pelo nome canônico (`America/Sao_Paulo`, ou `UTC`); abreviações como `EST` e offsets como `+03:00` são recusados.
@@ -62,8 +62,19 @@ Há uma mudança pendente por regra (a chave usa o `ruleId`), então pedir de no
 | `GET /pending-changes`, `POST /pending-changes/apply-due`, `DELETE /pending-changes/:ruleId` | ver, aplicar vencidas, cancelar |
 | `PUT /devices/:deviceId/status` | informa status do dispositivo |
 | `POST /dns/profile`, `POST /dns/rotate` | cria ou devolve o token de DNS do usuário (e grava o fuso IANA enviado em `timeZone`), troca o token |
+| `GET /dns/profile.mobileconfig` | devolve o perfil iOS (`.mobileconfig`) com o DNS seguro do usuário; exige JWT e que o perfil já tenha sido criado (ver "Perfil de DNS no iPhone") |
 
 O `userId` vem sempre do `sub` do token validado pelo API Gateway; nenhuma rota aceita `userId` no corpo. O id de uma regra é `<app|site>~<alvo>` e o alvo é minúsculo, só com letras, dígitos, ponto, hífen e sublinhado.
+
+## Perfil de DNS no iPhone
+
+`GET /dns/profile.mobileconfig` monta o perfil de configuração do iOS (`com.apple.dnsSettings.managed`, protocolo `HTTPS`) com `ServerURL = https://<DNS_HOST>/dns-query/<token>`.
+
+- **`DNS_HOST`.** Hostname do resolvedor DoH, só o nome em minúsculas (sem `https://`, porta, caminho ou espaço). Vem do Terraform (`dns_host`, ver `docs/INFRA.md`). Sem valor a rota responde `404` antes de ler o banco; com formato inválido a Lambda `api` registra o log JSON `invalid dns host configuration` e falha ao atender a primeira chamada. Na API local, defina `DNS_HOST` antes de subir.
+- **Respostas.** `404` se o recurso estiver desligado (sem `DNS_HOST`) ou se o usuário ainda não chamou `POST /dns/profile`; `401` sem JWT válido. Em sucesso: `200` com `Content-Type: application/x-apple-aspen-config; charset=utf-8`, `Content-Disposition: attachment; filename="block-apps-dns.mobileconfig"`, `Cache-Control: private, no-store` e `X-Content-Type-Options: nosniff` (os dois últimos valem para todas as rotas `/dns`).
+- **Identificadores estáveis.** Os `PayloadUUID` e os `PayloadIdentifier` derivam do `userId`, então a rotação do token troca só a `ServerURL` e o iOS trata o perfil novo como atualização do mesmo perfil.
+- **Instalação.** A rota exige o JWT, e o Safari não envia o cabeçalho `Authorization`. Por isso o app baixa o corpo da resposta com o Bearer e entrega o arquivo ao iOS pelo share sheet ou como arquivo; abrir o link no navegador devolve `401`. Depois o usuário confirma em Ajustes > Geral > VPN e Gerenciamento de Dispositivo.
+- **Sem assinatura e removível.** O perfil não é assinado (o iOS o mostra como "Não assinado") e o usuário pode removê-lo a qualquer momento (o perfil usa `PayloadRemovalDisallowed = false`, e o iOS só impede a remoção de perfis instalados por MDM ou em dispositivo supervisionado). É um limite conhecido do bloqueio por DNS sem MDM: quem remove o perfil desliga o bloqueio de sites.
 
 ## Cota de regras
 

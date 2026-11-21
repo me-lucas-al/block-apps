@@ -65,7 +65,7 @@ Cada usuário pode ter até `MAX_RULES_PER_USER` regras (padrão 200). Ao criar 
 | `PATCH /admin/users/:userId` | altera `displayName`, `role`, `cooldownHours` ou pede `resetPassword` |
 | `DELETE /admin/users/:userId` | remove o usuário no Cognito e apaga os dados dele no DynamoDB |
 
-Todas as rotas `/admin/*` exigem três coisas: token válido, grupo `admin` e que o token venha do client do painel (`ADMIN_CLIENT_ID`, lido do claim `aud` do ID token ou de `client_id` do access token). Token de outro client do Cognito (app, extensão) recebe 403, mesmo de um administrador, porque só a sessão do painel passa pelo TOTP. No servidor local o token de desenvolvimento já vem com o client do painel.
+Todas as rotas `/admin/*` exigem três coisas: token válido, grupo `admin` e que o token venha do client do painel (`ADMIN_CLIENT_ID`, lido do claim `aud` do ID token ou de `client_id` do access token). Token de outro client do Cognito (app, extensão) recebe 403, mesmo de um administrador, porque só a sessão do painel passa pelo TOTP. A checagem acontece em duas camadas: um segundo authorizer JWT no API Gateway (`cognito-jwt-admin`, audiência só do client do painel) usado apenas em `ANY /admin/{proxy+}` barra o token antes da Lambda, e o backend repete a checagem do claim. No servidor local o token de desenvolvimento já vem com o client do painel.
 
 Salvaguardas, todas no código porque o IAM do Cognito não separa grupos nem usuários-alvo:
 

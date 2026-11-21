@@ -36,7 +36,12 @@ describe('admin app access', () => {
   })
 
   it('rejects an admin token that carries no client claim', async () => {
-    const reply = await callApi(app, { method: 'GET', path: '/admin/me', groups: ['admin'], clientClaims: {} })
+    const reply = await callApi(app, {
+      method: 'GET',
+      path: '/admin/me',
+      groups: ['admin'],
+      clientClaims: {},
+    })
     expect(reply.status).toBe(403)
   })
 

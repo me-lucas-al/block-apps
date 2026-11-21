@@ -5,6 +5,8 @@ import { ListPendingChangesUseCase } from '../cooldown/use-cases/ListPendingChan
 import { RequestRuleRemovalUseCase } from '../cooldown/use-cases/RequestRuleRemovalUseCase'
 import { RequestRuleUpdateUseCase } from '../cooldown/use-cases/RequestRuleUpdateUseCase'
 import { RequestSelectionRemovalUseCase } from '../cooldown/use-cases/RequestSelectionRemovalUseCase'
+import { ChangeDnsTimeZoneUseCase } from '../dns/use-cases/ChangeDnsTimeZoneUseCase'
+import { CreateDnsProfileUseCase } from '../dns/use-cases/CreateDnsProfileUseCase'
 import { EnsureDnsProfileUseCase } from '../dns/use-cases/EnsureDnsProfileUseCase'
 import { RotateDnsTokenUseCase } from '../dns/use-cases/RotateDnsTokenUseCase'
 import { generateDnsToken, type DnsTokenGenerator } from '../dns/token/generateDnsToken'
@@ -47,7 +49,11 @@ export function createApiUseCases(
     applyDueChangesForUser,
     cancelPendingChange: new CancelPendingChangeUseCase(stores.pendingChangeStore),
     reportDeviceStatus: new ReportDeviceStatusUseCase(stores.deviceStore, clock),
-    ensureDnsProfile: new EnsureDnsProfileUseCase(stores.dnsSettingsStore, generateToken, clock),
+    ensureDnsProfile: new EnsureDnsProfileUseCase(
+      stores.dnsSettingsStore,
+      new CreateDnsProfileUseCase(stores.dnsSettingsStore, generateToken, clock),
+      new ChangeDnsTimeZoneUseCase(stores.dnsSettingsStore),
+    ),
     rotateDnsToken: new RotateDnsTokenUseCase(stores.dnsSettingsStore, generateToken, clock),
   }
 }

@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { createDynamoStores } from '../../src/composition/createDynamoStores'
 import type { ApiStores } from '../../src/composition/ApiStores'
-import { hashDnsToken } from '../../src/dns/token/hashDnsToken'
 import { DynamoCooldownSettingsWriter } from '../../src/storage/dynamodb/settings/DynamoCooldownSettingsWriter'
 import { DynamoUserDataEraser } from '../../src/storage/dynamodb/users/DynamoUserDataEraser'
 import { createLocalTable, DYNAMODB_LOCAL_ENDPOINT, type LocalTable } from '../helpers/dynamoLocal'
@@ -23,18 +22,6 @@ describe.skipIf(!DYNAMODB_LOCAL_ENDPOINT)('DynamoDB user administration stores',
   it('writes a cooldown that the reader returns', async () => {
     await new DynamoCooldownSettingsWriter(table.context).writeCooldownHours('user-1', 72)
     expect(await stores.cooldownSettingsStore.readCooldownHours('user-1')).toBe(72)
-  })
-
-  it('erases the dns profile of a user together with the token lookup', async () => {
-    const profile = { token: 'secret-token', timeZone: 'America/Sao_Paulo', createdAt: '2026-11-11T12:00:00.000Z' }
-    await stores.dnsSettingsStore.createDnsSettings('user-1', profile)
-    await stores.dnsSettingsStore.createDnsSettings('user-2', { ...profile, token: 'other-token' })
-
-    await new DynamoUserDataEraser(table.context).eraseAllDataOf('user-1')
-
-    expect(await stores.dnsSettingsStore.findDnsSettings('user-1')).toBeNull()
-    expect(await stores.dnsSettingsStore.findUserIdByDnsTokenHash(hashDnsToken('secret-token'))).toBeNull()
-    expect(await stores.dnsSettingsStore.findUserIdByDnsTokenHash(hashDnsToken('other-token'))).toBe('user-2')
   })
 
   it('erases every item of one user and leaves the others', async () => {

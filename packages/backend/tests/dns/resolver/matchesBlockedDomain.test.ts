@@ -1,7 +1,7 @@
 import type { BlockRule } from '@block-apps/core'
 import { describe, expect, it } from 'vitest'
-import { isDomainBlockedNow } from '../../src/dns/resolver/matchesBlockedDomain'
-import { toZonedDate } from '../../src/dns/resolver/toZonedDate'
+import { isDomainBlockedNow } from '../../../src/dns/resolver/matchesBlockedDomain'
+import { toZonedDate } from '../../../src/dns/resolver/toZonedDate'
 
 const alwaysSiteRule: BlockRule = {
   id: 'site~exemplo.com',

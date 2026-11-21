@@ -4,8 +4,9 @@ import {
   buildBlockedDnsResponse,
   buildServfailDnsResponse,
   decodeDnsQuery,
-} from '../../src/dns/resolver/dnsPackets'
-import { buildDnsQuery, decodeDnsResponse } from '../helpers/dnsQueryHelpers'
+  readDnsMessageId,
+} from '../../../src/dns/resolver/dnsPackets'
+import { buildDnsQuery, decodeDnsResponse } from '../../helpers/dnsQueryHelpers'
 
 describe('dnsPackets', () => {
   it('encodes an A blocked response to 0.0.0.0 with TTL 30', () => {
@@ -71,5 +72,22 @@ describe('dnsPackets', () => {
     expect(decodeDnsQuery(new Uint8Array(responsePacket))).toBeNull()
     const emptyQuery = dnsPacket.encode({ type: 'query', id: 1, questions: [] })
     expect(decodeDnsQuery(new Uint8Array(emptyQuery))).toBeNull()
+  })
+
+  it('returns null for a query that carries more than one question', () => {
+    const encoded = dnsPacket.encode({
+      type: 'query',
+      id: 3,
+      flags: dnsPacket.RECURSION_DESIRED,
+      questions: [
+        { type: 'A', class: 'IN', name: 'permitido.com' },
+        { type: 'A', class: 'IN', name: 'exemplo.com' },
+      ],
+    })
+    expect(decodeDnsQuery(new Uint8Array(encoded))).toBeNull()
+  })
+
+  it('reads the message id from the first two bytes', () => {
+    expect(readDnsMessageId(buildDnsQuery('exemplo.com', 'A', 0x1234))).toBe(0x1234)
   })
 })

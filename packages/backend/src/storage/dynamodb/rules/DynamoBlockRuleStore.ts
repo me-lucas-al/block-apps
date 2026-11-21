@@ -5,12 +5,11 @@ import { ConflictError } from '../../../domain/errors/ConflictError'
 import type { BlockRuleStore } from '../../../rules/contracts/BlockRuleStore'
 import { isConditionalCheckFailure } from '../conditions/isConditionalCheckFailure'
 import { userPartitionKey } from '../keys/partitionKeys'
+import { SITE_RULE_SORT_PREFIX } from '../keys/siteRuleSortPrefix'
 import { RULE_SORT_PREFIX, ruleSortKey } from '../keys/sortKeys'
 import { queryAllPages } from '../queryAllPages'
 import type { TableContext } from '../TableContext'
 import { toBlockRule, toRuleItem } from './ruleItem'
-
-const SITE_RULE_SORT_PREFIX = `${RULE_SORT_PREFIX}site~`
 
 export class DynamoBlockRuleStore implements BlockRuleStore, SiteRuleReader {
   constructor(private readonly context: TableContext) {}

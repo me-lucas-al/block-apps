@@ -7,6 +7,7 @@ Regras valem para TypeScript, Kotlin e Swift. As referências vêm da documenta�
 - No máximo cerca de **5 arquivos por pasta**. Passou disso, divida em subpastas **por tópico**, não por tipo genérico.
 - Agrupe por domínio primeiro, depois por camada, depois por tópico (`ports/browser`, `ports/data`, `schedule/evaluation`, `schedule/editing`).
 - Testes ficam numa subpasta `tests/` ao lado do código que cobrem.
+- Teste de hook com estado (`renderHook`) no mobile usa o sufixo `.dom.test.ts` e roda sob `happy-dom` pelo glob `environmentMatchGlobs` de `apps/mobile/vitest.config.ts` (Vitest 2; no Vitest 3 ou mais novo, migrar para `test.projects`). Cada arquivo chama `afterEach(cleanup)`. Os demais testes rodam em `node`.
 - Um arquivo, uma responsabilidade, até 100 linhas. Sem comentários: o nome explica.
 - Sem duplicação entre apps: lógica comum vai para `packages/core` (regras) ou `packages/api` (acesso a dados e auth).
 

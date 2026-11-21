@@ -29,7 +29,6 @@ export function createDnsRoutes(useCases: ApiUseCases) {
     return context.body(profile, 200, {
       'content-type': 'application/x-apple-aspen-config; charset=utf-8',
       'content-disposition': 'attachment; filename="block-apps-dns.mobileconfig"',
-      'cache-control': 'no-store',
     })
   })
 

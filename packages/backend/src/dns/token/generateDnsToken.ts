@@ -1,8 +1,7 @@
 import { randomBytes } from 'node:crypto'
-
-const TOKEN_BYTES = 32
+import { DNS_TOKEN_BYTES } from './dnsTokenFormat'
 
 export type DnsTokenGenerator = () => string
 
 export const generateDnsToken: DnsTokenGenerator = () =>
-  randomBytes(TOKEN_BYTES).toString('base64url')
+  randomBytes(DNS_TOKEN_BYTES).toString('base64url')

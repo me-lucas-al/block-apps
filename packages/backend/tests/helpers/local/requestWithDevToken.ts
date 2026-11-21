@@ -1,6 +1,7 @@
 import { assembleCognitoAdminCollaborators } from '../../../src/composition/assembleCognitoAdminCollaborators'
 import { createAdminUseCases } from '../../../src/composition/createAdminUseCases'
 import { createApiUseCases } from '../../../src/composition/createApiUseCases'
+import { assembleDohResolverApp } from '../../../src/composition/doh/assembleDohResolverApp'
 import { createAdminApp } from '../../../src/http/app/createAdminApp'
 import { createApiApp } from '../../../src/http/app/createApiApp'
 import { buildLocalBindings } from '../../../src/local/buildLocalBindings'
@@ -12,8 +13,9 @@ import { buildInMemoryApiStores } from '../backends/buildInMemoryApiStores'
 
 function buildLocalTestRouter() {
   const settings = new InMemoryUserSettings()
+  const { stores, ruleDatabase } = buildInMemoryApiStores()
   const apiUseCases = createApiUseCases(
-    buildInMemoryApiStores().stores,
+    stores,
     () => new Date(),
     DEFAULT_MAX_RULES_PER_USER,
   )
@@ -23,8 +25,15 @@ function buildLocalTestRouter() {
     cooldownSettingsWriter: settings,
   })
   const adminApp = createAdminApp('admin', createAdminUseCases(adminCollaborators))
+  const dnsApp = assembleDohResolverApp(
+    stores.dnsSettingsStore,
+    stores.dnsTokenLookup,
+    ruleDatabase,
+    { forwardQuery: async (wireQuery) => wireQuery },
+    () => new Date(),
+  )
   const options = { allowedOrigins: ['http://painel.local'], allowedHosts: [] }
-  return createLocalRouter(createApiApp(apiUseCases), adminApp, options)
+  return createLocalRouter(createApiApp(apiUseCases), adminApp, options, dnsApp)
 }
 
 export function requestWithDevToken(

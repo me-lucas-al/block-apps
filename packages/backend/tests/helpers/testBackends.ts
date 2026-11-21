@@ -1,5 +1,6 @@
 import type { Hono } from 'hono'
 import type { DnsSettingsStore } from '../../src/dns/contracts/DnsSettingsStore'
+import type { DohUpstream } from '../../src/dns/contracts/DohUpstream'
 import type { DnsTokenLookup } from '../../src/dns/contracts/DnsTokenLookup'
 import type { ApiEnv } from '../../src/http/app/ApiEnv'
 import { buildDynamoBackendFactory } from './backends/buildDynamoBackendFactory'
@@ -12,6 +13,7 @@ export type TestBackend = {
   readonly clock: FakeClock
   readonly dnsSettingsStore: DnsSettingsStore
   readonly dnsTokenLookup: DnsTokenLookup
+  createDnsResolver(upstream: DohUpstream): Hono
   applyAllDueChanges(): Promise<number>
   setCooldownHours(userId: string, cooldownHours: number): Promise<void>
   plantOrphanTokenLookup(userId: string, tokenHash: string): Promise<void>

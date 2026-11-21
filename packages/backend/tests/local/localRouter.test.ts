@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { buildDevToken, DEV_ADMIN_ID, DEV_USER_ID } from '../../src/local/devUsers'
+import { buildWellFormedDnsToken } from '../helpers/dns/doh/buildWellFormedDnsToken'
+import { buildDnsQuery } from '../helpers/dnsQueryHelpers'
 import { requestWithDevToken } from '../helpers/local/requestWithDevToken'
 
 const userToken = buildDevToken(DEV_USER_ID, ['user'])
@@ -31,6 +33,13 @@ describe('local router', () => {
 
   it('keeps the development user out of the admin routes', async () => {
     expect((await requestWithDevToken('/admin/users', userToken)).status).toBe(403)
+  })
+
+  it('routes /dns-query requests without an auth token', async () => {
+    const encodedQuery = Buffer.from(buildDnsQuery('exemplo.com')).toString('base64url')
+    const path = `/dns-query/${buildWellFormedDnsToken(7)}?dns=${encodedQuery}`
+
+    expect((await requestWithDevToken(path, null)).status).toBe(404)
   })
 
   it('refuses a request whose host is not local, which blocks DNS rebinding', async () => {

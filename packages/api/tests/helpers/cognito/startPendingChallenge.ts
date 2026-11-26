@@ -1,12 +1,8 @@
-import type { CognitoUser } from 'amazon-cognito-identity-js'
 import { CognitoChallengeResolver } from '../../../src/auth/cognito/CognitoChallengeResolver'
 import { CognitoSrpAuth } from '../../../src/auth/cognito/CognitoSrpAuth'
+import { challengedEmail, testCognitoConfig } from './cognitoTestFixtures'
 import { scriptCognitoUser } from './FakeCognitoUser'
-
-export const testCognitoConfig = { userPoolId: 'us-east-1_testpool', clientId: 'client-1' }
-export const challengedEmail = 'user@example.com'
-
-type SignInCallbacks = Parameters<CognitoUser['authenticateUser']>[1]
+import type { SignInCallbacks } from './signInChallengeRaisers'
 
 export type PendingChallenge = {
   readonly srpAuth: CognitoSrpAuth
@@ -20,12 +16,4 @@ export async function startPendingChallenge(
   const srpAuth = new CognitoSrpAuth(testCognitoConfig)
   await srpAuth.authenticate(challengedEmail, 'password-1')
   return { srpAuth, challengeResolver: new CognitoChallengeResolver(srpAuth) }
-}
-
-export function raiseNewPasswordChallenge(callbacks: SignInCallbacks): void {
-  callbacks.newPasswordRequired?.({}, {})
-}
-
-export function raiseTotpChallenge(callbacks: SignInCallbacks): void {
-  callbacks.totpRequired?.('SOFTWARE_TOKEN_MFA', {})
 }

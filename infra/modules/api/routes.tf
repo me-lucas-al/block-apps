@@ -26,6 +26,14 @@ resource "aws_apigatewayv2_route" "admin" {
   route_key          = "ANY /admin/{proxy+}"
   target             = "integrations/${aws_apigatewayv2_integration.admin_function.id}"
   authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.cognito_admin.id
+}
+
+resource "aws_apigatewayv2_route" "dns_rotate" {
+  api_id             = aws_apigatewayv2_api.main.id
+  route_key          = "POST /dns/rotate"
+  target             = "integrations/${aws_apigatewayv2_integration.api_function.id}"
+  authorization_type = "JWT"
   authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
 }
 

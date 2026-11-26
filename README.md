@@ -30,7 +30,7 @@ flowchart TD
   A & B & C -->|Autenticação SRP / PKCE| COGNITO
   A & B & C -->|Bearer JWT| APIGW
   APIGW -->|Authorizer JWT| LAMBDA_API
-  APIGW -->|Authorizer + Grupo admin| LAMBDA_ADMIN
+  APIGW -->|Authorizer + Client do painel + Grupo admin| LAMBDA_ADMIN
   LAMBDA_API --> DYNAMO
   LAMBDA_ADMIN --> DYNAMO
   LAMBDA_ADMIN --> COGNITO

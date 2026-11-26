@@ -1,6 +1,8 @@
 import { DynamoDueChangeApplier } from '../storage/dynamodb/changes/DynamoDueChangeApplier'
 import { DynamoPendingChangeStore } from '../storage/dynamodb/changes/DynamoPendingChangeStore'
 import { DynamoDeviceStore } from '../storage/dynamodb/devices/DynamoDeviceStore'
+import { DynamoDnsSettingsStore } from '../storage/dynamodb/dns/DynamoDnsSettingsStore'
+import { DynamoDnsTokenLookup } from '../storage/dynamodb/dns/DynamoDnsTokenLookup'
 import { DynamoBlockRuleStore } from '../storage/dynamodb/rules/DynamoBlockRuleStore'
 import { DynamoCooldownSettingsStore } from '../storage/dynamodb/settings/DynamoCooldownSettingsStore'
 import type { TableContext } from '../storage/dynamodb/TableContext'
@@ -13,5 +15,7 @@ export function createDynamoStores(context: TableContext): ApiStores {
     dueChangeApplier: new DynamoDueChangeApplier(context),
     cooldownSettingsStore: new DynamoCooldownSettingsStore(context),
     deviceStore: new DynamoDeviceStore(context),
+    dnsSettingsStore: new DynamoDnsSettingsStore(context),
+    dnsTokenLookup: new DynamoDnsTokenLookup(context),
   }
 }

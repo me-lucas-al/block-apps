@@ -6,6 +6,7 @@ import {
   HttpPendingRuleChangeRepository,
   LocalUserSession,
 } from '@block-apps/api'
+import { ExpoPkceCrypto } from './auth/ExpoPkceCrypto'
 import { readMobileConfig } from './readMobileConfig'
 import { SecureSessionStorage } from './secure-store/SecureSessionStorage'
 
@@ -22,6 +23,7 @@ export function createMobileServices() {
     },
     storage,
     session,
+    new ExpoPkceCrypto(),
   )
 
   const http = new HttpApiClient({

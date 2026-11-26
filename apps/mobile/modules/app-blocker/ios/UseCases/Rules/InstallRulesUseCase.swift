@@ -32,7 +32,8 @@ struct InstallRulesUseCase {
         let rules: [BlockingRule] = try RuleParser.parseRules(fromJSON: request.rulesJson)
         try migrateLegacyOwner.migrateLegacyOwner(
             legacyOwnerId: request.legacyOwnerId,
-            incomingOwnerId: request.ownerId
+            incomingOwnerId: request.ownerId,
+            incomingRuleIds: Set(rules.map { (rule: BlockingRule) -> String in rule.id })
         )
         try ownershipGuard.requireOwnership(byOwnerId: request.ownerId)
         settleHeldRemovals.settleHeldRemovals(

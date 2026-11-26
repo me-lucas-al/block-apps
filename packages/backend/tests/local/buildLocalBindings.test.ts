@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildLocalBindings } from '../../src/local/buildLocalBindings'
+import { buildLocalBindings, LOCAL_ADMIN_CLIENT_ID } from '../../src/local/buildLocalBindings'
 
 function readClaims(authorization: string | null): Record<string, unknown> {
   const { event } = buildLocalBindings(authorization)
@@ -10,12 +10,17 @@ describe('buildLocalBindings', () => {
   it('builds the claims of a development token', () => {
     expect(readClaims('Bearer dev:user-1:admin,user')).toEqual({
       sub: 'user-1',
+      aud: LOCAL_ADMIN_CLIENT_ID,
       'cognito:groups': '[admin user]',
     })
   })
 
   it('accepts a token without groups', () => {
-    expect(readClaims('Bearer dev:user-1:')).toEqual({ sub: 'user-1', 'cognito:groups': '[]' })
+    expect(readClaims('Bearer dev:user-1:')).toEqual({
+      sub: 'user-1',
+      aud: LOCAL_ADMIN_CLIENT_ID,
+      'cognito:groups': '[]',
+    })
   })
 
   it.each([

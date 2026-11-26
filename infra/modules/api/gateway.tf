@@ -30,6 +30,18 @@ resource "aws_apigatewayv2_authorizer" "cognito" {
   }
 }
 
+resource "aws_apigatewayv2_authorizer" "cognito_admin" {
+  api_id           = aws_apigatewayv2_api.main.id
+  name             = "cognito-jwt-admin"
+  authorizer_type  = "JWT"
+  identity_sources = ["$request.header.Authorization"]
+
+  jwt_configuration {
+    issuer   = var.issuer_url
+    audience = [var.admin_client_id]
+  }
+}
+
 resource "aws_apigatewayv2_stage" "default" {
   api_id      = aws_apigatewayv2_api.main.id
   name        = "$default"
@@ -42,6 +54,12 @@ resource "aws_apigatewayv2_stage" "default" {
 
   route_settings {
     route_key              = aws_apigatewayv2_route.health.route_key
+    throttling_burst_limit = 5
+    throttling_rate_limit  = 2
+  }
+
+  route_settings {
+    route_key              = aws_apigatewayv2_route.dns_rotate.route_key
     throttling_burst_limit = 5
     throttling_rate_limit  = 2
   }

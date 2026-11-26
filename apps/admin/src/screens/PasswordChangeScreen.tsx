@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import { useSignOut } from '../hooks/useSignOut'
 import { useServices } from '../services/ServicesContext'
 import { describeFailure } from '../users/adminErrorMessage'
 import { MINIMUM_PASSWORD_LENGTH } from '../users/minimumPasswordLength'
@@ -9,7 +10,8 @@ type PasswordChangeScreenProps = {
 }
 
 export function PasswordChangeScreen({ onPasswordChanged }: PasswordChangeScreenProps) {
-  const { profile: profileGateway, authenticator } = useServices()
+  const { profile: profileGateway } = useServices()
+  const signOut = useSignOut()
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -42,7 +44,7 @@ export function PasswordChangeScreen({ onPasswordChanged }: PasswordChangeScreen
         </label>
         {errorMessage && <p className="error" role="alert">{errorMessage}</p>}
         <button type="submit">Salvar e continuar</button>
-        <button type="button" className="secondary" onClick={() => void authenticator.signOut()}>Sair</button>
+        <button type="button" className="secondary" onClick={() => void signOut()}>Sair</button>
       </form>
     </main>
   )

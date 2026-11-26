@@ -1,23 +1,32 @@
 import { BatchWriteCommand } from '@aws-sdk/lib-dynamodb'
 import type { UserDataEraser } from '../../../users/contracts/UserDataEraser'
+import { DNS_LOOKUP_ATTRIBUTES } from '../dns/listDnsLookupKeys'
 import { userPartitionKey } from '../keys/partitionKeys'
 import { queryAllPages } from '../queryAllPages'
 import type { TableContext } from '../TableContext'
+import { planUserErasure } from './planUserErasure'
 
 const BATCH_SIZE = 25
+const PROJECTED_ATTRIBUTES = ['pk', 'sk', ...DNS_LOOKUP_ATTRIBUTES]
 
 export class DynamoUserDataEraser implements UserDataEraser {
   constructor(private readonly context: TableContext) {}
 
   async eraseAllDataOf(userId: string): Promise<void> {
-    const items = await queryAllPages(this.context, {
+    const storedEntries = await queryAllPages(this.context, {
       KeyConditionExpression: 'pk = :pk',
       ExpressionAttributeValues: { ':pk': userPartitionKey(userId) },
-      ProjectionExpression: 'pk, sk',
+      ProjectionExpression: PROJECTED_ATTRIBUTES.join(', '),
       ConsistentRead: true,
     })
-    for (let start = 0; start < items.length; start += BATCH_SIZE) {
-      await this.deleteBatch(items.slice(start, start + BATCH_SIZE))
+    const { lookupKeys, userKeys } = planUserErasure(storedEntries)
+    await this.deleteInBatches(lookupKeys)
+    await this.deleteInBatches(userKeys)
+  }
+
+  private async deleteInBatches(keys: Record<string, unknown>[]): Promise<void> {
+    for (let start = 0; start < keys.length; start += BATCH_SIZE) {
+      await this.deleteBatch(keys.slice(start, start + BATCH_SIZE))
     }
   }
 

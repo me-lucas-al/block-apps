@@ -94,6 +94,12 @@ O job de build da extensão e do painel não usa o ambiente, então crie no nív
 
 O workflow passa esses valores ao Terraform por `TF_VAR_*`, gera `release.tfplan` com `plan -out` e aplica exatamente esse arquivo. O `Terraform Plan` das PRs não usa o ambiente (para não pedir aprovação a cada PR), então crie as mesmas variáveis e segredos também no nível do repositório.
 
+### Ordem segura ao publicar a restrição por client das rotas /admin
+
+1. Rode o `terraform apply` primeiro. Ele cria a variável `ADMIN_CLIENT_ID` da função `admin` e o segundo authorizer JWT (`cognito-jwt-admin`, com audiência só do client do painel) na rota `ANY /admin/{proxy+}`.
+2. Só depois faça o release do backend. O `adminHandler` falha ao iniciar sem `ADMIN_CLIENT_ID`, então código novo com infraestrutura antiga derruba as rotas `/admin`.
+3. Confira que a variável do GitHub `ADMIN_COGNITO_CLIENT_ID` é igual ao output `admin_web_client_id` do Terraform. Se divergir, o painel é construído com um client que o authorizer e o backend recusam.
+
 ## O que a infraestrutura garante (e o que não)
 
 - **Handlers especializados.** A função `api` só acessa o DynamoDB. A função `admin` acessa o Cognito e exige **MFA TOTP ativo** (`ADMIN_REQUIRE_MFA`, desligável apenas por emergência). A função `scheduler` aplica as mudanças de regras vencidas a cada 5 minutos disparada pelo EventBridge Scheduler.
@@ -103,7 +109,7 @@ O workflow passa esses valores ao Terraform por `TF_VAR_*`, gera `release.tfplan
 - Cognito: senha mínima de 10 caracteres, MFA configurável com TOTP obrigatório para administradores, revogação de tokens e tokens de acesso de 15 minutos.
 - `allow_self_signup` ligado por padrão para cadastro aberto de usuários.
 - Suporte a envio de e-mails em produção com SES (`ses_identity_arn` e `ses_from_address`).
-- API com throttling (50 por segundo, rota de saúde mais restrita), logs de acesso e CORS restrito às origens do painel.
+- API com throttling (50 por segundo, rotas de saúde e `POST /dns/rotate` mais restritas: 2 por segundo, rajada de 5), logs de acesso e CORS restrito às origens do painel.
 - Estado em bucket privado, versionado, criptografado, só por TLS, com versões antigas expirando em 90 dias.
 - Nunca coloque chaves de acesso no repositório. Para CI, use OIDC.
 

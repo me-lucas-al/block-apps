@@ -4,6 +4,7 @@ import type { GoogleAuthorization } from '../contracts/GoogleAuthorization'
 import type { OAuthCodeExchange } from '../contracts/OAuthCodeExchange'
 import type { SessionStorage } from '../contracts/SessionStorage'
 import type { SessionTokens } from '../contracts/SessionTokens'
+import type { PkceCrypto } from '../pkce/PkceCrypto'
 import type { LocalUserSession } from '../session/LocalUserSession'
 import { CognitoAccountOps } from './CognitoAccountOps'
 import { CognitoChallengeResolver } from './CognitoChallengeResolver'
@@ -12,6 +13,7 @@ import { CognitoOAuthFlow } from './CognitoOAuthFlow'
 import { CognitoPasswordChange } from './CognitoPasswordChange'
 import { CognitoSessionManager } from './CognitoSessionManager'
 import { CognitoSrpAuth } from './CognitoSrpAuth'
+import { CognitoTokenRevoker } from './CognitoTokenRevoker'
 import { CognitoTotpEnrollment } from './CognitoTotpEnrollment'
 
 export class CognitoAuthenticator implements Authenticator {
@@ -27,12 +29,18 @@ export class CognitoAuthenticator implements Authenticator {
     config: CognitoConfig,
     storage: SessionStorage,
     session: LocalUserSession,
+    pkceCrypto?: PkceCrypto,
   ) {
     this.srpAuth = new CognitoSrpAuth(config)
     this.challengeResolver = new CognitoChallengeResolver(this.srpAuth)
     this.accountOps = new CognitoAccountOps(config)
-    this.oauthFlow = new CognitoOAuthFlow(config)
-    this.sessionManager = new CognitoSessionManager(storage, session, this.accountOps)
+    this.oauthFlow = new CognitoOAuthFlow(config, pkceCrypto)
+    this.sessionManager = new CognitoSessionManager(
+      storage,
+      session,
+      this.accountOps,
+      new CognitoTokenRevoker(config),
+    )
     this.totpEnrollment = new CognitoTotpEnrollment(config)
     this.passwordChange = new CognitoPasswordChange(config)
   }

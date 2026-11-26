@@ -3,6 +3,10 @@ const USER_PREFIX = 'USER#'
 export const DUE_CHANGES_BUCKET = 'DUE'
 export const DUE_CHANGES_INDEX_NAME = 'due-changes'
 
+export function dnsTokenPartitionKey(tokenHash: string): string {
+  return `DNSTOKEN#${tokenHash}`
+}
+
 export function userPartitionKey(userId: string): string {
   return `${USER_PREFIX}${userId}`
 }

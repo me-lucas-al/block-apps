@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
 import { createApiApp } from '@block-apps/backend/src/http/app/createApiApp'
 import { createApiUseCases } from '@block-apps/backend/src/composition/createApiUseCases'
-import { InMemoryRuleDatabase } from '@block-apps/backend/tests/helpers/InMemoryRuleDatabase'
+import { DEFAULT_MAX_RULES_PER_USER } from '@block-apps/backend/src/rules/quota/readMaxRulesPerUser'
+import { buildInMemoryApiStores } from '@block-apps/backend/tests/helpers/backends/buildInMemoryApiStores'
+import { buildLambdaBindings } from '@block-apps/backend/tests/helpers/buildLambdaBindings'
 import { HttpApiClient } from '../../src/http/client/HttpApiClient'
 import { HttpBlockRuleRepository } from '../../src/repositories/http/rules/HttpBlockRuleRepository'
 import { HttpPendingRuleChangeRepository } from '../../src/repositories/http/pending-changes/HttpPendingRuleChangeRepository'
@@ -9,41 +11,21 @@ import { HttpDeviceRepository } from '../../src/repositories/http/devices/HttpDe
 
 describe('backend integration with HttpApiClient and repositories', () => {
   it('manages rules and pending changes against in-memory backend app', async () => {
-    const db = new InMemoryRuleDatabase()
+    const { stores } = buildInMemoryApiStores()
     const now = new Date('2026-11-12T10:00:00Z')
-    const useCases = createApiUseCases(
-      {
-        blockRuleStore: db,
-        pendingChangeStore: db,
-        dueChangeApplier: db,
-        cooldownSettingsStore: db,
-        deviceStore: db,
-      },
-      () => now,
-    )
-    const app = createApiApp(useCases)
+    const app = createApiApp(createApiUseCases(stores, () => now, DEFAULT_MAX_RULES_PER_USER))
+    const bindings = buildLambdaBindings('user-integ')
 
-    const fetchMock = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
-      const url = typeof input === 'string' ? input : input.toString()
-      const request = new Request(url, init)
-      const event = {
-        requestContext: {
-          authorizer: {
-            jwt: {
-              claims: { sub: 'user-integ' },
-              scopes: null,
-            },
-          },
-        },
-      }
-      return app.fetch(request, { event } as never)
-    }
+    const routeFetchToBackendApp = async (
+      input: string | URL | Request,
+      init?: RequestInit,
+    ): Promise<Response> => app.fetch(new Request(input, init), bindings)
 
     const client = new HttpApiClient({
       baseUrl: 'https://api.internal',
       getToken: async () => 'test-token',
     })
-    vi.stubGlobal('fetch', fetchMock)
+    vi.stubGlobal('fetch', routeFetchToBackendApp)
 
     const rulesRepo = new HttpBlockRuleRepository(client)
     const pendingRepo = new HttpPendingRuleChangeRepository(client)

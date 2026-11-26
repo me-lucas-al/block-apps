@@ -8,19 +8,12 @@ import { createLocalRouter } from '../../../src/local/createLocalRouter'
 import { seedLocalUsers } from '../../../src/local/seedLocalUsers'
 import { DEFAULT_MAX_RULES_PER_USER } from '../../../src/rules/quota/readMaxRulesPerUser'
 import { InMemoryUserSettings } from '../admin/InMemoryUserSettings'
-import { InMemoryRuleDatabase } from '../InMemoryRuleDatabase'
+import { buildInMemoryApiStores } from '../backends/buildInMemoryApiStores'
 
 function buildLocalTestRouter() {
-  const database = new InMemoryRuleDatabase()
   const settings = new InMemoryUserSettings()
   const apiUseCases = createApiUseCases(
-    {
-      blockRuleStore: database,
-      pendingChangeStore: database,
-      dueChangeApplier: database,
-      cooldownSettingsStore: database,
-      deviceStore: database,
-    },
+    buildInMemoryApiStores().stores,
     () => new Date(),
     DEFAULT_MAX_RULES_PER_USER,
   )

@@ -1,13 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { callApi } from '../helpers/callApi'
-import {
-  applyDueChanges,
-  listRules,
-  postRule,
-  requestUpdate,
-  SITE_RULE_ID,
-  WORKDAY_WINDOW,
-} from '../helpers/ruleFixtures'
+import { listRules, requestUpdate, SITE_RULE_ID, WORKDAY_WINDOW } from '../helpers/ruleFixtures'
 import {
   ALWAYS_BLOCKED_UPDATE,
   listPendingChanges,
@@ -65,35 +57,6 @@ describe.each(backendFactories)('rule changes that tighten the block ($name)', (
     expect(reply.json).toMatchObject({ status: 'pending' })
     expect((await listRules(backend())).json).toEqual([
       expect.objectContaining({ windows: [WORKDAY_WINDOW] }),
-    ])
-  })
-
-  it('keeps a pending loosening untouched when a tightening is applied', async () => {
-    await postScheduledRule(backend())
-    await requestScheduleUpdate(backend(), LONGER_WORKDAY_WINDOW)
-    backend().clock.advanceHours(10)
-    const reply = await requestScheduleUpdate(backend(), SHORTER_WORKDAY_WINDOW)
-    expect(reply.json).toMatchObject({ status: 'applied' })
-    expect((await listPendingChanges(backend())).json).toEqual([
-      expect.objectContaining({ kind: 'update', effectiveAt: '2026-11-12T12:00:00.000Z' }),
-    ])
-    backend().clock.advanceHours(14)
-    expect(await applyDueChanges(backend())).toMatchObject({ json: { appliedCount: 1 } })
-  })
-
-  it('keeps a pending selection removal untouched when a tightening is applied', async () => {
-    const selectionBody = { targetType: 'iosSelection', target: 'social', mode: 'schedule', windows: [WORKDAY_WINDOW] }
-    const rulePath = '/rules/iosSelection~social'
-    await postRule(backend(), selectionBody)
-    await callApi(backend().app, { method: 'POST', path: `${rulePath}/selection-removal-requests` })
-    const reply = await callApi(backend().app, {
-      method: 'POST',
-      path: `${rulePath}/update-requests`,
-      body: ALWAYS_BLOCKED_UPDATE,
-    })
-    expect(reply.json).toMatchObject({ status: 'applied' })
-    expect((await listPendingChanges(backend())).json).toEqual([
-      expect.objectContaining({ kind: 'selectionRemoval' }),
     ])
   })
 

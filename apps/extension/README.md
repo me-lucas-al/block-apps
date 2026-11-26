@@ -46,10 +46,20 @@ No Firefox os dois valem `<all_urls>`. `host_permissions` pede o acesso na insta
 
 ## Login com Google no Firefox
 
-O Firefox devolve em `browser.identity.getRedirectURL()` uma URL no formato `https://<hash>.extensions.allizom.org/`, derivada do ID do add-on.
+O Firefox devolve em `browser.identity.getRedirectURL()` uma URL no formato `https://<hash>.extensions.allizom.org/`, onde `<hash>` é o SHA-1, em hexadecimal, do ID do add-on.
 
-1. Instale a extensão uma vez e leia a URL no console do background (`about:debugging`, "Inspecionar") com `chrome.identity.getRedirectURL()`.
+Para o ID atual (`block-apps@block-apps.dev`) o valor esperado é:
+
+```
+https://663c73f5c9fd763da1f0cd8d249eeddd7ff8bea7.extensions.allizom.org/
+```
+
+Esse valor foi calculado, não lido no navegador. Para recalcular depois de mudar o ID: `node -e "console.log(require('crypto').createHash('sha1').update('block-apps@block-apps.dev').digest('hex'))"`.
+
+1. Instale a extensão uma vez e leia a URL no console do background (`about:debugging`, "Inspecionar") com `chrome.identity.getRedirectURL()`. Confirme que é igual ao valor acima.
 2. Informe a URL, com barra final, na variável Terraform `firefox_redirect_urls`. Ela entra nos `callback_urls` do client `device` do Cognito e a versão com `logout` nos `logout_urls`.
+   - Localmente: `infra/environments/dev/terraform.tfvars` (exemplo em `terraform.tfvars.example`).
+   - Na release: variável do GitHub `FIREFOX_REDIRECT_URLS`, uma lista em JSON como `["https://...extensions.allizom.org/"]`. O `release.yml` e o `terraform-plan.yml` a leem como `TF_VAR_firefox_redirect_urls`, junto com `EXTENSION_IDS` (IDs da extensão no Chrome e no Edge; confirme se o Edge usa o mesmo ID do Chrome). Sem essas variáveis o valor é `[]` e o apply remove os redirects da extensão.
 3. Rode `terraform plan` e `terraform apply` (nunca pelo console).
 
 Como o ID está fixo no manifesto, a URL é a mesma em todas as instalações.
@@ -72,3 +82,14 @@ A release gera um artefato por navegador: `block-apps-extension-chrome`, `block-
 2. Enviar `block-apps-extension-firefox.zip` e confirmar a declaração de dados coletados (e-mail da conta e regras sincronizadas).
 3. O código é empacotado pelo Vite, então o AMO pede o código-fonte: anexe `block-apps-source.zip` e informe como reproduzir o pacote: Node 24, `pnpm install --frozen-lockfile`, `pnpm --filter @block-apps/extension build:firefox`, resultado em `apps/extension/dist-firefox`.
 4. O Chrome Web Store e a Edge Add-ons seguem com `block-apps-extension-chrome` (`block-apps-extension.zip`).
+
+### Checklist do AMO
+
+- [ ] ID Gecko confirmado em `manifest/firefoxManifest.ts`. Ele não muda depois do primeiro envio.
+- [ ] `getRedirectURL()` lido no navegador e igual ao valor documentado acima.
+- [ ] `FIREFOX_REDIRECT_URLS` e `EXTENSION_IDS` definidas no GitHub, no ambiente `production` e no nível do repositório, e `terraform apply` feito pela release.
+- [ ] Login com Google no background worker já mesclado em `main` (PR "bring stranded auth fixes into main"), e testado no Firefox, inclusive fechando o popup no meio.
+- [ ] `block-apps-extension-firefox.zip` e `block-apps-source.zip` enviados, com as instruções de build.
+- [ ] Declaração de dados coletados conferida (`authenticationInfo` e `personallyIdentifyingInfo`).
+- [ ] Versão do `manifest` incrementada antes de gerar a release.
+- [ ] Cadastro no AMO: política de privacidade com URL, descrição, categoria, ícones, capturas de tela e escolha entre listado e não listado.

@@ -5,6 +5,12 @@ export type { GoogleAuthorization } from './auth/contracts/GoogleAuthorization'
 export type { OAuthCodeExchange } from './auth/contracts/OAuthCodeExchange'
 export type { SessionStorage } from './auth/contracts/SessionStorage'
 export type { SessionTokens } from './auth/contracts/SessionTokens'
+export { SessionRevocationError } from './auth/SessionRevocationError'
+export {
+  SESSION_NOT_REVOKED_NOTICE,
+  SignOutUseCase,
+  type SignOutOutcome,
+} from './auth/SignOutUseCase'
 export { buildTotpUri } from './auth/buildTotpUri'
 export { LocalUserSession } from './auth/session/LocalUserSession'
 export { MemorySessionStorage } from './auth/storage/MemorySessionStorage'
@@ -18,7 +24,8 @@ export {
   type GoogleConsentWindow,
   type GoogleSignInAuthenticator,
 } from './auth/google/signInWithGoogle'
-export { generateCodeChallenge, generateRandomString } from './auth/cognito/pkce'
+export type { PkceCrypto } from './auth/pkce/PkceCrypto'
+export { WebPkceCrypto } from './auth/pkce/WebPkceCrypto'
 export { requireConfigValue } from './config/requireConfigValue'
 export { ApiError } from './http/client/ApiError'
 export { describeApiFailure } from './http/describeApiFailure'

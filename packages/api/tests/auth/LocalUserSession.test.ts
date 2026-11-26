@@ -47,4 +47,22 @@ describe('LocalUserSession', () => {
     })
     expect(await session.currentUserId()).toBe('user-sub-1')
   })
+
+  it('notifies listeners when another context saved a session', async () => {
+    const storage = new MemorySessionStorage()
+    const session = new LocalUserSession(storage)
+    await session.currentUserEmail()
+    const listener = vi.fn()
+    session.watchUserEmail(listener)
+
+    await storage.save({
+      accessToken: 'acc',
+      idToken: 'id',
+      refreshToken: 'ref',
+      email: 'other@example.com',
+    })
+    await session.reloadFromStorage()
+
+    expect(listener).toHaveBeenCalledWith('other@example.com')
+  })
 })

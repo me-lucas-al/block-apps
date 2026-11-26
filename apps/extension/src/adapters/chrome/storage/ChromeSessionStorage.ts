@@ -1,6 +1,6 @@
 import type { SessionStorage, SessionTokens } from '@block-apps/api'
 
-const SESSION_STORAGE_KEY = 'block_apps_tokens'
+export const SESSION_STORAGE_KEY = 'block_apps_tokens'
 
 export class ChromeSessionStorage implements SessionStorage {
   async load(): Promise<SessionTokens | null> {

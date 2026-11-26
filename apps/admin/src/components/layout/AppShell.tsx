@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { useServices } from '../../services/ServicesContext'
+import { useSignOut } from '../../hooks/useSignOut'
 
 export type Page = 'users' | 'account'
 
@@ -11,7 +11,7 @@ type AppShellProps = {
 }
 
 export function AppShell({ email, page, onNavigate, children }: AppShellProps) {
-  const { authenticator } = useServices()
+  const signOut = useSignOut()
 
   return (
     <div className="shell">
@@ -27,7 +27,7 @@ export function AppShell({ email, page, onNavigate, children }: AppShellProps) {
         </div>
         <div className="row">
           <span className="hint">{email}</span>
-          <button type="button" className="secondary" onClick={() => void authenticator.signOut()}>Sair</button>
+          <button type="button" className="secondary" onClick={() => void signOut()}>Sair</button>
         </div>
       </nav>
       <main>{children}</main>

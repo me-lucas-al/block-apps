@@ -42,6 +42,7 @@ module "api" {
   due_changes_index_arn = module.data.due_changes_index_arn
   user_pool_id          = module.auth.user_pool_id
   user_pool_arn         = module.auth.user_pool_arn
+  admin_client_id       = module.auth.admin_web_client_id
   admin_group_name      = module.auth.admin_group_name
   user_group_name       = module.auth.user_group_name
   issuer_url            = module.auth.issuer_url

@@ -8,6 +8,7 @@ import { DynamoCooldownSettingsStore } from '../storage/dynamodb/settings/Dynamo
 import { DynamoCooldownSettingsWriter } from '../storage/dynamodb/settings/DynamoCooldownSettingsWriter'
 import type { TableContext } from '../storage/dynamodb/TableContext'
 import { DynamoUserDataEraser } from '../storage/dynamodb/users/DynamoUserDataEraser'
+import { LOCAL_ADMIN_CLIENT_ID } from './buildLocalBindings'
 import { createLocalRouter, type LocalRouterOptions } from './createLocalRouter'
 import { seedLocalUsers } from './seedLocalUsers'
 
@@ -26,6 +27,9 @@ export function createLocalRouterFromTable(table: TableContext, options: LocalAp
     () => new Date(),
     options.maxRulesPerUser,
   )
-  const adminApp = createAdminApp('admin', adminUseCases)
+  const adminApp = createAdminApp(
+    { adminGroupName: 'admin', adminClientId: LOCAL_ADMIN_CLIENT_ID },
+    adminUseCases,
+  )
   return createLocalRouter(createApiApp(apiUseCases), adminApp, options)
 }

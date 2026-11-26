@@ -17,7 +17,10 @@ describe.each(backendFactories)('cooldown flow ($name)', (factory) => {
   it('keeps the rule unchanged until the cooldown ends, then applies the update', async () => {
     await postRule(backend())
     const request = await requestUpdate(backend())
-    expect(request.json).toMatchObject({ kind: 'update', effectiveAt: '2026-11-12T12:00:00.000Z' })
+    expect(request.json).toMatchObject({
+      status: 'pending',
+      change: { kind: 'update', effectiveAt: '2026-11-12T12:00:00.000Z' },
+    })
 
     backend().clock.advanceHours(23)
     expect((await applyDueChanges(backend())).json).toEqual({ appliedCount: 0 })

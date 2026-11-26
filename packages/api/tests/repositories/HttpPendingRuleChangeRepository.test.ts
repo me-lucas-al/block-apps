@@ -9,7 +9,9 @@ describe('HttpPendingRuleChangeRepository', () => {
       id: 'c1',
       ruleId: 'r1',
       kind: 'delete',
-      availableAt: '2026-11-12T12:00:00Z',
+      mode: null,
+      windows: null,
+      effectiveAt: '2026-11-12T12:00:00Z',
     }
     const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify(change), { status: 200 }))
     vi.stubGlobal('fetch', fetchMock)

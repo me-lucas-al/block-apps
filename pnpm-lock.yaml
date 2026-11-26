@@ -320,6 +320,9 @@ importers:
       '@block-apps/backend':
         specifier: workspace:*
         version: link:../backend
+      '@types/node':
+        specifier: ^24.19.2
+        version: 24.19.2
 
   packages/backend:
     dependencies:

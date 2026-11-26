@@ -1,4 +1,4 @@
-import type { BlockRule, PendingRuleChange } from '@block-apps/core'
+import type { BlockRule, PendingRuleChange, RuleSchedule } from '@block-apps/core'
 import type { CooldownSettingsStore } from '../../src/cooldown/contracts/CooldownSettingsStore'
 import type { DueChangeApplier } from '../../src/cooldown/contracts/DueChangeApplier'
 import type { PendingChangeStore } from '../../src/cooldown/contracts/PendingChangeStore'
@@ -7,8 +7,9 @@ import type { DeviceStatus, DeviceStore } from '../../src/devices/contracts/Devi
 import { ConflictError } from '../../src/domain/errors/ConflictError'
 import { NotFoundError } from '../../src/domain/errors/NotFoundError'
 import type { BlockRuleStore } from '../../src/rules/contracts/BlockRuleStore'
-
-type StoredEntry<Content> = { readonly userId: string; readonly content: Content }
+import { applyChangeToRule } from './applyChangeToRule'
+import { rescheduleStoredRule } from './rescheduleStoredRule'
+import type { StoredEntry } from './StoredEntry'
 
 export class InMemoryRuleDatabase
   implements BlockRuleStore, PendingChangeStore, DueChangeApplier, CooldownSettingsStore, DeviceStore, SiteRuleReader
@@ -44,6 +45,13 @@ export class InMemoryRuleDatabase
     this.rules.set(key, { userId, content: rule })
   }
 
+  async updateSchedule(userId: string, readRule: BlockRule, requested: RuleSchedule): Promise<BlockRule> {
+    const key = this.keyOf(userId, readRule.id)
+    const updatedRule = rescheduleStoredRule(this.rules.get(key)?.content, readRule, requested)
+    this.rules.set(key, { userId, content: updatedRule })
+    return updatedRule
+  }
+
   async listChangesByUser(userId: string): Promise<PendingRuleChange[]> {
     return [...this.changes.values()].filter((entry) => entry.userId === userId).map((entry) => entry.content)
   }
@@ -62,8 +70,7 @@ export class InMemoryRuleDatabase
   }
 
   async listDueByUser(userId: string, nowIso: string): Promise<PendingRuleChange[]> {
-    const changes = await this.listChangesByUser(userId)
-    return changes
+    return (await this.listChangesByUser(userId))
       .filter((change) => change.effectiveAt <= nowIso)
       .sort((first, second) => first.effectiveAt.localeCompare(second.effectiveAt))
   }
@@ -78,9 +85,7 @@ export class InMemoryRuleDatabase
     const rule = this.rules.get(key)
     if (!rule || this.changes.get(key)?.content.effectiveAt !== change.effectiveAt) return false
     if (change.kind === 'delete') this.rules.delete(key)
-    else if (change.mode) {
-      this.rules.set(key, { userId, content: { ...rule.content, mode: change.mode, windows: change.windows ?? [] } })
-    }
+    else this.rules.set(key, { userId, content: applyChangeToRule(rule.content, change) })
     this.changes.delete(key)
     return true
   }

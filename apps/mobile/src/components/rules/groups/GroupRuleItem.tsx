@@ -1,5 +1,6 @@
 import { type BlockRule, type PendingRuleChange, describePendingChange } from '@block-apps/core'
 import { StyleSheet, Text, View } from 'react-native'
+import { describeSelectionLimitWarning } from '../../../rules/describeSelectionLimitWarning'
 import { colors } from '../../../theme'
 import { Button } from '../../ui/Button'
 import { describeRule } from '../describeRule'
@@ -31,9 +32,7 @@ export function GroupRuleItem(props: GroupRuleItemProps) {
           <Text style={styles.warning}>Escolha os apps de novo neste aparelho.</Text>
         )}
         {overAppLimit && (
-          <Text style={styles.warning}>
-            Este grupo tem mais de 50 apps. O iOS pode não bloquear todos; divida em grupos menores.
-          </Text>
+          <Text style={styles.warning}>{describeSelectionLimitWarning('singleGroup')}</Text>
         )}
         {alwaysBlockedForLackOfSlots && (
           <Text style={styles.warning}>

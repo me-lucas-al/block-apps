@@ -45,7 +45,7 @@ No CI (`terraform` em `.github/workflows/ci.yml`), também rodam `tflint --recur
    ```powershell
    cd infra/environments/dev
    Copy-Item backend.hcl.example backend.hcl             # coloque o nome do bucket
-   Copy-Item terraform.tfvars.example terraform.tfvars   # e-mail do administrador e prefixo do domínio
+   Copy-Item terraform.tfvars.example terraform.tfvars   # e-mail do administrador, prefixo do domínio e IDs da extensão
    terraform init -backend-config=backend.hcl
    terraform plan -out plan.tfplan
    terraform apply plan.tfplan
@@ -87,7 +87,8 @@ O `release.yml` só roda por disparo manual e os jobs de deploy usam o ambiente 
 
 - **Required reviewers:** quem aprova cada deploy.
 - **Deployment branches:** só `main`.
-- **Variables:** `HOSTED_DOMAIN_PREFIX`, `GOOGLE_CLIENT_ID`, `INITIAL_ADMIN_EMAIL`, `ALARM_EMAIL` (e-mail que recebe os alarmes), `DNS_HOST` (hostname do resolvedor DoH, veja abaixo; vazio desliga o perfil de DNS) e `DNS_UPSTREAM_URL` (resolvedor público para onde o DoH encaminha o que não é bloqueado, URL `https`; vazio usa `https://1.1.1.1/dns-query`).
+- **Variables:** `HOSTED_DOMAIN_PREFIX`, `GOOGLE_CLIENT_ID`, `INITIAL_ADMIN_EMAIL`, `ALARM_EMAIL` (e-mail que recebe os alarmes), `EXTENSION_IDS` e `FIREFOX_REDIRECT_URLS` (veja abaixo), `DNS_HOST` (hostname do resolvedor DoH, veja abaixo; vazio desliga o perfil de DNS) e `DNS_UPSTREAM_URL` (resolvedor público para onde o DoH encaminha o que não é bloqueado, URL `https`; vazio usa `https://1.1.1.1/dns-query`).
+- **Redirects da extensão:** `EXTENSION_IDS` e `FIREFOX_REDIRECT_URLS` são listas em JSON (`["id"]`), lidas como `TF_VAR_extension_ids` e `TF_VAR_firefox_redirect_urls` pelo `release.yml` e pelo `terraform-plan.yml`. Se a variável não existir, vale `[]` e o `terraform apply` da release remove esses redirects do client `device`: defina as duas antes de publicar a extensão. Crie-as também no nível do repositório, não só no ambiente `production`: o `terraform-plan.yml` roda sem ambiente e, sem elas, o plan das PRs mostra a remoção dos redirects.
 - **Secrets:** `AWS_ROLE_ARN`, `TF_STATE_BUCKET`, `GOOGLE_CLIENT_SECRET`.
 
 O job de build da extensão e do painel não usa o ambiente, então crie no nível do repositório as variáveis `API_URL`, `COGNITO_USER_POOL_ID`, `COGNITO_HOSTED_DOMAIN`, `EXTENSION_COGNITO_CLIENT_ID` e `ADMIN_COGNITO_CLIENT_ID` (valores dos outputs do Terraform). O `release.yml` confere essas variáveis antes de empacotar e falha se alguma estiver vazia. Os leitores de configuração dos clientes só lançam erro quando o app abre, não durante o build do Vite.

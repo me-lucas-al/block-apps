@@ -30,12 +30,12 @@ struct LoadGroupStatesUseCase {
             selectionStorage.loadSelectionResult(ruleId: ruleId).statusName == "unreadable"
         }
         record.unscheduledRuleIds = findUnscheduledRuleIds.findUnscheduledRuleIds()
-        let itemCounts: [String: Int] = countItems(ruleIds: ruleIds)
-        record.oversizedRuleIds = ruleIds.filter { (ruleId: String) -> Bool in
-            SelectionLimits.exceedsReportedLimit(itemCount: itemCounts[ruleId] ?? 0)
-        }
-        let totalCount: Int = itemCounts.values.reduce(0, +)
-        record.isTotalOverLimit = SelectionLimits.exceedsReportedLimit(itemCount: totalCount)
+        let limitReport: GroupLimitReport = GroupLimitReport(
+            ruleIds: ruleIds,
+            itemCountsByRuleId: countItems(ruleIds: ruleIds)
+        )
+        record.oversizedRuleIds = limitReport.oversizedRuleIds
+        record.isTotalOverLimit = limitReport.isTotalOverLimit
         return record
     }
 
@@ -45,9 +45,11 @@ struct LoadGroupStatesUseCase {
             guard let selection: FamilyActivitySelection = selectionStorage.loadSelection(ruleId: ruleId) else {
                 continue
             }
-            itemCounts[ruleId] = selection.applicationTokens.count
-                + selection.categoryTokens.count
-                + selection.webDomainTokens.count
+            itemCounts[ruleId] = SelectionItemCount.total(
+                applications: selection.applicationTokens.count,
+                categories: selection.categoryTokens.count,
+                webDomains: selection.webDomainTokens.count
+            )
         }
         return itemCounts
     }

@@ -8,7 +8,7 @@ export const inMemoryBackendFactory: BackendFactory = {
   name: 'in-memory',
   create: async (maxRulesPerUser = DEFAULT_MAX_RULES_PER_USER) => {
     const { stores, ruleDatabase, dnsStore } = buildInMemoryApiStores()
-    return assembleBackend(stores, new FakeClock(), maxRulesPerUser, {
+    return assembleBackend(stores, ruleDatabase, new FakeClock(), maxRulesPerUser, {
       setCooldownHours: async (userId, cooldownHours) => {
         ruleDatabase.setCooldownHours(userId, cooldownHours)
       },

@@ -2,6 +2,7 @@ import type { BlockRule, PendingRuleChange } from '@block-apps/core'
 import type { CooldownSettingsStore } from '../../src/cooldown/contracts/CooldownSettingsStore'
 import type { DueChangeApplier } from '../../src/cooldown/contracts/DueChangeApplier'
 import type { PendingChangeStore } from '../../src/cooldown/contracts/PendingChangeStore'
+import type { SiteRuleReader } from '../../src/dns/contracts/SiteRuleReader'
 import type { DeviceStatus, DeviceStore } from '../../src/devices/contracts/DeviceStore'
 import { ConflictError } from '../../src/domain/errors/ConflictError'
 import { NotFoundError } from '../../src/domain/errors/NotFoundError'
@@ -10,7 +11,7 @@ import type { BlockRuleStore } from '../../src/rules/contracts/BlockRuleStore'
 type StoredEntry<Content> = { readonly userId: string; readonly content: Content }
 
 export class InMemoryRuleDatabase
-  implements BlockRuleStore, PendingChangeStore, DueChangeApplier, CooldownSettingsStore, DeviceStore
+  implements BlockRuleStore, PendingChangeStore, DueChangeApplier, CooldownSettingsStore, DeviceStore, SiteRuleReader
 {
   private readonly rules = new Map<string, StoredEntry<BlockRule>>()
   private readonly changes = new Map<string, StoredEntry<PendingRuleChange>>()
@@ -27,6 +28,10 @@ export class InMemoryRuleDatabase
 
   async listRulesByUser(userId: string): Promise<BlockRule[]> {
     return [...this.rules.values()].filter((entry) => entry.userId === userId).map((entry) => entry.content)
+  }
+
+  async listSiteRulesByUser(userId: string): Promise<BlockRule[]> {
+    return (await this.listRulesByUser(userId)).filter((rule) => rule.targetType === 'site')
   }
 
   async findById(userId: string, ruleId: string): Promise<BlockRule | null> {

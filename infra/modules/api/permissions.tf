@@ -15,6 +15,15 @@ data "aws_iam_policy_document" "api_function" {
   }
 }
 
+data "aws_iam_policy_document" "dns_function" {
+  statement {
+    sid       = "DynamoDbReadOnlyForDnsResolver"
+    effect    = "Allow"
+    actions   = ["dynamodb:GetItem", "dynamodb:Query"]
+    resources = [var.table_arn]
+  }
+}
+
 data "aws_iam_policy_document" "admin_function" {
   statement {
     sid    = "DynamoDbDataAccess"

@@ -71,6 +71,17 @@ variable "max_rules_per_user" {
   }
 }
 
+variable "dns_host" {
+  description = "Hostname do resolvedor DoH para onde o perfil .mobileconfig aponta (sem esquema, porta ou caminho). Vazio desliga a rota GET /dns/profile.mobileconfig, que passa a responder 404."
+  type        = string
+  default     = ""
+
+  validation {
+    condition     = var.dns_host == "" || can(regex("^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$", var.dns_host))
+    error_message = "dns_host deve ser só o hostname em minúsculas, sem esquema, porta, caminho ou espaço."
+  }
+}
+
 variable "tags" {
   description = "Tags aplicadas aos recursos."
   type        = map(string)

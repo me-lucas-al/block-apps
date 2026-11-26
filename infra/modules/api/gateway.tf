@@ -64,6 +64,20 @@ resource "aws_apigatewayv2_stage" "default" {
     throttling_rate_limit  = 2
   }
 
+  route_settings {
+    route_key                = aws_apigatewayv2_route.dns_query_get.route_key
+    throttling_burst_limit   = var.dns_throttling_burst_limit
+    throttling_rate_limit    = var.dns_throttling_rate_limit
+    detailed_metrics_enabled = true
+  }
+
+  route_settings {
+    route_key                = aws_apigatewayv2_route.dns_query_post.route_key
+    throttling_burst_limit   = var.dns_throttling_burst_limit
+    throttling_rate_limit    = var.dns_throttling_rate_limit
+    detailed_metrics_enabled = true
+  }
+
   access_log_settings {
     destination_arn = aws_cloudwatch_log_group.gateway.arn
     format = jsonencode({

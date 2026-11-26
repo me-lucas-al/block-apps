@@ -52,6 +52,28 @@ variable "initial_admin_email" {
   default     = ""
 }
 
+variable "dns_host" {
+  description = "Hostname público do resolvedor DoH (sem esquema, porta ou caminho), por exemplo dns.exemplo.com. Vazio desliga o perfil .mobileconfig."
+  type        = string
+  default     = ""
+
+  validation {
+    condition     = var.dns_host == "" || can(regex("^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$", var.dns_host))
+    error_message = "dns_host deve ser só o hostname em minúsculas, sem esquema, porta, caminho ou espaço."
+  }
+}
+
+variable "dns_upstream_url" {
+  description = "URL https do resolvedor DoH público para onde as consultas liberadas são encaminhadas, por exemplo https://dns.google/dns-query. Vazio usa o padrão do backend (https://1.1.1.1/dns-query)."
+  type        = string
+  default     = "https://1.1.1.1/dns-query"
+
+  validation {
+    condition     = var.dns_upstream_url == "" || can(regex("^https://[^/@\\s]+(/\\S*)?$", var.dns_upstream_url))
+    error_message = "dns_upstream_url deve ser uma URL https sem credenciais (https://host/caminho) ou vazio."
+  }
+}
+
 variable "protect_from_deletion" {
   description = "Liga a proteção contra exclusão da tabela e do user pool na AWS."
   type        = bool

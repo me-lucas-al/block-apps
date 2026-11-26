@@ -9,6 +9,7 @@ import { ChangeDnsTimeZoneUseCase } from '../dns/use-cases/ChangeDnsTimeZoneUseC
 import { CreateDnsProfileUseCase } from '../dns/use-cases/CreateDnsProfileUseCase'
 import { EnsureDnsProfileUseCase } from '../dns/use-cases/EnsureDnsProfileUseCase'
 import { RotateDnsTokenUseCase } from '../dns/use-cases/RotateDnsTokenUseCase'
+import { BuildDnsProfileUseCase } from '../dns/use-cases/BuildDnsProfileUseCase'
 import { generateDnsToken, type DnsTokenGenerator } from '../dns/token/generateDnsToken'
 import { ReportDeviceStatusUseCase } from '../devices/use-cases/ReportDeviceStatusUseCase'
 import type { Clock } from '../domain/time/Clock'
@@ -18,12 +19,18 @@ import { RuleQuotaGuard } from '../rules/quota/RuleQuotaGuard'
 import { ListBlockRulesUseCase } from '../rules/use-cases/ListBlockRulesUseCase'
 import type { ApiStores } from './ApiStores'
 
+export type DnsOptions = {
+  readonly generateToken?: DnsTokenGenerator
+  readonly dnsHost?: string
+}
+
 export function createApiUseCases(
   stores: ApiStores,
   clock: Clock,
   maxRulesPerUser: number,
-  generateToken: DnsTokenGenerator = generateDnsToken,
+  dnsOptions: DnsOptions = {},
 ): ApiUseCases {
+  const generateToken = dnsOptions.generateToken ?? generateDnsToken
   const applyDueChangesForUser = new ApplyDueChangesForUserUseCase(
     stores.pendingChangeStore,
     stores.dueChangeApplier,
@@ -55,5 +62,6 @@ export function createApiUseCases(
       new ChangeDnsTimeZoneUseCase(stores.dnsSettingsStore),
     ),
     rotateDnsToken: new RotateDnsTokenUseCase(stores.dnsSettingsStore, generateToken, clock),
+    buildDnsProfile: new BuildDnsProfileUseCase(stores.dnsSettingsStore, dnsOptions.dnsHost),
   }
 }

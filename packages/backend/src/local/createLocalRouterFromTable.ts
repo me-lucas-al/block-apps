@@ -11,7 +11,10 @@ import { DynamoUserDataEraser } from '../storage/dynamodb/users/DynamoUserDataEr
 import { createLocalRouter, type LocalRouterOptions } from './createLocalRouter'
 import { seedLocalUsers } from './seedLocalUsers'
 
-export type LocalApiOptions = LocalRouterOptions & { readonly maxRulesPerUser: number }
+export type LocalApiOptions = LocalRouterOptions & {
+  readonly maxRulesPerUser: number
+  readonly dnsHost?: string
+}
 
 export function createLocalRouterFromTable(table: TableContext, options: LocalApiOptions) {
   const adminUseCases = createAdminUseCases(
@@ -25,6 +28,7 @@ export function createLocalRouterFromTable(table: TableContext, options: LocalAp
     createDynamoStores(table),
     () => new Date(),
     options.maxRulesPerUser,
+    { dnsHost: options.dnsHost },
   )
   const adminApp = createAdminApp('admin', adminUseCases)
   return createLocalRouter(createApiApp(apiUseCases), adminApp, options)

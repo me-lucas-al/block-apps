@@ -7,7 +7,7 @@ import { useTestBackend } from '../../helpers/useTestBackend'
 describe.each(backendFactories)('dns response headers ($name)', (factory) => {
   const backend = useTestBackend(factory)
 
-  it('forbids caching of the profile response that carries the token', async () => {
+  it('forbids caching and sniffing of the profile response that carries the token', async () => {
     const reply = await backend().app.request(
       '/dns/profile',
       {
@@ -18,7 +18,8 @@ describe.each(backendFactories)('dns response headers ($name)', (factory) => {
       buildLambdaBindings('user-1'),
     )
     expect(reply.status).toBe(200)
-    expect(reply.headers.get('cache-control')).toBe('no-store')
+    expect(reply.headers.get('cache-control')).toBe('private, no-store')
+    expect(reply.headers.get('x-content-type-options')).toBe('nosniff')
   })
 
   it('forbids caching of the rotation response that carries the token', async () => {
@@ -29,6 +30,7 @@ describe.each(backendFactories)('dns response headers ($name)', (factory) => {
       buildLambdaBindings('user-1'),
     )
     expect(reply.status).toBe(200)
-    expect(reply.headers.get('cache-control')).toBe('no-store')
+    expect(reply.headers.get('cache-control')).toBe('private, no-store')
+    expect(reply.headers.get('x-content-type-options')).toBe('nosniff')
   })
 })

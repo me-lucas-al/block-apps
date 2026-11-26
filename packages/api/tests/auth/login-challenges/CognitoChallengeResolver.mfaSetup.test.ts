@@ -2,6 +2,7 @@ import type { CognitoUser } from 'amazon-cognito-identity-js'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { buildCognitoSession } from '../../helpers/cognito/buildCognitoSession'
 import { resetCognitoUserScript, scriptCognitoUser } from '../../helpers/cognito/FakeCognitoUser'
+import { raiseMfaSetupChallenge } from '../../helpers/cognito/signInChallengeRaisers'
 import { startPendingChallenge } from '../../helpers/cognito/startPendingChallenge'
 
 vi.mock('amazon-cognito-identity-js', async () => {
@@ -13,7 +14,7 @@ async function startMfaSetupChallenge() {
   scriptCognitoUser({
     associateSoftwareToken: (callbacks) => callbacks.associateSecretCode('SECRET-CODE'),
   })
-  return startPendingChallenge((callbacks) => callbacks.mfaSetup?.('MFA_SETUP', {}))
+  return startPendingChallenge(raiseMfaSetupChallenge)
 }
 
 describe('CognitoChallengeResolver.verifyMfaSetup', () => {

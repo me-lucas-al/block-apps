@@ -2,19 +2,19 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { CognitoSrpAuth } from '../../../src/auth/cognito/CognitoSrpAuth'
 import { buildCognitoSession, signedInTokens } from '../../helpers/cognito/buildCognitoSession'
 import { resetCognitoUserScript, scriptCognitoUser } from '../../helpers/cognito/FakeCognitoUser'
+import { challengedEmail, testCognitoConfig } from '../../helpers/cognito/cognitoTestFixtures'
 import {
-  challengedEmail,
+  raiseMfaSetupChallenge,
   raiseNewPasswordChallenge,
   raiseTotpChallenge,
-  testCognitoConfig,
-} from '../../helpers/cognito/startPendingChallenge'
+} from '../../helpers/cognito/signInChallengeRaisers'
 
 vi.mock('amazon-cognito-identity-js', async () => {
   const { buildCognitoSdkModuleDouble } = await import('../../helpers/cognito/cognitoSdkModuleDouble')
   return buildCognitoSdkModuleDouble()
 })
 
-describe('CognitoSrpAuth.authenticate challenges', () => {
+describe('CognitoSrpAuth.authenticate', () => {
   afterEach(resetCognitoUserScript)
 
   it('returns the session tokens and clears the pending user on success', async () => {
@@ -53,7 +53,7 @@ describe('CognitoSrpAuth.authenticate challenges', () => {
 
   it('reports the mfa setup challenge with the secret code from the software token', async () => {
     scriptCognitoUser({
-      authenticateUser: (_details, callbacks) => callbacks.mfaSetup?.('MFA_SETUP', {}),
+      authenticateUser: (_details, callbacks) => raiseMfaSetupChallenge(callbacks),
       associateSoftwareToken: (callbacks) => callbacks.associateSecretCode('SECRET-CODE'),
     })
     const srpAuth = new CognitoSrpAuth(testCognitoConfig)

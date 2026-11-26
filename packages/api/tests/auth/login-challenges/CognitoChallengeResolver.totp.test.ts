@@ -2,11 +2,9 @@ import type { CognitoUser } from 'amazon-cognito-identity-js'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { buildCognitoSession, signedInTokens } from '../../helpers/cognito/buildCognitoSession'
 import { resetCognitoUserScript, scriptCognitoUser } from '../../helpers/cognito/FakeCognitoUser'
-import {
-  challengedEmail,
-  raiseTotpChallenge,
-  startPendingChallenge,
-} from '../../helpers/cognito/startPendingChallenge'
+import { challengedEmail } from '../../helpers/cognito/cognitoTestFixtures'
+import { raiseTotpChallenge } from '../../helpers/cognito/signInChallengeRaisers'
+import { startPendingChallenge } from '../../helpers/cognito/startPendingChallenge'
 
 vi.mock('amazon-cognito-identity-js', async () => {
   const { buildCognitoSdkModuleDouble } = await import('../../helpers/cognito/cognitoSdkModuleDouble')

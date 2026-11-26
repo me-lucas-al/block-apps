@@ -63,6 +63,7 @@ flowchart TD
 ### 1. Cooldown de Segurança
 Para impedir mudanças impulsivas, regras ativas não podem ser removidas ou afrouxadas instantaneamente.
 - Solicitações de alteração ou remoção entram em um período de espera configurável por usuário (padrão de 24h).
+- Mudança que só aperta o bloqueio vale na hora: trocar "só em janelas" por "sempre bloqueado", ou reduzir as janelas permitidas (as novas precisam caber dentro das atuais). O que afrouxa, ou aperta e afrouxa ao mesmo tempo, espera o cooldown.
 - O `EventBridge Scheduler` executa a cada 5 minutos aplicando alterações cujo prazo expirou.
 
 ### 2. Autenticação e MFA

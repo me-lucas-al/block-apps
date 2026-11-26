@@ -5,7 +5,7 @@ Pacote `packages/backend`: API em Hono, use cases pequenos e adaptadores DynamoD
 ```
 src/
   domain/        erros, id e normalização de regras, relógio
-  rules/         criar e listar regras
+  rules/         criar, listar e apertar regras
   cooldown/      pedido de alteração, remoção, aplicação das mudanças vencidas
   devices/       status de dispositivos
   dns/           token, fuso e perfil de DNS (contratos de gravação e de validação do token), resolver/ (cache, pacotes DNS, regras), upstream/ (cliente DoH)
@@ -57,7 +57,7 @@ Há uma mudança pendente por regra (a chave usa o `ruleId`), então pedir de no
 | --- | --- |
 | `GET /health` | saúde (sem token) |
 | `GET /rules`, `POST /rules` | listar e criar regras (acima da cota responde 422 com `code: "rule-quota-exceeded"`) |
-| `POST /rules/:ruleId/update-requests` | pede mudança de modo/janelas (cooldown) |
+| `POST /rules/:ruleId/update-requests` | pede mudança de modo/janelas. Responde `{ status: 'applied', rule }` quando a mudança só aperta o bloqueio (vale na hora, sem cooldown) ou `{ status: 'pending', change }` quando afrouxa (espera o cooldown). Ver "Mudanças que apertam o bloqueio" |
 | `POST /rules/:ruleId/removal-requests` | pede remoção (cooldown) |
 | `GET /pending-changes`, `POST /pending-changes/apply-due`, `DELETE /pending-changes/:ruleId` | ver, aplicar vencidas, cancelar |
 | `PUT /devices/:deviceId/status` | informa status do dispositivo |
@@ -65,6 +65,15 @@ Há uma mudança pendente por regra (a chave usa o `ruleId`), então pedir de no
 | `GET /dns/profile.mobileconfig` | devolve o perfil iOS (`.mobileconfig`) com o DNS seguro do usuário; exige JWT e que o perfil já tenha sido criado (ver "Perfil de DNS no iPhone") |
 
 O `userId` vem sempre do `sub` do token validado pelo API Gateway; nenhuma rota aceita `userId` no corpo. O id de uma regra é `<app|site>~<alvo>` e o alvo é minúsculo, só com letras, dígitos, ponto, hífen e sublinhado.
+
+## Mudanças que apertam o bloqueio
+
+`RequestRuleUpdateUseCase` lê a regra e pergunta ao core (`isTighteningChange`) se o pedido só aperta o bloqueio. Aperta quando o pedido é `always`, ou quando os dois lados são `schedule` e cada minuto da semana liberado no pedido já era liberado na regra atual (janelas que passam da meia-noite contam nos dois dias). Qualquer outro caso, inclusive o misto (aperta um dia e afrouxa outro), conta como afrouxar.
+
+- **Aperta.** `TightenRuleUseCase.tightenRule` grava a regra na hora por `BlockRuleStore.updateSchedule`, que é condicional: a regra precisa existir e continuar com o `mode` e as `windows` que foram lidos. Quem perde a corrida recebe 409 (regra mudou no meio) ou 404 (regra sumiu) e tenta de novo. Resposta: `{ status: 'applied', rule }`.
+- **Afrouxa.** Segue para o `RuleChangeScheduler` e espera o cooldown. Resposta: `{ status: 'pending', change }`.
+- **Pendência existente.** Apertar não mexe na mudança pendente da regra: um afrouxamento ou uma `selectionRemoval` já pedidos continuam com o mesmo `effectiveAt`. Se o afrouxamento pendente vencer depois, ele sobrescreve o aperto gravado antes; cancele-o antes se isso não for o desejado.
+- **Remoção.** Pedido de remoção e remoção de seleção sempre esperam o cooldown.
 
 ## Perfil de DNS no iPhone
 

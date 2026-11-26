@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { isWellFormedDnsToken } from '../../../src/dns/token/dnsTokenFormat'
 import { generateDnsToken } from '../../../src/dns/token/generateDnsToken'
 import { hashDnsToken } from '../../../src/dns/token/hashDnsToken'
 
@@ -9,6 +10,23 @@ describe('generateDnsToken', () => {
 
   it('produces a different token on each call', () => {
     expect(generateDnsToken()).not.toBe(generateDnsToken())
+  })
+})
+
+describe('isWellFormedDnsToken', () => {
+  it('accepts every token the generator produces', () => {
+    for (let attempt = 0; attempt < 50; attempt += 1) {
+      expect(isWellFormedDnsToken(generateDnsToken())).toBe(true)
+    }
+  })
+
+  it('rejects the wrong length and characters outside base64url', () => {
+    const validToken = generateDnsToken()
+    expect(isWellFormedDnsToken('')).toBe(false)
+    expect(isWellFormedDnsToken(validToken.slice(1))).toBe(false)
+    expect(isWellFormedDnsToken(`${validToken}a`)).toBe(false)
+    expect(isWellFormedDnsToken(`${validToken.slice(1)}=`)).toBe(false)
+    expect(isWellFormedDnsToken(`${validToken.slice(1)}/`)).toBe(false)
   })
 })
 

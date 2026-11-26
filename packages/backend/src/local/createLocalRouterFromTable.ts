@@ -1,6 +1,7 @@
 import { assembleCognitoAdminCollaborators } from '../composition/assembleCognitoAdminCollaborators'
 import { createAdminUseCases } from '../composition/createAdminUseCases'
 import { createApiUseCases } from '../composition/createApiUseCases'
+import { assembleDynamoDohResolverApp } from '../composition/doh/assembleDynamoDohResolverApp'
 import { createDynamoStores } from '../composition/createDynamoStores'
 import { createAdminApp } from '../http/app/createAdminApp'
 import { createApiApp } from '../http/app/createApiApp'
@@ -12,7 +13,10 @@ import { LOCAL_ADMIN_CLIENT_ID } from './buildLocalBindings'
 import { createLocalRouter, type LocalRouterOptions } from './createLocalRouter'
 import { seedLocalUsers } from './seedLocalUsers'
 
-export type LocalApiOptions = LocalRouterOptions & { readonly maxRulesPerUser: number }
+export type LocalApiOptions = LocalRouterOptions & {
+  readonly maxRulesPerUser: number
+  readonly dnsHost?: string
+}
 
 export function createLocalRouterFromTable(table: TableContext, options: LocalApiOptions) {
   const adminUseCases = createAdminUseCases(
@@ -26,10 +30,12 @@ export function createLocalRouterFromTable(table: TableContext, options: LocalAp
     createDynamoStores(table),
     () => new Date(),
     options.maxRulesPerUser,
+    { dnsHost: options.dnsHost },
   )
   const adminApp = createAdminApp(
     { adminGroupName: 'admin', adminClientId: LOCAL_ADMIN_CLIENT_ID },
     adminUseCases,
   )
-  return createLocalRouter(createApiApp(apiUseCases), adminApp, options)
+  const dnsApp = assembleDynamoDohResolverApp(table, process.env)
+  return createLocalRouter(createApiApp(apiUseCases), adminApp, options, dnsApp)
 }

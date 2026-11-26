@@ -27,6 +27,8 @@ jobs:
       TF_VAR_google_client_secret: ${{ secrets.GOOGLE_CLIENT_SECRET }}
       TF_VAR_initial_admin_email: ${{ vars.INITIAL_ADMIN_EMAIL }}
       TF_VAR_alarm_email: ${{ vars.ALARM_EMAIL }}
+      TF_VAR_dns_host: ${{ vars.DNS_HOST }}
+      TF_VAR_dns_upstream_url: ${{ vars.DNS_UPSTREAM_URL }}
       TF_VAR_extension_ids: ${{ vars.EXTENSION_IDS || '[]' }}
       TF_VAR_firefox_redirect_urls: ${{ vars.FIREFOX_REDIRECT_URLS || '[]' }}
     steps:

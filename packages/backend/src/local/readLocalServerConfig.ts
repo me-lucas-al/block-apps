@@ -1,3 +1,4 @@
+import { readConfiguredDnsHost } from '../composition/readConfiguredDnsHost'
 import { readMaxRulesPerUser } from '../rules/quota/readMaxRulesPerUser'
 
 const AWS_ENVIRONMENT_SIGNALS = [
@@ -18,6 +19,7 @@ export type LocalServerConfig = {
   readonly allowedOrigins: readonly string[]
   readonly allowedHosts: readonly string[]
   readonly maxRulesPerUser: number
+  readonly dnsHost: string | undefined
 }
 
 function splitList(rawList: string | undefined): string[] {
@@ -48,5 +50,6 @@ export function readLocalServerConfig(env: NodeJS.ProcessEnv): LocalServerConfig
     allowedOrigins: splitList(env['LOCAL_ALLOWED_ORIGINS']),
     allowedHosts: splitList(env['LOCAL_ALLOWED_HOSTS']),
     maxRulesPerUser: readMaxRulesPerUser(env),
+    dnsHost: readConfiguredDnsHost(env),
   }
 }

@@ -27,6 +27,7 @@ services:
       LOCAL_API_ALLOW_REMOTE_HOST: "true"
       PORT: "3000"
       MAX_RULES_PER_USER: "${MAX_RULES_PER_USER:-200}"
+      DNS_UPSTREAM_URL: "${DNS_UPSTREAM_URL:-}"
     ports:
       - "127.0.0.1:3000:3000"
     depends_on:

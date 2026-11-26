@@ -40,6 +40,14 @@ O servidor local aceita tokens no formato `Authorization: Bearer dev:<userId>:<g
 - Administrador: `Bearer dev:00000000-0000-4000-8000-0000000000a1:admin`
 - Usuário comum: `Bearer dev:00000000-0000-4000-8000-0000000000b1:user`
 
+### Resolvedor DoH local
+
+O mesmo servidor atende `GET` e `POST /dns-query/<token>` sem JWT, com o mesmo resolvedor da Lambda `dns` (ver "Resolvedor DNS sobre HTTPS" em `docs/BACKEND.md`). O token é o que `POST /dns/profile` devolve para o usuário de desenvolvimento.
+
+- `DNS_UPSTREAM_URL` define para onde as consultas liberadas são encaminhadas. Precisa ser `https`; sem ela, usa `https://1.1.1.1/dns-query`, então a máquina precisa de internet para consultas não bloqueadas. Defina antes de subir (`$env:DNS_UPSTREAM_URL = 'https://dns.google/dns-query'`); o `docker-compose.local.yml` repassa a variável ao container.
+- Consulta de teste, com o token obtido em `POST /dns/profile` (`<token>` tem 43 caracteres): `curl -s "http://127.0.0.1:3000/dns-query/<token>?dns=AAABAAABAAAAAAAAB2V4YW1wbGUDY29tAAABAAE" --output resposta.bin` (a consulta `A example.com` em base64url). Um token malformado ou desconhecido responde `404` vazio.
+- O cache do resolvedor vale por processo: depois de criar uma regra, a mudança aparece em até 30 s.
+
 ## 3. Painel Administrativo (`apps/admin`)
 
 ```powershell

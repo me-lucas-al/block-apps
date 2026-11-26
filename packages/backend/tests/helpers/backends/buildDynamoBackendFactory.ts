@@ -1,6 +1,7 @@
 import { PutCommand } from '@aws-sdk/lib-dynamodb'
 import { createDynamoStores } from '../../../src/composition/createDynamoStores'
 import { DEFAULT_MAX_RULES_PER_USER } from '../../../src/rules/quota/readMaxRulesPerUser'
+import { DynamoBlockRuleStore } from '../../../src/storage/dynamodb/rules/DynamoBlockRuleStore'
 import { dnsTokenLookupKey } from '../../../src/storage/dynamodb/dns/items/dnsKeys'
 import { userPartitionKey } from '../../../src/storage/dynamodb/keys/partitionKeys'
 import { SETTINGS_SORT_KEY } from '../../../src/storage/dynamodb/keys/sortKeys'
@@ -17,6 +18,7 @@ export function buildDynamoBackendFactory(endpoint: string): BackendFactory {
       const { client, tableName } = table.context
       return assembleBackend(
         createDynamoStores(table.context),
+        new DynamoBlockRuleStore(table.context),
         new FakeClock(),
         maxRulesPerUser,
         {

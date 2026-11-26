@@ -16,6 +16,26 @@ module "api_function" {
   }
 }
 
+module "dns_function" {
+  source = "../lambda_function"
+
+  name                           = "${var.name_prefix}-dns"
+  handler                        = "index.dnsHandler"
+  zip_path                       = var.lambda_zip_path
+  memory_mb                      = var.lambda_memory_mb
+  timeout_seconds                = var.dns_timeout_seconds
+  reserved_concurrent_executions = var.dns_reserved_concurrent_executions
+  log_retention_days             = var.log_retention_days
+  permissions_policy_json        = data.aws_iam_policy_document.dns_function.json
+  tags                           = var.tags
+
+  environment = {
+    TABLE_NAME       = var.table_name
+    DNS_UPSTREAM_URL = var.dns_upstream_url
+    DNS_HOST         = var.dns_host
+  }
+}
+
 module "admin_function" {
   source = "../lambda_function"
 

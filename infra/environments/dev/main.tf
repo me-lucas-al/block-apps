@@ -50,6 +50,7 @@ module "api" {
   admin_require_mfa     = var.admin_require_mfa
   max_rules_per_user    = var.max_rules_per_user
   dns_host              = var.dns_host
+  dns_upstream_url      = var.dns_upstream_url
   budget_limit_usd      = var.budget_limit_usd
   budget_alert_email    = var.budget_alert_email
   alarm_email           = var.alarm_email

@@ -25,6 +25,17 @@ variable "timeout_seconds" {
   default     = 10
 }
 
+variable "reserved_concurrent_executions" {
+  description = "Concorrência reservada da função. -1 não reserva nada (usa o pool da conta)."
+  type        = number
+  default     = -1
+
+  validation {
+    condition     = var.reserved_concurrent_executions >= -1 && floor(var.reserved_concurrent_executions) == var.reserved_concurrent_executions
+    error_message = "reserved_concurrent_executions deve ser um inteiro maior ou igual a -1."
+  }
+}
+
 variable "environment" {
   description = "Variáveis de ambiente da função."
   type        = map(string)

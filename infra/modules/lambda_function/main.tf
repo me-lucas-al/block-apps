@@ -61,6 +61,8 @@ resource "aws_lambda_function" "function" {
   filename         = var.zip_path
   source_code_hash = try(filebase64sha256(var.zip_path), null)
 
+  reserved_concurrent_executions = var.reserved_concurrent_executions
+
   environment {
     variables = merge(var.environment, { NODE_OPTIONS = "--enable-source-maps" })
   }

@@ -137,6 +137,7 @@ Opcional e **escondido por padrão**: o cartão "Modo estrito" só aparece em bu
 ## Riscos
 
 - O Swift do módulo e das extensões nunca foi executado: erros de runtime só aparecem na validação em aparelho. O CI macOS só garante que compila.
+- O que fica fora do `BlockingCore` e **só é provado pela compilação**: tudo que depende de `FamilyControls`, `ManagedSettings`, `DeviceActivity` ou `ExpoModulesCore`, e a fila serial `ModuleStateQueue` (`Module/`), que é um `DispatchQueue` serial e não tem teste: fica fora do pacote e só a compilação a cobre. A decisão de quantos itens cada grupo tem e se passou do limite (`SelectionItemCount`, `GroupLimitReport`) já está no `BlockingCore` e é testada; o `LoadGroupStatesUseCase` só lê os tokens e repassa as contagens.
 - `@bacons/apple-targets` não foi testado pelo autor em todos os tipos de extensão, e a assinatura de extensões com `family-controls` no EAS tem falhas relatadas.
 - Minutos de macOS no GitHub Actions custam mais; o job fica restrito a PRs que tocam o iOS.
 - A App Review pode questionar o uso; por isso o app não esconde apps por bundle id.

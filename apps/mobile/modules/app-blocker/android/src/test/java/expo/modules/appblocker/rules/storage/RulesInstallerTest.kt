@@ -6,20 +6,6 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 class RulesInstallerTest {
-  private class FakeRulesStorage(var rulesJson: String? = null, var ownerId: String? = null) : RulesStorage {
-    override fun readRulesJson() = rulesJson
-
-    override fun saveRulesJson(rulesJson: String) {
-      this.rulesJson = rulesJson
-    }
-
-    override fun readOwnerId() = ownerId
-
-    override fun saveOwnerId(ownerId: String) {
-      this.ownerId = ownerId
-    }
-  }
-
   private val rules = """[{"target":"com.a","mode":"always","windows":[]}]"""
   private val otherRules = """[{"target":"com.b","mode":"always","windows":[]}]"""
 
@@ -68,14 +54,6 @@ class RulesInstallerTest {
     val storage = FakeRulesStorage(rules, null)
     RulesInstaller(storage).install(otherRules, "sub-1", null)
     assertEquals("sub-1", storage.ownerId)
-  }
-
-  @Test
-  fun anOwnerStoredAsTheEmailMigratesToTheSub() {
-    val storage = FakeRulesStorage(rules, "a@b.c")
-    RulesInstaller(storage).install(otherRules, "sub-1", "a@b.c")
-    assertEquals("sub-1", storage.ownerId)
-    assertEquals(otherRules, storage.rulesJson)
   }
 
   @Test

@@ -5,11 +5,16 @@ struct MigrateLegacyOwnerUseCase {
         self.rulesStorage = rulesStorage
     }
 
-    func migrateLegacyOwner(legacyOwnerId: String?, incomingOwnerId: String) throws {
+    func migrateLegacyOwner(
+        legacyOwnerId: String?,
+        incomingOwnerId: String,
+        incomingRuleIds: Set<String>
+    ) throws {
         try LegacyOwnerMigration.migrate(
             storage: rulesStorage,
             legacyOwnerId: legacyOwnerId,
-            incomingOwnerId: incomingOwnerId
+            incomingOwnerId: incomingOwnerId,
+            incomingRuleIds: incomingRuleIds
         )
     }
 }

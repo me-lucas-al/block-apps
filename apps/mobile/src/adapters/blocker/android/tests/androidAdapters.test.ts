@@ -34,7 +34,7 @@ describe('createAndroidAdapters', () => {
       accountId: 'user-sub-1',
     })
     expect(nativeModule.setRules).toHaveBeenCalledWith(
-      '[{"target":"com.instagram.android","mode":"always","windows":[]}]',
+      '[{"id":"rule-1","target":"com.instagram.android","mode":"always","windows":[]}]',
       'user-sub-1',
       'user@example.com',
     )

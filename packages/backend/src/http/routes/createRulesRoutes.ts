@@ -22,12 +22,12 @@ export function createRulesRoutes(useCases: ApiUseCases) {
 
   routes.post('/:ruleId/update-requests', async (context) => {
     const content = parseRuleContent(await readJsonBody(context))
-    const change = await useCases.requestRuleUpdate.requestRuleUpdate(
+    const outcome = await useCases.requestRuleUpdate.requestRuleUpdate(
       context.var.user.userId,
       readRuleIdParam(context),
       content,
     )
-    return context.json(change)
+    return context.json(outcome)
   })
 
   routes.post('/:ruleId/removal-requests', async (context) => {

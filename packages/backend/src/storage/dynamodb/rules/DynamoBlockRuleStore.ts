@@ -1,7 +1,8 @@
-import { GetCommand, PutCommand } from '@aws-sdk/lib-dynamodb'
-import type { BlockRule } from '@block-apps/core'
+import { GetCommand, PutCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb'
+import type { BlockRule, RuleSchedule } from '@block-apps/core'
 import type { SiteRuleReader } from '../../../dns/contracts/SiteRuleReader'
 import { ConflictError } from '../../../domain/errors/ConflictError'
+import { NotFoundError } from '../../../domain/errors/NotFoundError'
 import type { BlockRuleStore } from '../../../rules/contracts/BlockRuleStore'
 import { isConditionalCheckFailure } from '../conditions/isConditionalCheckFailure'
 import { userPartitionKey } from '../keys/partitionKeys'
@@ -53,5 +54,40 @@ export class DynamoBlockRuleStore implements BlockRuleStore, SiteRuleReader {
       if (isConditionalCheckFailure(error)) throw new ConflictError('rule already exists')
       throw error
     }
+  }
+
+  async updateSchedule(
+    userId: string,
+    readRule: BlockRule,
+    requested: RuleSchedule,
+  ): Promise<BlockRule> {
+    try {
+      await this.context.client.send(
+        new UpdateCommand({
+          TableName: this.context.tableName,
+          Key: { pk: userPartitionKey(userId), sk: ruleSortKey(readRule.id) },
+          UpdateExpression: 'SET #mode = :mode, #windows = :windows',
+          ConditionExpression:
+            'attribute_exists(pk) AND #mode = :readMode AND #windows = :readWindows',
+          ExpressionAttributeNames: { '#mode': 'mode', '#windows': 'windows' },
+          ExpressionAttributeValues: {
+            ':mode': requested.mode,
+            ':windows': requested.windows,
+            ':readMode': readRule.mode,
+            ':readWindows': readRule.windows,
+          },
+        }),
+      )
+    } catch (error: unknown) {
+      if (!isConditionalCheckFailure(error)) throw error
+      throw await this.explainRejectedScheduleUpdate(userId, readRule.id)
+    }
+    return { ...readRule, mode: requested.mode, windows: requested.windows }
+  }
+
+  private async explainRejectedScheduleUpdate(userId: string, ruleId: string): Promise<Error> {
+    const currentRule = await this.findById(userId, ruleId)
+    if (!currentRule) return new NotFoundError('rule not found')
+    return new ConflictError('rule schedule changed meanwhile; try again')
   }
 }

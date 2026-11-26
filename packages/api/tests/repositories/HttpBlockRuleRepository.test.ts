@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import type { BlockRule } from '@block-apps/core'
+import type { BlockRule, PendingRuleChange } from '@block-apps/core'
 import { HttpApiClient } from '../../src/http/client/HttpApiClient'
 import { HttpBlockRuleRepository } from '../../src/repositories/http/rules/HttpBlockRuleRepository'
 
@@ -37,26 +37,45 @@ describe('HttpBlockRuleRepository', () => {
     expect(result).toEqual(created)
   })
 
-  it('requests update via POST /rules/:ruleId/update-requests', async () => {
-    const change = {
-      id: 'c1',
+  it('returns the applied rule when POST /rules/:ruleId/update-requests tightens the block', async () => {
+    const rule: BlockRule = { id: 'r1', targetType: 'site', target: 'x.com', mode: 'always', windows: [] }
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ status: 'applied', rule }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify([rule]), { status: 200 }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const client = new HttpApiClient({ baseUrl: 'https://api.test', getToken: async () => 'tok' })
+    const repo = new HttpBlockRuleRepository(client)
+
+    const outcome = await repo.requestUpdate('r1', { mode: 'always', windows: [] })
+    expect(outcome).toEqual({ status: 'applied', rule })
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.test/rules/r1/update-requests',
+      expect.objectContaining({ method: 'POST' }),
+    )
+  })
+
+  it('returns the pending change when POST /rules/:ruleId/update-requests loosens the block', async () => {
+    const change: PendingRuleChange = {
+      id: 'r1',
       ruleId: 'r1',
-      kind: 'update' as const,
-      status: 'pending' as const,
-      availableAt: '2026-11-12T12:00:00Z',
-      payload: { mode: 'always' as const, windows: [] },
+      kind: 'update',
+      mode: 'schedule',
+      windows: [{ days: [1], start: '09:00', end: '17:00' }],
+      effectiveAt: '2026-11-12T12:00:00.000Z',
     }
     const fetchMock = vi
       .fn()
-      .mockResolvedValueOnce(new Response(JSON.stringify(change), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ status: 'pending', change }), { status: 200 }))
       .mockResolvedValueOnce(new Response(JSON.stringify([]), { status: 200 }))
     vi.stubGlobal('fetch', fetchMock)
 
     const client = new HttpApiClient({ baseUrl: 'https://api.test', getToken: async () => 'tok' })
     const repo = new HttpBlockRuleRepository(client)
 
-    const result = await repo.requestUpdate('r1', { mode: 'always', windows: [] })
-    expect(result).toEqual(change)
+    const outcome = await repo.requestUpdate('r1', { mode: 'schedule', windows: change.windows ?? [] })
+    expect(outcome).toEqual({ status: 'pending', change })
   })
 
   it('requests a selection removal on its own endpoint', async () => {

@@ -1,4 +1,4 @@
-import type { BlockRule, PendingRuleChange } from '@block-apps/core'
+import type { BlockRule, PendingRuleChange, RuleUpdateOutcome } from '@block-apps/core'
 import type {
   BlockRuleRepository,
   NewBlockRule,
@@ -33,13 +33,13 @@ export class HttpBlockRuleRepository implements BlockRuleRepository {
     return created
   }
 
-  async requestUpdate(ruleId: string, update: RuleUpdateInput): Promise<PendingRuleChange> {
-    const change = await this.http.post<PendingRuleChange>(
+  async requestUpdate(ruleId: string, update: RuleUpdateInput): Promise<RuleUpdateOutcome> {
+    const outcome = await this.http.post<RuleUpdateOutcome>(
       `/rules/${encodeURIComponent(ruleId)}/update-requests`,
       update,
     )
     void this.poller.pollNow()
-    return change
+    return outcome
   }
 
   async requestSelectionRemoval(ruleId: string): Promise<PendingRuleChange> {

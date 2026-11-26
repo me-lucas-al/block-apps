@@ -17,6 +17,7 @@ import type { ApiUseCases } from '../http/app/ApiUseCases'
 import { CreateBlockRuleUseCase } from '../rules/use-cases/CreateBlockRuleUseCase'
 import { RuleQuotaGuard } from '../rules/quota/RuleQuotaGuard'
 import { ListBlockRulesUseCase } from '../rules/use-cases/ListBlockRulesUseCase'
+import { TightenRuleUseCase } from '../rules/use-cases/TightenRuleUseCase'
 import type { ApiStores } from './ApiStores'
 
 export type DnsOptions = {
@@ -49,7 +50,11 @@ export function createApiUseCases(
       new RuleQuotaGuard(stores.blockRuleStore, maxRulesPerUser),
     ),
     listBlockRules: new ListBlockRulesUseCase(stores.blockRuleStore),
-    requestRuleUpdate: new RequestRuleUpdateUseCase(ruleChangeScheduler),
+    requestRuleUpdate: new RequestRuleUpdateUseCase(
+      stores.blockRuleStore,
+      new TightenRuleUseCase(stores.blockRuleStore),
+      ruleChangeScheduler,
+    ),
     requestRuleRemoval: new RequestRuleRemovalUseCase(ruleChangeScheduler),
     requestSelectionRemoval: new RequestSelectionRemovalUseCase(ruleChangeScheduler),
     listPendingChanges: new ListPendingChangesUseCase(stores.pendingChangeStore),

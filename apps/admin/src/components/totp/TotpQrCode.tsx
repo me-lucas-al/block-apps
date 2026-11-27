@@ -2,6 +2,8 @@ import { buildTotpUri } from '@block-apps/api'
 import QRCode from 'qrcode'
 import { useEffect, useState } from 'react'
 
+const AUTHENTICATOR_ISSUER = 'Block Apps'
+
 type Props = {
   readonly email: string
   readonly secret: string
@@ -11,7 +13,18 @@ export function TotpQrCode({ email, secret }: Props) {
   const [qrImage, setQrImage] = useState<string | null>(null)
 
   useEffect(() => {
-    void QRCode.toDataURL(buildTotpUri(email, secret, 'Block Apps'), { margin: 1, width: 192 }).then(setQrImage)
+    let cancelled = false
+    setQrImage(null)
+    const authenticatorUri = buildTotpUri(email, secret, AUTHENTICATOR_ISSUER)
+    QRCode.toDataURL(authenticatorUri, { margin: 1, width: 192 }).then(
+      (image) => {
+        if (!cancelled) setQrImage(image)
+      },
+      () => undefined,
+    )
+    return () => {
+      cancelled = true
+    }
   }, [email, secret])
 
   return (

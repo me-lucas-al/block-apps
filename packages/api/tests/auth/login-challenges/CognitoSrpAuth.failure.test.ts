@@ -29,6 +29,33 @@ describe('CognitoSrpAuth.authenticate failures', () => {
     expect(srpAuth.getActiveEmail()).toBe('')
   })
 
+  it.each([
+    ['UserNotConfirmedException', 'unconfirmed_user'],
+    ['PasswordResetRequiredException', 'password_reset_required'],
+  ])('turns %s into the %s result and clears the pending user', async (errorName, expectedKind) => {
+    const failure = new Error('account state')
+    failure.name = errorName
+    scriptCognitoUser({ authenticateUser: (_details, callbacks) => callbacks.onFailure(failure) })
+    const srpAuth = new CognitoSrpAuth(testCognitoConfig)
+
+    const outcome = await srpAuth.authenticate(challengedEmail, 'password-1')
+
+    expect(outcome.signInResult).toEqual({ kind: expectedKind })
+    expect(outcome.tokens).toBeUndefined()
+    expect(() => srpAuth.getPendingUser()).toThrow('No active authentication challenge')
+  })
+
+  it('matches the account state by the sdk code property as well', async () => {
+    const failure = Object.assign(new Error('not confirmed'), { code: 'UserNotConfirmedException' })
+    failure.name = 'Error'
+    scriptCognitoUser({ authenticateUser: (_details, callbacks) => callbacks.onFailure(failure) })
+    const srpAuth = new CognitoSrpAuth(testCognitoConfig)
+
+    const outcome = await srpAuth.authenticate(challengedEmail, 'password-1')
+
+    expect(outcome.signInResult).toEqual({ kind: 'unconfirmed_user' })
+  })
+
   it('rejects and clears the pending user when the software token cannot be associated', async () => {
     const rejection = new Error('association failed')
     scriptCognitoUser({

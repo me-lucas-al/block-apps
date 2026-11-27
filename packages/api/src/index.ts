@@ -1,10 +1,10 @@
 export type { Authenticator } from './auth/Authenticator'
 export type { UserSession } from './auth/UserSession'
-export type { AuthChallenge, AuthResult } from './auth/contracts/AuthResult'
 export type { GoogleAuthorization } from './auth/contracts/GoogleAuthorization'
 export type { OAuthCodeExchange } from './auth/contracts/OAuthCodeExchange'
 export type { SessionStorage } from './auth/contracts/SessionStorage'
 export type { SessionTokens } from './auth/contracts/SessionTokens'
+export type { SignInResult } from './auth/contracts/SignInResult'
 export { SessionRevocationError } from './auth/SessionRevocationError'
 export {
   SESSION_NOT_REVOKED_NOTICE,
@@ -12,6 +12,7 @@ export {
   type SignOutOutcome,
 } from './auth/SignOutUseCase'
 export { buildTotpUri } from './auth/buildTotpUri'
+export { assertUnreachableSignInResult } from './auth/assertUnreachableSignInResult'
 export { LocalUserSession } from './auth/session/LocalUserSession'
 export { MemorySessionStorage } from './auth/storage/MemorySessionStorage'
 export type { CognitoConfig } from './auth/cognito/CognitoConfig'

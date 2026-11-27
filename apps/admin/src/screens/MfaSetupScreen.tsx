@@ -1,18 +1,21 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import { TotpQrCode } from '../components/totp/TotpQrCode'
 import { useServices } from '../services/ServicesContext'
 
 type Props = {
+  readonly email: string
+  readonly secretCode: string
   readonly onCompleted: () => void
   readonly onCancel: () => void
 }
 
-export function MfaSetupScreen({ onCompleted, onCancel }: Props) {
+export function MfaSetupScreen({ email, secretCode, onCompleted, onCancel }: Props) {
   const { authenticator } = useServices()
   const [code, setCode] = useState('')
   const [error, setError] = useState<string | null>(null)
 
-  const handleSubmit = async (event: FormEvent) => {
+  const submitMfaSetupCode = async (event: FormEvent) => {
     event.preventDefault()
     try {
       setError(null)
@@ -25,10 +28,11 @@ export function MfaSetupScreen({ onCompleted, onCancel }: Props) {
 
   return (
     <main className="center">
-      <form className="card stack" onSubmit={handleSubmit}>
+      <form className="card stack" onSubmit={submitMfaSetupCode}>
         <h1>Configuração obrigatória de MFA</h1>
         <p className="hint">Administradores devem ter autenticação em duas etapas ativada.</p>
-        <p className="hint">Insira o código do seu aplicativo autenticador para confirmar.</p>
+        <p className="hint">Escaneie o QR com seu app autenticador e insira o código gerado para confirmar.</p>
+        <TotpQrCode email={email} secret={secretCode} />
         <label>
           Código de verificação
           <input

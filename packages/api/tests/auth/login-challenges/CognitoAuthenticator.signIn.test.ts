@@ -5,7 +5,11 @@ import { MemorySessionStorage } from '../../../src/auth/storage/MemorySessionSto
 import { buildCognitoSession, signedInTokens } from '../../helpers/cognito/buildCognitoSession'
 import { resetCognitoUserScript, scriptCognitoUser } from '../../helpers/cognito/FakeCognitoUser'
 import { challengedEmail, testCognitoConfig } from '../../helpers/cognito/cognitoTestFixtures'
-import { raiseTotpChallenge } from '../../helpers/cognito/signInChallengeRaisers'
+import {
+  raiseMfaSetupChallenge,
+  raiseNewPasswordChallenge,
+  raiseTotpChallenge,
+} from '../../helpers/cognito/signInChallengeRaisers'
 
 vi.mock('amazon-cognito-identity-js', async () => {
   const { buildCognitoSdkModuleDouble } = await import('../../helpers/cognito/cognitoSdkModuleDouble')
@@ -41,6 +45,29 @@ describe('CognitoAuthenticator.signInWithPassword', () => {
     const signInResult = await authenticator.signInWithPassword(challengedEmail, 'password-1')
 
     expect(signInResult).toEqual({ kind: 'mfa_totp_required' })
+    expect(await storage.load()).toBeNull()
+  })
+
+  it('returns the mfa setup secret without persisting tokens', async () => {
+    scriptCognitoUser({
+      authenticateUser: (_details, callbacks) => raiseMfaSetupChallenge(callbacks),
+      associateSoftwareToken: (callbacks) => callbacks.associateSecretCode('SECRET-CODE'),
+    })
+    const { authenticator, storage } = buildAuthenticatorWithStorage()
+
+    const signInResult = await authenticator.signInWithPassword(challengedEmail, 'password-1')
+
+    expect(signInResult).toEqual({ kind: 'mfa_setup_required', secretCode: 'SECRET-CODE' })
+    expect(await storage.load()).toBeNull()
+  })
+
+  it('returns the new password challenge without persisting tokens', async () => {
+    scriptCognitoUser({ authenticateUser: (_details, callbacks) => raiseNewPasswordChallenge(callbacks) })
+    const { authenticator, storage } = buildAuthenticatorWithStorage()
+
+    const signInResult = await authenticator.signInWithPassword(challengedEmail, 'password-1')
+
+    expect(signInResult).toEqual({ kind: 'new_password_required' })
     expect(await storage.load()).toBeNull()
   })
 

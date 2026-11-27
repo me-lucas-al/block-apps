@@ -23,10 +23,10 @@ infra/
   environments/dev/ main.tf, variables.tf, outputs.tf
 apps/
   extension/        manifest/ (gera o manifest.json por navegador)
-  extension/src/   ports/{browser,data}/, adapters/{browser,chrome,firefox}/, shared/browser/, blocking/{,keywords/}, device/, popup/, background/
-  admin/src/       ports/, adapters/, components/, screens/, services/, users/
+  extension/src/   ports/{browser,data}/, adapters/{browser,chrome,firefox}/, shared/browser/, blocking/{,keywords/}, device/, popup/{components,hooks,login,services}/, background/
+  admin/src/       ports/, adapters/, components/, login/, screens/, services/, users/
   mobile/
-    src/           ports/{blocker,protection,appchoice,groupselection,device}/, adapters/blocker/{android,ios}/, sync/, hooks/, screens/, components/, device/, background/
+    src/           ports/{blocker,protection,appchoice,groupselection,device}/, adapters/blocker/{android,ios}/, sync/, hooks/, login/, screens/, components/, device/, background/
     modules/app-blocker/
       src/                   ponte TypeScript
       android/.../appblocker/  Kotlin: admin/, service/, system/, ui/, rules/{model,evaluation,storage}/

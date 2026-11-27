@@ -1,39 +1,28 @@
-import { useState } from 'react'
-import type { FormEvent } from 'react'
-import { useServices } from '../services/ServicesContext'
+import { useLoginFlow } from '../login/useLoginFlow'
 import { MfaSetupScreen } from './MfaSetupScreen'
 import { NewPasswordScreen } from './NewPasswordScreen'
 import { ResetPasswordScreen } from './ResetPasswordScreen'
 import { TotpScreen } from './TotpScreen'
 
-type AuthView = 'login' | 'new_password' | 'totp' | 'mfa_setup' | 'reset_password'
-
 export function LoginScreen() {
-  const { authenticator } = useServices()
-  const [view, setView] = useState<AuthView>('login')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  const {
+    step,
+    email,
+    password,
+    error,
+    setEmail,
+    setPassword,
+    submitLoginForm,
+    returnToLogin,
+    openPasswordReset,
+  } = useLoginFlow()
 
-  const submitLoginForm = async (event: FormEvent) => {
-    event.preventDefault()
-    try {
-      setError(null)
-      await authenticator.signInWithPassword(email.trim(), password)
-    } catch (failure) {
-      const msg = failure instanceof Error ? failure.message : 'E-mail ou senha incorretos.'
-      if (msg.includes('NEW_PASSWORD_REQUIRED')) setView('new_password')
-      else if (msg.includes('MFA_SETUP')) setView('mfa_setup')
-      else if (msg.includes('SOFTWARE_TOKEN_MFA') || msg.includes('MFA_REQUIRED')) setView('totp')
-      else if (msg.includes('RESET_REQUIRED') || msg.includes('PasswordResetRequiredException')) setView('reset_password')
-      else setError(msg)
-    }
+  if (step.view === 'new_password') return <NewPasswordScreen onCompleted={returnToLogin} onCancel={returnToLogin} />
+  if (step.view === 'totp') return <TotpScreen onCompleted={returnToLogin} onCancel={returnToLogin} />
+  if (step.view === 'mfa_setup') {
+    return <MfaSetupScreen email={email.trim()} secretCode={step.secretCode} onCompleted={returnToLogin} onCancel={returnToLogin} />
   }
-
-  if (view === 'new_password') return <NewPasswordScreen onCompleted={() => setView('login')} onCancel={() => setView('login')} />
-  if (view === 'totp') return <TotpScreen onCompleted={() => setView('login')} onCancel={() => setView('login')} />
-  if (view === 'mfa_setup') return <MfaSetupScreen onCompleted={() => setView('login')} onCancel={() => setView('login')} />
-  if (view === 'reset_password') return <ResetPasswordScreen initialEmail={email} onCompleted={() => setView('login')} onCancel={() => setView('login')} />
+  if (step.view === 'reset_password') return <ResetPasswordScreen initialEmail={email} onCompleted={returnToLogin} onCancel={returnToLogin} />
 
   return (
     <main className="center">
@@ -50,7 +39,7 @@ export function LoginScreen() {
         </label>
         {error && <p className="error" role="alert">{error}</p>}
         <button type="submit">Entrar</button>
-        <button type="button" className="secondary" onClick={() => setView('reset_password')}>
+        <button type="button" className="secondary" onClick={openPasswordReset}>
           Esqueci a senha
         </button>
       </form>

@@ -4,10 +4,16 @@ import {
   CognitoUserPool,
   type CognitoUserSession,
 } from 'amazon-cognito-identity-js'
-import type { AuthResult } from '../contracts/AuthResult'
 import type { SessionTokens } from '../contracts/SessionTokens'
+import type { SignInResult } from '../contracts/SignInResult'
 import type { CognitoConfig } from './CognitoConfig'
 import { extractSessionTokens } from './extractSessionTokens'
+import { readSignInFailureResult } from './readSignInFailureResult'
+
+export type SrpAuthOutcome = {
+  readonly signInResult: SignInResult
+  readonly tokens?: SessionTokens
+}
 
 export class CognitoSrpAuth {
   private readonly userPool: CognitoUserPool
@@ -35,10 +41,7 @@ export class CognitoSrpAuth {
     this.activeEmail = null
   }
 
-  authenticate(
-    email: string,
-    password: string,
-  ): Promise<{ result: AuthResult; tokens?: SessionTokens }> {
+  authenticate(email: string, password: string): Promise<SrpAuthOutcome> {
     const authDetails = new AuthenticationDetails({ Username: email, Password: password })
     const user = new CognitoUser({ Username: email, Pool: this.userPool })
     this.activeUser = user
@@ -49,26 +52,28 @@ export class CognitoSrpAuth {
         onSuccess: (session: CognitoUserSession) => {
           const tokens = extractSessionTokens(session, email)
           this.clearPendingUser()
-          resolve({ result: { success: true }, tokens })
+          resolve({ signInResult: { kind: 'signed_in' }, tokens })
         },
-        onFailure: (err) => {
+        onFailure: (failure) => {
           this.clearPendingUser()
-          reject(err)
+          const signInResult = readSignInFailureResult(failure)
+          if (signInResult) resolve({ signInResult })
+          else reject(failure)
         },
         newPasswordRequired: () => {
-          resolve({ result: { success: false, challenge: { kind: 'NEW_PASSWORD_REQUIRED' } } })
+          resolve({ signInResult: { kind: 'new_password_required' } })
         },
         totpRequired: () => {
-          resolve({ result: { success: false, challenge: { kind: 'MFA_REQUIRED' } } })
+          resolve({ signInResult: { kind: 'mfa_totp_required' } })
         },
         mfaSetup: () => {
           user.associateSoftwareToken({
             associateSecretCode: (secretCode: string) => {
-              resolve({ result: { success: false, challenge: { kind: 'MFA_SETUP', secretCode } } })
+              resolve({ signInResult: { kind: 'mfa_setup_required', secretCode } })
             },
-            onFailure: (err) => {
+            onFailure: (failure) => {
               this.clearPendingUser()
-              reject(err)
+              reject(failure)
             },
           })
         },

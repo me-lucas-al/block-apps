@@ -66,7 +66,7 @@ Como o ID está fixo no manifesto, a URL é a mesma em todas as instalações.
 
 ### Teste manual do login com Google
 
-O fluxo do Google no service worker vem da branch `fix/extension-google-background`; teste só depois que ela estiver mesclada.
+O fluxo do Google roda no background (`src/background/googleSignInListener.ts`), já está em `main` e deve terminar mesmo com o popup fechado. Os passos abaixo conferem isso no Firefox.
 
 1. Carregue `dist-firefox` como extensão temporária e confirme que o Terraform já tem a URL em `firefox_redirect_urls`.
 2. Abra o popup, deslogado, e clique em entrar com Google.

@@ -1,3 +1,7 @@
 export function assertUnreachableSignInResult(unhandledSignInResult: never): never {
-  throw new Error(`Unhandled sign-in result: ${JSON.stringify(unhandledSignInResult)}`)
+  const unhandledKind: unknown =
+    typeof unhandledSignInResult === 'object' && unhandledSignInResult !== null
+      ? Reflect.get(unhandledSignInResult, 'kind')
+      : unhandledSignInResult
+  throw new Error(`Unhandled sign-in result kind: ${String(unhandledKind)}`)
 }

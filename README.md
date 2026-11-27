@@ -73,7 +73,7 @@ Três caminhos curtos, cada um percorre um fluxo inteiro, arquivo a arquivo. Lei
 1. `packages/backend/src/lambda/apiHandler.ts`: entrada da Lambda `api`. Monta stores, use cases e o app Hono.
 2. `packages/backend/src/http/app/createApiApp.ts`: exige o usuário autenticado em `/rules/*` (`requireAuthenticatedUser`) e monta as rotas.
 3. `packages/backend/src/http/routes/createRulesRoutes.ts`: o `POST /` lê o corpo (`parseNewRuleBody`) e chama o caso de uso.
-4. `packages/backend/src/rules/use-cases/CreateBlockRuleUseCase.ts`: normaliza o alvo, valida o conteúdo, confere a cota de regras e grava.
+4. `packages/backend/src/rules/use-cases/CreateBlockRuleUseCase.ts`: normaliza o alvo, valida o conteúdo (e exige modo sempre ligado nas regras de proteção), confere a cota de regras e grava.
 5. `packages/backend/src/rules/contracts/BlockRuleStore.ts`: o contrato de armazenamento que o caso de uso conhece.
 6. `packages/backend/src/storage/dynamodb/rules/DynamoBlockRuleStore.ts`: a implementação em DynamoDB (`insert`).
 7. `packages/backend/src/composition/createApiUseCases.ts` e `createDynamoStores.ts`: onde o caso de uso e o store são ligados.
@@ -82,13 +82,13 @@ Três caminhos curtos, cada um percorre um fluxo inteiro, arquivo a arquivo. Lei
 ### App: sincronizar as regras no celular
 
 1. `apps/mobile/App.tsx`: `Root` chama `useSyncWhenAppIsActive` e `useBackgroundRulesSync`; `createServices` monta as dependências.
-2. `apps/mobile/src/services/createServices.ts`: junta repositórios, bloqueador da plataforma e `AppRulesSync`.
+2. `apps/mobile/src/services/createServices.ts`: junta repositórios, bloqueador da plataforma (por `adapters/blocker/createDeviceAdapters.ts`) e `AppRulesSync`.
 3. `apps/mobile/src/adapters/createMobileServices.ts`: cria a sessão Cognito, o `HttpApiClient` e os repositórios HTTP de `packages/api`.
 4. `apps/mobile/src/hooks/session/useSyncWhenAppIsActive.ts`: dispara a sincronização ao abrir o app e ao voltar ao primeiro plano.
 5. `apps/mobile/src/sync/AppRulesSync.ts`: `sync()` aplica mudanças vencidas, lê regras e pendências e entrega ao bloqueador.
 6. `packages/api/src/repositories/http/rules/HttpBlockRuleRepository.ts`: `list()` faz `GET /rules` pelo `HttpApiClient`.
 7. `apps/mobile/src/ports/blocker/BlockerPort.ts`: a porta que `AppRulesSync` usa (`applyRules`).
-8. `apps/mobile/src/adapters/blocker/createPlatformAdapters.ts`: escolhe o adaptador Android ou iOS; no Android, `android/AndroidBlockerAdapter.ts` serializa com `android/rules/toNativeRulesJson.ts` e chama `setRules` no módulo.
+8. `apps/mobile/src/adapters/blocker/createPlatformAdapters.ts` (chamado por `createDeviceAdapters`, que passa `Platform.OS` e o módulo nativo): escolhe o adaptador Android ou iOS; no Android, `android/AndroidBlockerAdapter.ts` serializa com `android/rules/toNativeRulesJson.ts` e chama `setRules` no módulo.
 9. `apps/mobile/modules/app-blocker/src/AppBlockerModule.ts`: a ponte TypeScript. O lado nativo é `android/src/main/java/expo/modules/appblocker/AppBlockerModule.kt` e `ios/AppBlockerModule.swift`.
 10. Em segundo plano: `apps/mobile/index.ts` importa `src/background/defineRulesSyncTask.ts`, que roda `syncRulesInBackground`. O agendamento vem de `useBackgroundRulesSync` e `RulesSyncScheduler`.
 
@@ -98,7 +98,7 @@ Três caminhos curtos, cada um percorre um fluxo inteiro, arquivo a arquivo. Lei
 2. `infra/modules/api/gateway.tf`: a HTTP API, os dois authorizers JWT (`cognito` e `cognito_admin`) e o stage.
 3. `infra/modules/api/routes.tf`: as rotas. `ANY /{proxy+}` (JWT) leva tudo que não tem rota própria, inclusive `POST /rules`, à integração da Lambda `api`; `/admin/{proxy+}` e `/dns-query/{token}` têm rota e permissão de invocação próprias.
 4. `infra/modules/api/functions.tf`: as funções. `module "api_function"` usa o handler `index.apiHandler` e as variáveis `TABLE_NAME`, `MAX_RULES_PER_USER` e `DNS_HOST`.
-5. `infra/modules/api/permissions.tf`: o que cada função pode fazer no DynamoDB.
+5. `infra/modules/api/permissions.tf`: o que cada função pode fazer no DynamoDB (e, na `admin`, no Cognito).
 6. `infra/modules/lambda_function/main.tf`: o módulo que cria a função, a role, os logs e o tracing.
 7. `packages/backend/scripts/packageLambda.mjs` e `packages/backend/src/index.ts`: geram o `lambda.zip` com `apiHandler`, `adminHandler`, `dnsHandler`, `preSignUpHandler` e `schedulerHandler`.
 

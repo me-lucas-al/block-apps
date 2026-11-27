@@ -7,6 +7,7 @@ Estado: código escrito e testado onde dá (lógica em CI Linux, compilação em
 - Apps são escolhidos no seletor da Apple (`FamilyActivityPicker`) e chegam como **tokens opacos**: o app não sabe nome nem bundle id, e os tokens valem só naquele aparelho. Por isso a regra de app do Android (pacote) não serve no iOS.
 - Sites bloqueiam por domínio em texto (`webContent.blockedByFilter`), então as regras `site` do servidor valem no iOS (limite de cerca de 50 domínios, **relato não confirmado em doc oficial**).
 - Palavras de busca não existem no iOS.
+- Há também um caminho por DNS para sites (perfil `.mobileconfig` e resolvedor DoH, só no servidor por enquanto): ver "Perfil de DNS no iPhone" em [BACKEND.md](BACKEND.md).
 - `DeviceActivity` aceita cerca de 20 atividades, com intervalo mínimo de 15 minutos, e `intervalDidEnd` nem sempre dispara. Esses limites (20 atividades, 15 minutos) e os de 50 apps e 50 domínios vêm de relatos de desenvolvedores; **não estão confirmados em documentação oficial da Apple** e precisam ser vistos em aparelho.
 - O usuário pode revogar a autorização em Ajustes, e os bloqueios caem na hora.
 
@@ -145,7 +146,6 @@ Opcional e **escondido por padrão**: o cartão "Modo estrito" só aparece em bu
 ## Fora do escopo
 
 - Palavras de busca no iOS e modo "filho" (controle parental).
-- O `RulesSyncWorker` do Android só relê o que está salvo; sincronização real só com o app aberto. Vale uma PR separada.
 
 ## Ordem de merge da pilha do iOS
 

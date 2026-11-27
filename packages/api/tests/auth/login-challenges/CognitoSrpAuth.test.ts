@@ -23,7 +23,7 @@ describe('CognitoSrpAuth.authenticate', () => {
 
     const outcome = await srpAuth.authenticate(challengedEmail, 'password-1')
 
-    expect(outcome.result).toEqual({ success: true })
+    expect(outcome.signInResult).toEqual({ kind: 'signed_in' })
     expect(outcome.tokens).toEqual({ ...signedInTokens, email: challengedEmail })
     expect(() => srpAuth.getPendingUser()).toThrow('No active authentication challenge')
   })
@@ -34,7 +34,7 @@ describe('CognitoSrpAuth.authenticate', () => {
 
     const outcome = await srpAuth.authenticate(challengedEmail, 'password-1')
 
-    expect(outcome.result).toEqual({ success: false, challenge: { kind: 'NEW_PASSWORD_REQUIRED' } })
+    expect(outcome.signInResult).toEqual({ kind: 'new_password_required' })
     expect(outcome.tokens).toBeUndefined()
     expect(srpAuth.getActiveEmail()).toBe(challengedEmail)
     expect(() => srpAuth.getPendingUser()).not.toThrow()
@@ -46,7 +46,7 @@ describe('CognitoSrpAuth.authenticate', () => {
 
     const outcome = await srpAuth.authenticate(challengedEmail, 'password-1')
 
-    expect(outcome.result).toEqual({ success: false, challenge: { kind: 'MFA_REQUIRED' } })
+    expect(outcome.signInResult).toEqual({ kind: 'mfa_totp_required' })
     expect(srpAuth.getActiveEmail()).toBe(challengedEmail)
     expect(() => srpAuth.getPendingUser()).not.toThrow()
   })
@@ -60,10 +60,7 @@ describe('CognitoSrpAuth.authenticate', () => {
 
     const outcome = await srpAuth.authenticate(challengedEmail, 'password-1')
 
-    expect(outcome.result).toEqual({
-      success: false,
-      challenge: { kind: 'MFA_SETUP', secretCode: 'SECRET-CODE' },
-    })
+    expect(outcome.signInResult).toEqual({ kind: 'mfa_setup_required', secretCode: 'SECRET-CODE' })
     expect(() => srpAuth.getPendingUser()).not.toThrow()
   })
 })

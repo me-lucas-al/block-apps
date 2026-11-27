@@ -12,6 +12,7 @@ export {
   type SignOutOutcome,
 } from './auth/SignOutUseCase'
 export { buildTotpUri } from './auth/buildTotpUri'
+export { assertUnreachableSignInResult } from './auth/assertUnreachableSignInResult'
 export { LocalUserSession } from './auth/session/LocalUserSession'
 export { MemorySessionStorage } from './auth/storage/MemorySessionStorage'
 export type { CognitoConfig } from './auth/cognito/CognitoConfig'

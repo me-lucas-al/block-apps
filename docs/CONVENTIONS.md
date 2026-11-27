@@ -15,26 +15,49 @@ Regras valem para TypeScript, Kotlin e Swift. As referências vêm da documenta�
 
 ```
 packages/
-  core/src/        rules/, schedule/{evaluation,editing}/, cooldown/, apps/{catalog,search}/, sites/, keywords/{matching,search-engines}/, users/
-  api/src/         auth/{cognito,session,storage}/, repositories/{contracts,http}/, http/client/, polling/
-  backend/src/     http/{app,routes,auth,errors}/, storage/{dynamodb,cognito}/, cooldown/, users/, devices/
+  core/src/          apps/{catalog,search/{matching,options}}/, cooldown/, ios/, keywords/{matching,search-engines}/, rules/change/, schedule/{evaluation,editing}/, sites/, users/
+  api/src/           auth/{cognito,contracts,google,pkce,session,storage}/, config/, http/client/, polling/, repositories/{contracts,http/{admin-users,devices,pending-changes,rules}}/, subscription/
+  api/tests/         testes do pacote (auth/, config/, helpers/, http/, integration/, polling/, repositories/)
+  backend/src/       auth/, composition/{,doh/}, cooldown/{contracts,scheduling,use-cases}/, devices/, dns/, domain/{errors,rules,streams,time}/, http/, lambda/, local/, rules/{contracts,quota,use-cases}/, storage/, users/{contracts,guards,model,presentation,use-cases}/
+    dns/             contracts/, errors/, profile/, resolver/, time-zone/, token/, upstream/, use-cases/
+    http/            app/, auth/, doh/, errors/, parsing/{bodies,fields,users}/, responses/, routes/
+    storage/         cognito/, dynamodb/{changes,conditions,devices,dns,keys,rules,settings,users}/
+    lambda/          uma entrada por função (api, admin, dns, scheduler, preSignUp/)
+    local/           servidor local e Cognito falso (nunca vai no zip da Lambda)
+  backend/tests/     testes do pacote (admin/, api/, auth/, composition/, cooldown/, dns/, domain/, helpers/, lambda/, local/, rules/, storage/)
+  backend/scripts/   empacota a Lambda (packageLambda.mjs) e o servidor local (buildLocal.mjs)
 infra/
-  modules/         auth/, api/, data/, admin_site/, lambda_function/
-  environments/dev/ main.tf, variables.tf, outputs.tf
+  bootstrap/         bucket S3 do estado remoto (aplicado uma vez)
+  modules/           auth/, api/, data/, admin_site/, lambda_function/
+  environments/dev/  main.tf, providers.tf, variables.tf, outputs.tf, versions.tf (e variáveis em arquivos separados)
 apps/
-  extension/        manifest/ (gera o manifest.json por navegador)
-  extension/src/   ports/{browser,data}/, adapters/{browser,chrome,firefox}/, shared/browser/, blocking/{,keywords/}, device/, popup/, background/
-  admin/src/       ports/, adapters/, components/, screens/, services/, users/
+  extension/manifest/  gera o manifest.json por navegador
+  extension/src/     ports/{browser,data}/, adapters/{browser,chrome/{browser,identity,storage},firefox}/, shared/browser/, blocking/{,keywords/}, device/, popup/{components/{auth,rules,status},hooks,services}/, background/, blocked/
+  admin/src/         ports/, adapters/, components/{layout,users}/, hooks/, screens/, services/, users/
   mobile/
-    src/           ports/{blocker,protection,appchoice,groupselection,device}/, adapters/blocker/{android,ios}/, sync/, hooks/, screens/, components/, device/, background/
+    src/             ports/{appchoice,blocker,device,groupselection,protection,strictmode}/, adapters/{auth,secure-store,blocker/{android,ios}}/, strictmode/, rules/, errors/, sync/, services/, hooks/{device,rules,session}/, screens/{auth,home}/, components/{home,protection,rules,ui}/, device/, background/
     modules/app-blocker/
-      src/                   ponte TypeScript
-      android/.../appblocker/  Kotlin: admin/, service/, system/, ui/, rules/{model,evaluation,storage}/
-      ios/                   Swift: BlockingCore/ (pacote puro), Shared/, Authorization/, Schedule/, Picker/, UseCases/, Exceptions/, Module/
+      src/                     ponte TypeScript
+      android/.../appblocker/  Kotlin: admin/, service/, system/, ui/, rules/{model,evaluation,exceptions,ownership,storage}/
+      ios/                     Swift: BlockingCore/ (pacote puro), Shared/, Authorization/, Schedule/, Picker/, UseCases/, Exceptions/, Module/
     targets/                 extensões iOS (device-activity-monitor, shield-config, shield-action)
+    scripts/                 syncIosSharedSources.mjs (copia o Swift compartilhado para targets/_shared)
+scripts/                     checkNoExplicitAny.mjs (pnpm check:no-any)
+docker/                      Dockerfiles do painel (admin/) e da API local (local-api/)
+docs/                        referência viva; history/ guarda registros do passado
 ```
 
 Código nativo de cada plataforma fica dentro do módulo (`android/`, `ios/`). A UI é uma só, em React Native.
+
+## Desvios conhecidos
+
+O texto acima descreve a regra. O repositório ainda foge dela nestes pontos, registrados aqui em vez de reescrever a regra:
+
+- **Testes de `packages/api` e `packages/backend`** ficam numa pasta `tests/` na raiz do pacote, não ao lado do código. Em Kotlin os testes seguem o padrão do Gradle (`android/src/test`) e em Swift o do SwiftPM (`BlockingCore/Tests`).
+- **Pastas com mais de 8 arquivos**, no momento desta escrita: `packages/api/src/auth/cognito`, `packages/backend/src/composition`, `packages/backend/src/storage/cognito`, `packages/backend/src/local`, `apps/mobile/src/rules`, `apps/admin/src/screens`, `apps/mobile` (raiz, quase só configuração), `infra/modules/api`, `infra/modules/auth` e `infra/environments/dev`. Nas pastas de testes: `packages/backend/tests/{helpers,helpers/dns,api,storage}` e `packages/api/tests/auth`. Para conferir: `git ls-files | sed -E 's#/[^/]+$##' | sort | uniq -c | sort -rn | head`.
+- **Arquivo acima de 100 linhas:** `packages/api/src/auth/cognito/CognitoAuthenticator.ts`, a fachada de login que delega aos colaboradores `Cognito*` da mesma pasta, e `infra/modules/api/variables.tf`. Também passam de 100 linhas os testes `searchApps.test.ts` (core), `CognitoSessionManager.test.ts` (api) e `rules.test.ts` (backend).
+- **Comentários:** `apps/mobile/index.ts` mantém os comentários do modelo do Expo.
+- **`infra/environments/dev`** só tem o ambiente `dev`; produção é aplicada pelo `release.yml` no ambiente `production` do GitHub, com o mesmo diretório.
 
 ## Extensão: um código, dois navegadores
 
